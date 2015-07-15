@@ -1,3 +1,6 @@
+# settings
+settings/settings.R
+
 # History files
 .Rhistory
 .Rapp.history
@@ -11,3 +14,12 @@
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+
+# packrate
+packrat/lib*/
+
+.DS_Store
+.Rproj.user
+tests/testthat/packrat/
+packrat-scenario*/
+packrat/lib*/
