@@ -4,22 +4,16 @@ settings/settings.R
 # History files
 .Rhistory
 .Rapp.history
-
 # Example code in package build process
 *-Ex.R
-
 # RStudio files
 .Rproj.user/
-
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
-
 # packrate
 packrat/lib*/
-
 .DS_Store
 .Rproj.user
 tests/testthat/packrat/
 packrat-scenario*/
-packrat/lib*/

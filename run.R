@@ -1,3 +1,3 @@
 
 library(shiny)
-runApp('.',port = 3939, launch.browser = F)
+runApp('.',port = 4545, launch.browser = F)

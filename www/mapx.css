@@ -1,33 +1,50 @@
 
 html {
-  top:0px;
-height:100%;
+  height:100%;
 }
+
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+
+.fullPage {
+  background-color: transparent;
+  height: auto;
+  min-height: 100%;  /* fallback for browsers that doesn't support "vh" */
+  min-height: 100vh;
+  background-size:50px 50px;
+}
+
+.pattern-fixed {
+left:0;
+width:10px;
+height:10px;
+}
+/*
 body { 
-top:0;
-min-height:100%;
-background:rgba(229, 229, 229, 0.96);;
+  top:0;
+  min-height:100%;
+  background:rgba(229, 229, 229, 0.96);;
 }
+
+*/
+
+
 
 #mapxMap { 
   top:0;
-  
+  /* fallback if vh is not supported */
+  min-height:100%;
+  height:100%;
+  /* full view port*/
   min-height: 100vh;
-height: 100vh;
+  height: 100vh;
 }
 
-
-
-/*
-body {
-  padding: 0;
-  margin: 0;
-}
-html, body, #mapxMap {
-  height: 100%;
-  width: 100%;
-}
-*/
 
 div.outer {
   position: fixed;
@@ -40,11 +57,95 @@ div.outer {
 }
 
 /* Customize fonts */
+
 body, label, input, button, select, .leaflet-control { 
   font-family: 'Helvetica Neue', Helvetica;
   font-weight: 200;
 }
-h1, h2, h3, h4 { font-weight: 400; }
+
+h1, h2, h3, h4 { 
+font-weight: 400; 
+}
+
+.shiny-input-container:not(.shiny-input-container-inline) {
+width:100%;
+}
+
+
+
+.leaflet-control-zoom {
+display:none;
+}
+
+
+.panel-modal {
+ 
+ z-index:9998;
+}
+
+
+.panel-modal-background {
+  opacity:0.3; 
+  background: #000; 
+  width:100%;
+  height:100%; 
+  z-index:99999;
+  top:0; 
+  left: 0; 
+  position:fixed;
+}
+
+
+
+.panel-modal-title {
+  margin: 30px;
+ text-align : center;
+ font-size : x-large;
+}
+
+.panel-modal-subtitle {
+  margin: 30px;
+  text-align : center;
+  font-size : small;
+
+}
+
+
+
+.panel-modal-content {
+   -webkit-box-shadow: -2px 2px 38px -6px rgba(0,0,0,0.75);
+-moz-box-shadow: -2px 2px 38px -6px rgba(0,0,0,0.75);
+box-shadow: -2px 2px 38px -6px rgba(0,0,0,0.75);
+  width:500px;
+  z-index:10000;
+  top:20%; 
+  left:30%; 
+  position:fixed;
+  background-color: white;
+  padding: 20px 20px 20px 20px;
+  cursor: move;
+  opacity: 1;
+} 
+
+
+.panel-modal-buttons {
+  margin-top:20px; 
+  text-align:center;
+}
+
+.panel-modal-text {
+  height:60%;
+  overflow-y:scroll;
+  margin:20px;
+  width:90%;
+  
+}
+
+.panel-overall {
+z-index : 100000
+
+}
+
 
 #controls {
   /* Appearance */
@@ -56,11 +157,15 @@ h1, h2, h3, h4 { font-weight: 400; }
   zoom: 0.9;
   transition: opacity 500ms 1s;
 }
+
+
 #controls:hover {
   /* Fade in while hovering */
   opacity: 0.95;
   transition-delay: 0;
 }
+
+
 
 /* Position and style citation */
 #cite {
@@ -77,5 +182,5 @@ h1, h2, h3, h4 { font-weight: 400; }
 
 
 .leaflet-control {
-border-radius : 0px;
+  border-radius : 0px;
 }
