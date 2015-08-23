@@ -6,6 +6,81 @@ Praesent id lacus vel metus gravida sollicitudin ut quis dui. Quisque lobortis t
 
 
 
+mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,id,labels,values){
+
+
+  stopifnot(is.vector(values) || is.vector(label))
+
+  ctx = sprintf("var ctx = document.getElementById('%s').getContext('2d');",id)
+
+  createGraph = "var myRadarChart = new Chart(ctx).Radar(data,
+  {
+    pointDot:false,
+    pointLabelFontSize : 13,
+    pointLabelFontColor : 'rgba(90,90,90,1)' ,
+    pointLabelFontFamily : \"'Helvetica Neue', 'Helvetica', 'Arial', sans-serif\",
+    pointLabelFontStyle : 'normal'
+  }
+  );"
+
+    data = toJSON(values)
+
+    labels = toJSON(labels)
+
+    js = sprintf("
+      /* create chart.js object*/
+      var data = {
+        labels: %s,
+        datasets: [
+        {
+          label: '%s',
+          fillColor: 'rgba(90,90,90,0.2)',
+          strokeColor: 'rgba(90,90,90,1)',
+          pointColor: 'rgba(90,90,90,1)',
+          pointStrokeColor: 'rgba(90,90,90,1)',
+          pointHighlightFill: 'rgba(90,90,90,1)',
+          pointHighlightStroke: 'rgba(151,187,205,1)',
+          data: %s
+        }
+        ]
+      };
+      /* get context  */
+      %s
+      %s
+      ",labels,main,data,ctx,createGraph)
+
+      session$sendCustomMessage(
+        type="jsCode",
+        list(code=js)
+        )
+
+}
+
+#' Set map panel mode
+#' @param session Shiny session
+#' @param mode Map panel mode. In mapViewCreator, mapStoryCreator, mapExplorer
+#' @param title Optionnal title to be returned.
+#' @return title string
+#' @export
+mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("mapViewCreator","mapStoryCreator","mapExplorer"),title=NULL){
+  mode = match.arg(mode)
+  jsCode <- sprintf("mxPanelMode.mode ='%s';",mode)
+  session$sendCustomMessage(type="jsCode",list(code=jsCode))
+  return(title)
+}
+
+
+#' print debug message
+#' this function could propulate log file.
+#' @param m Message to be printed
+#' @return NULL
+#' @export
+mxDebugMsg <- function(m=""){
+ 
+  options(digits.secs=6)
+  cat(paste0("[",Sys.time(),"]",m,'\n'))
+}
+
 
 mxTogglePanel <- function(session=shiny::getDefaultReactiveDomain(),id){
   jsToggle <- paste0("$('#",paste(id,"content",sep="_"),"').toggle();")
@@ -120,6 +195,18 @@ setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="le
     )
 }
 
+#' Set zIndex
+#' @param session Shiny session
+#' @param layer Leaflet.MapboxVectorTile layer group object name
+#' @param zIndex zIndex of the group
+#' @export
+setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtGroup",zIndex=15){
+ session$sendCustomMessage(
+    type="jsCode",
+    list(code=sprintf("if(typeof %s !== 'undefined'){for(key in %s){%s[key].setZIndex(%s)}};",layer,layer,layer,zIndex))
+    )
+}
+
 
 
 #' Toggle html element by class
@@ -230,5 +317,42 @@ dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
     dbDisconnect(con)
   })
 }
+
+
+
+
+mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
+  if(is.null(style)) style <- ""
+  cnt=0
+  contentList<-lapply(itemList,function(x){
+    cnt<<-cnt+1
+    ref<-paste0(subPunct(id,'_'),cnt)
+    showItem<-ifelse(cnt %in% show,'collapse in','collapse')
+    stopifnot(!is.list(x) || !is.null(x$title) || !char(x$title)<1 || !is.null(x$content) || !nchar(x$content)<1)
+    if(is.null(x$condition))x$condition="true"
+    div(style=style,class="panel panel-default",`data-display-if`=x$condition,
+      div(class="panel-heading mx-panel-header",
+        h4(class="panel-title",
+          a('data-toggle'="collapse", 'data-parent'=paste0('#',id),href=paste0("#",ref),x$title)
+          )
+        ),
+      div(id=ref,class=paste("panel-collapse",showItem),
+        div(class="panel-body mx-panel-content",x$content)
+        )
+      )
+  })
+
+  return(div(class="panel-group",id=id,
+      contentList
+      ))
+}
+# example:
+#amAccordionGroup(id='superTest',
+#  itemList=list(
+#    'a'=list('title'='superTitle',content='acontent'),
+#    'b'=list('title'='bTitle',content='bContent'))
+#  )
+#
+
 
 
