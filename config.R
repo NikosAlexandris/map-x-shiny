@@ -3,7 +3,7 @@
 
 options(shiny.maxRequestSize=30*1024^2)
 
-config <- list()
+mxConfig <- list()
 mxData <- list()
 
 
@@ -20,11 +20,11 @@ eitiCountry <- import('data/countriesEiti.ods')
 
 
 
-config$defaultZoom = 9
+mxConfig$defaultZoom = 9
 
 # https://en.wikipedia.org/wiki/GIS_file_formats
 # http://www.w3schools.com/tags/att_input_accept.asp
-config$inputDataFileFormat <- list(
+mxConfig$inputDataFileFormat <- list(
   "Shapefile" = list(
     name = "shapefile",
     type = "vector",
@@ -39,35 +39,78 @@ config$inputDataFileFormat <- list(
     )
   )
 
-config$inputDataClass <- list(
+mxConfig$inputDataClass <- list(
  
   )
 
 
 
-# country list
+
+#
+# set available palettes
+#
+
+
+mxConfig$colorPalettes = c(
+  "Blues",
+  "BuGn",
+  "BuPu",
+  "GnBu",
+  "Greens",
+  "Greys",
+  "Oranges",
+  "OrRd",
+  "PuBu",
+  "PuBuGn",
+  "PuRd",
+  "Purples",
+  "RdPu",
+  "Reds",
+  "YlGn",
+  "YlGnBu",
+  "YlOrBr",
+  "YlOrRd"
+  )
+
+
+#
+# country data
+#
 
 countryEitiTable <- import('data/countriesEiti.ods')
 countryEitiTable$map_x_pending <- as.logical(countryEitiTable$map_x_pending)
-countryEitiTable$name_ui <- paste0("<b>",countryEitiTable$name_un,"</b>(<i>",countryEitiTable$name_official,"</i>)")
-countryEitiTable$name_ui <- paste0(countryEitiTable$name_un," (",countryEitiTable$name_official,")")
+#countryEitiTable$name_ui <- paste("[",countryEitiTable$code_iso_3,"]",countryEitiTable$name_un,'(',countryEitiTable$name_official,')')
+countryEitiTable$name_ui <- paste(countryEitiTable$name_un,'(',countryEitiTable$name_official,')')
 countryList <- list(
+  "completed" = NULL,
   "pending"= as.list(countryEitiTable[countryEitiTable$map_x_pending,"code_iso_3"])  ,
-  "waiting"= as.list(countryEitiTable[!countryEitiTable$map_x_pending,"code_iso_3"])
+  "potential"= as.list(countryEitiTable[!countryEitiTable$map_x_pending,"code_iso_3"])
   )
 names(countryList$pending) = countryEitiTable[countryEitiTable$map_x_pending,"name_ui"]
-names(countryList$waiting) = countryEitiTable[!countryEitiTable$map_x_pending,"name_ui"]
+names(countryList$potential) = countryEitiTable[!countryEitiTable$map_x_pending,"name_ui"]
 
-config$countryListChoices = countryList
-
-
+mxConfig$countryListChoices = countryList
 
 
+mxConfig$countryListHtml  = HTML(
+  paste0(
+      paste0("<li class='dropdown-header'>Pending</li>"),
+      paste0("<li><a href=?country=",countryList$pending,"#sectionCountry>",names(countryList$pending),"</a></li>",collapse=""),
+      paste0("<li class='dropdown-header'>Potential</li>"),
+      paste0("<li><a href=?country=",countryList$potential,"#sectionCountry>",names(countryList$potential),"</a></li>",collapse="")
+      )
+  )
 
+
+mxData$countryInfo <- fromJSON('data/countriesEitiStory.json')
+
+
+#
 # list of tile provider
+#
 
-
-config$tileProviders = list(
+mxConfig$tileProviders = list(
+  "Default" = "NO_LAYER",
   "Simple I" = "CartoDB.PositronNoLabels",
   "Simple II" = "Hydda.Base",
   "Dark" = "CartoDB.DarkMatterNoLabels",
@@ -82,11 +125,14 @@ config$tileProviders = list(
 
 
 
-config$dataClass
 
 
+#
+# SET DATA CLASSES
+#
 
-config$class = list(
+
+mxConfig$class = list(
   "Development" = "dev",
   "Environment" = "env",
   "Natural resources" = "res",
@@ -94,7 +140,7 @@ config$class = list(
   )
 
 
-config$subclass = list(
+mxConfig$subclass = list(
   'dev' = list(
     'Unemployment'='unemployment',
     'Poverty' ='poverty'
@@ -111,15 +157,15 @@ config$subclass = list(
   'str'=list()
   )
 
-config$wdiIndicators <- WDIsearch()[,'indicator']
-names(config$wdiIndicators) <- WDIsearch()[,'name']
+
+#
+# SET WDI INFOS
+#
 
 
-
+mxConfig$wdiIndicators <- WDIsearch()[,'indicator']
+names(mxConfig$wdiIndicators) <- WDIsearch()[,'name']
 mxData$rgi_score_2013 <- na.omit(import('data/rgi_2013-compscores.csv'))
-
-
-
 mxData$rgi_score_2013$iso3 <- countrycode(mxData$rgi_score_2013$Country,'country.name','iso3c')
 
 names(mxData$rgi_score_2013)
