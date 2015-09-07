@@ -9,6 +9,7 @@ mxData <- list()
 mxConfig$defaultZoom = 9
 
 
+mxConfig$defaultGroup = "G1"
 #
 # INPUT FILE FORMATING
 #
