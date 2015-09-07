@@ -6,53 +6,64 @@ Praesent id lacus vel metus gravida sollicitudin ut quis dui. Quisque lobortis t
 
 
 
-mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,id,labels,values){
+mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,compMain,id,idLegend,labels,values,compValues){
 
 
   stopifnot(is.vector(values) || is.vector(label))
 
   ctx = sprintf("var ctx = document.getElementById('%s').getContext('2d');",id)
 
-  createGraph = "var myRadarChart = new Chart(ctx).Radar(data,
-  {
-    pointDot:false,
-    pointLabelFontSize : 13,
-    pointLabelFontColor : 'rgba(90,90,90,1)' ,
-    pointLabelFontFamily : \"'Helvetica Neue', 'Helvetica', 'Arial', sans-serif\",
-    pointLabelFontStyle : 'normal'
-  }
-  );"
+  createGraph = "var myRadarChart = new Chart(ctx).Radar(data)"
 
-    data = toJSON(values)
+  labels = jsonlite::toJSON(labels)
 
-    labels = toJSON(labels)
+  datasetMain = jsonlite::toJSON(auto_unbox=T,
+    list(
+      label = main,
+      fillColor = 'rgba(119,119, 119, 0.6)',
+      strokeColor = 'rgba(119,119, 119, 0.6)',
+      highlightFill = 'rgba(119,119, 119, 0.6)',
+      highlightStroke = 'rgba(119,119, 119, 0.6)',
+      data = values
+      )
+    )
 
-    js = sprintf("
-      /* create chart.js object*/
-      var data = {
-        labels: %s,
-        datasets: [
-        {
-          label: '%s',
-          fillColor: 'rgba(90,90,90,0.2)',
-          strokeColor: 'rgba(90,90,90,1)',
-          pointColor: 'rgba(90,90,90,1)',
-          pointStrokeColor: 'rgba(90,90,90,1)',
-          pointHighlightFill: 'rgba(90,90,90,1)',
-          pointHighlightStroke: 'rgba(151,187,205,1)',
-          data: %s
-        }
-        ]
-      };
-      /* get context  */
-      %s
-      %s
-      ",labels,main,data,ctx,createGraph)
+  datasetComp = jsonlite::toJSON(auto_unbox=T,
+    list(
+      label = compMain,
+      fillColor = 'rgba(255, 164, 0, 0.8)',
+      strokeColor = 'rgba(255, 164, 0, 0.9)',
+      highlightFill = 'rgba(255, 164, 0, 0.8)',
+      highlightStroke = 'rgba(255, 164, 0, 1)',
+      data = compValues
+      )
+    )
 
-      session$sendCustomMessage(
-        type="jsCode",
-        list(code=js)
-        )
+
+  js = sprintf("
+    /* create chart.js object*/
+    var data = {
+      labels: %s,
+      datasets: [ %s , %s ]
+    };
+    /* context */
+    %s
+    /*create graph */
+    %s
+    /* Generate legend */
+    var chartLegend = myRadarChart.generateLegend();
+    $('#'+'%s').html(function(){
+      return chartLegend;
+      });
+    ",labels,datasetComp,datasetMain,ctx,createGraph,idLegend)
+
+
+
+
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=js)
+      )
 
 }
 
@@ -62,11 +73,12 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,id
 #' @param title Optionnal title to be returned.
 #' @return title string
 #' @export
-mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("mapViewCreator","mapStoryCreator","mapExplorer"),title=NULL){
+mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("mapViewsConfig","mapViewsCreator","mapStoryCreator","mapViewsExplorer"),title=NULL){
   mode = match.arg(mode)
+  mxDebugMsg(paste("Set mode to : ", mode))
   jsCode <- sprintf("mxPanelMode.mode ='%s';",mode)
   session$sendCustomMessage(type="jsCode",list(code=jsCode))
-  return(title)
+  return(list(title=title,mode=mode))
 }
 
 
@@ -120,7 +132,6 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
     closeButton=a(href="#", onclick=jsHide,style="float:right;color:black",icon('times'))
   }
 
-print(paste("style for",idContent,':',style))
   tagList( 
     if(background){
     div(id=idBack,class=paste("panel-modal-background"))
@@ -164,6 +175,7 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
 
 mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),debug=TRUE,panelId="panelAlert"){
   tryCatch({
+    print(paste("mxCatch: ",title))
     eval(expression)
   },error = function(e){
     session$output[[panelId]]<-renderUI({
@@ -183,28 +195,70 @@ mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),
 }
 
 
+##' Hide layer
+##' @param session Shiny session
+##' @param layer Leaflet.MapboxVectorTile layer group object name
+##' @export
+#setLayerVisibility <- function(session=shiny:::getDefaultReactiveDomain(),views="leafletvtGroup",status="leafletvtVisible",group=NULL,visible=TRUE){
+#   if(!noDataCheck(group)){
+#     val = ifelse(visible,1,0)
+#     cond = ifelse(visible,'true','false')
+#    setOpac = sprintf("if(typeof %s !== 'undefined'){%s.%s.setOpacity(%s)};",views,views,group,val)
+#    setVisible = sprintf("if(typeof %s !== 'undefined'){%s.%s = %s };",status,status,group,cond)
+#    feedback = " Shiny.onInputChange('leafletvtVisible',leafletvtVisible);"
+#
+#    jsCode = paste(setOpac,setVisible,feedback)
+#
+#    session$sendCustomMessage(
+#      type="jsCode",
+#      list(code=jsCode)
+#      )
+#  }
+#
+#}
+#
+#
+#
+#
+#
+
 #' Set given layer opacity
 #' @param session Shiny session
 #' @param layer Leaflet.MapboxVectorTile layer group object name
 #' @param opacity Opacits
 #' @export
-setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="leafletvtGroup",opacity=1){
+setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="leafletvtGroup",group=NULL,opacity=1){
+  if(!noDataCheck(group)){
+    jsCode = sprintf("if(typeof %s !== 'undefined'){%s.%s.setOpacity(%s)};",layer,layer,group,opacity)
+    mxDebugMsg(jsCode)
   session$sendCustomMessage(
     type="jsCode",
-    list(code=sprintf("if(typeof %s !== 'undefined'){for(key in %s){%s[key].setOpacity(%s)}};",layer,layer,layer,opacity))
+    list(code=jsCode)
     )
+  }
 }
+
+
+
+
 
 #' Set zIndex
 #' @param session Shiny session
 #' @param layer Leaflet.MapboxVectorTile layer group object name
 #' @param zIndex zIndex of the group
 #' @export
-setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtGroup",zIndex=15){
- session$sendCustomMessage(
-    type="jsCode",
-    list(code=sprintf("if(typeof %s !== 'undefined'){for(key in %s){%s[key].setZIndex(%s)}};",layer,layer,layer,zIndex))
-    )
+setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtGroup",group=NULL,zIndex=15){
+  if(!is.null(group)){
+    jsCode <- sprintf("if(typeof %s !== 'undefined'){%s.%s.setZIndex(%s)};",layer,layer,group,zIndex)
+  }else{ 
+    jsCode <- sprintf("for(key in %s){%s[key].setZIndex(%s)};",layer,layer,zIndex)
+  }
+  if(!noDataCheck(group)){
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=jsCode)
+      )
+  }
 }
 
 
@@ -354,5 +408,156 @@ mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
 #  )
 #
 
+
+# load external ui file
+loadUi<-function(path){
+  source(path,local=TRUE)$value
+}
+
+
+#' Retrieve map views table 
+#' @param dbInfo Named list with dbName,host,port, user and password
+#' @param table Table name containing views info
+#' @param validated Boolean filter validated dataset. Default = TRUE
+#' @param archived Boolean filter to get archived data. Default =FALSE
+#' @param country ISO 3 code to filter country. 
+
+
+
+  mxGetViewsList <- function(dbInfo=NULL, table=NULL,validated=TRUE,archived=FALSE,country="AFG"){
+    tryCatch({
+      d <- dbInfo
+      drv <- dbDriver("PostgreSQL") 
+      con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+      country = paste0("'",country,"'",collapse=",")
+      if(isTRUE(table %in% dbListTables(con))){ 
+        sql <- sprintf("SELECT * FROM %s WHERE validated is %s AND archived is %s AND country IN (%s)",table,validated,archived,country)
+        res <- dbGetQuery(con,sql)
+        dbDisconnect(con) 
+          return(res)
+      }
+    },finally=dbDisconnect(con)) 
+  }
+
+
+mxFileInput<-function (inputId, label, fileAccept=NULL, multiple=FALSE){
+  inputTag<-tags$input(
+    type='file',
+    class='upload',
+    accept=paste(fileAccept,collapse=','),
+    id=inputId,
+    name=inputId)
+  if(multiple) inputTag$attribs$multiple='multiple'
+  spanTag<-tags$span(label)
+  inputClass<-tags$label(
+    class=c('btn-browse btn btn-default'),
+    id=inputId,
+    spanTag,
+    inputTag
+    )
+  tagList(inputClass,
+    tags$div(id = paste(inputId,"_progress", sep = ""), 
+      class = "progress progress-striped active shiny-file-input-progress",
+      tags$div(class = "progress-bar"), tags$label()))
+}
+
+mxActionButtonToggle <- function(id,session=shiny:::getDefaultReactiveDomain(),disable=TRUE) {
+  addDefault<-paste0("$('#",id,"').addClass('btn-default').removeClass('btn-danger').attr('disabled',false);")
+  addDanger<-paste0("$('#",id,"').addClass('btn-danger').removeClass('btn-default').attr('disabled',true);")
+
+  val<-ifelse(disable,addDanger,addDefault)
+  session$sendCustomMessage(
+    type="jsCode",
+    list(code=val)
+    )
+}
+
+
+remoteCmd <- function(host=NULL,user=NULL,port=NULLL,cmd=NULL){
+  if(!is.null(cmd)){
+   res =  system(sprintf("ssh -p %s %s@%s %s",port,user,host,cmd),intern=TRUE)
+  }
+  return(res)
+}
+
+
+ 
+
+
+
+#' Write spatial data frame to postgis
+#' Taken from https://philipphunziker.wordpress.com/2014/07/20/transferring-vector-data-between-postgis-and-r/
+#' @param con PostgreSQL connection
+#' @param spatial.df  Spatial  data frame object
+#' @param schemaname Target schema table
+#' @param tablename Target table name
+#' @param overwrite Overwrite if exists
+#' @param keyCol Set new primary key
+#' @param srid Set the epsg code / SRID
+#' @param geomCol Set the name of the geometry column
+dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, overwrite=FALSE, keyCol="gid", srid=4326, geomCol="geom") {
+
+ library(rgeos)
+   
+  # Create well known text and add to spatial DF
+  spatialwkt <- writeWKT(spatial.df, byid=TRUE)
+  spatial.df$wkt <- spatialwkt
+  
+  # Add temporary unique ID to spatial DF
+  spatial.df$spatial_id <- 1:nrow(spatial.df)
+  
+  # Set column names to lower case
+  names(spatial.df) <- tolower(names(spatial.df))
+  
+  # Upload DF to DB
+  data.df <- spatial.df@data
+  rv <- dbWriteTable(con, c(schemaname, tablename), data.df, overwrite=overwrite, row.names=FALSE)
+  
+  # Create geometry column and clean up table
+  schema.table <- paste(schemaname, ".", tablename, sep="")
+  query1 <- sprintf("ALTER TABLE %s ADD COLUMN %s GEOMETRY;", schema.table, geomCol)
+  query2 <- sprintf("UPDATE %s SET %s = ST_GEOMETRYFROMTEXT(t.wkt) FROM %s t  WHERE t.spatial_id = %s.spatial_id;",
+    schema.table, geomCol, schema.table, schema.table)
+  query3 <- sprintf("ALTER TABLE %s DROP COLUMN spatial_id;",schema.table)
+  query4 <- sprintf("ALTER TABLE %s DROP COLUMN wkt;",schema.table)
+  query5 <- sprintf("SELECT UpdateGeometrySRID('%s','%s','%s',%s);",schemaname,tablename,geomCol,srid)
+ 
+
+  er <- dbGetQuery(con, statement=query1)
+  er <- dbGetQuery(con, statement=query2)
+  er <- dbGetQuery(con, statement=query3)
+  er <- dbGetQuery(con, statement=query4)
+  er <- dbGetQuery(con, statement=query5)
+ 
+
+  if(!is.null(keyCol)){
+  query6 <- sprintf("ALTER TABLE %s ADD COLUMN %s SERIAL PRIMARY KEY;", schema.table, keyCol)
+  er <- dbGetQuery(con, statement=query6)
+  }
+
+
+  return(TRUE)
+}
+
+
+#' Add palette function
+#' sty leafletvt style
+#' pal name of palette to use
+#'@export
+addPaletteFun <- function(sty,pal){
+  if(sty$scaleType=="continuous") { 
+    sty$paletteFun <- colorNumeric(
+      palette = sty$palette,
+      domain = sty$values
+      )  
+  }else{
+    sty$paletteFun <- colorFactor(
+      palette = sty$palette,
+      sty$values
+      )
+  }
+  return(sty)
+
+}
 
 
