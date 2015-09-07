@@ -63,10 +63,12 @@
     })
 
 
+    #
+    #  FILE HANDLER : VALIDATION AND PSQL 
+    #
 
 
     observeEvent(input$fileNewLayer,{
-      #library(geojsonio) # TODO: check why this package did not work
       dat = input$fileNewLayer
       nam = mxReact$newLayerName 
       if(noDataCheck(nam)){
@@ -135,37 +137,6 @@
     })
 
 
-      #library(gdalUtils)
-      #map <- readOGR(dat$datapath, "OGRGeoJSON", require_geomType=c("wkbPoint", "wkbLineString", "wkbPolygon"))
-
-#     
-#      
-#      prj <- unlist(strsplit(proj4string(map),"\\s*\\+"))
-#      prjOk <- "proj=longlat" %in% prj
-#      ellpsOk <- "ellps=WGS84" %in% prj
-#      allOk <- all(c(prjOk,ellpsOk))
-#      if(allOk){
-#        d <- dbInfo
-#        r <- remoteInfo
-#        dsn <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
-#          d$dbname,d$host,d$port,d$user,d$password
-#          )
-#
-#
-#        d = dbInfo
-#        drv <- dbDriver("PostgreSQL")
-#        con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-#        # Write myspatialdata.spdf to PostGIS DB
-#        dbWriteSpatial(con,map, schemaname="public", tablename=nam, overwrite=TRUE,keyCol="gid",srid=4326,geomCol="geom")
-#        dbDisconnect(con)         
-#
-#
-
-
-  #
-  # initialize  mapViews creator mode
-  #
-
 
   #
   # Populate layer selection
@@ -182,9 +153,8 @@
       
      # mxCatch("Update input: pgrestapi layer list",{
         layers <- vtGetLayers(port=3030,grepExpr=paste0("^",cntry,"_"))
-
         if(!noDataCheck(layers)){
-          choice = layers  
+          choice = c(choice,layers)  
         }
         updateSelectInput(session,"selLayer",choices=choice)
         mxReact$layerList = choice
@@ -265,9 +235,6 @@
     mxStyle$palette  <- if(!noDataCheck(input$selPalette))input$selPalette
   })
 
- # observe({
- #   mxStyle$inversepalette  <- if(!noDataCheck(input$checkBoxInversePalette))input$checkBoxInversePalette
- # })
   observe({
     mxStyle$opacity <- if(!noDataCheck(input$selOpacity))input$selOpacity
   })
@@ -294,9 +261,53 @@
   # Set current group.
   #
   observe({
-    grp = "G1"
-    mxStyle$group = grp
+    mxStyle$group = mxConfig$defaultGroup
   })
+
+  #
+  # SAVE STYLE
+  # 
+
+  observeEvent(input$btnMapCreatorSave,{
+    mxCatch(title="Save style",{
+      sty <- reactiveValuesToList(mxStyle)
+      tableName <- mxConfig$viewsListTableName
+      d <- dbInfo
+      drv <- dbDriver("PostgreSQL")
+      con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+
+      tryCatch({
+        tableAppend = isTRUE( tableName %in% dbListTables(con))
+        tbl = as.data.frame(stringsAsFactors=FALSE,list(
+            id =  randomName(),
+            country = mxReact$selectCountry,
+            title = input$mapViewTitle,
+            class = input$mapViewClass,
+            layer = sty$layer,
+            editor = "f@fxi.io",
+            reviever = "f@fxi.io",
+            revision = 0,
+            validated = TRUE,
+            archived = FALSE,
+            dateCreated = date(),
+            dataModifed = date(),
+            dateValidated = date(),
+            dateVariableMax = max(input$mapViewDateRange),
+            dateVariableMin = min(input$mapViewDateRange),
+            style = toJSON(sty,collapse="")
+            )
+          )
+        dbWriteTable(con,tableName,value=tbl,append=tableAppend,row.names=F)
+      },finally=dbDisconnect(con)
+      )
+
+      mxDebugMsg(sprintf("Write style %s in table %s", tbl$id, tbl$layer))
+      mxReact$viewsListUpdate <- runif(1)
+      output$txtValidationCreator = renderText({"ok."})
+  })
+})
+
+
 
 
   }

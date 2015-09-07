@@ -1,10 +1,5 @@
 
 
-lorem <- "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum posuere turpis eu tempus aliquet. Etiam id quam sapien. Suspendisse fermentum est non augue interdum pulvinar. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur maximus in quam eget efficitur. Etiam tempor, tortor nec tristique ultrices, diam justo finibus risus, quis auctor urna magna a est. Integer gravida ligula sapien, quis mattis justo viverra eget. Sed semper vulputate quam. Nam vehicula tellus nec justo pretium consequat. Nunc accumsan mi vel felis tristique aliquet.
-
-Praesent id lacus vel metus gravida sollicitudin ut quis dui. Quisque lobortis tristique eleifend. Duis feugiat justo vel arcu tincidunt, quis vehicula purus posuere. Sed tortor arcu, varius eget sollicitudin vitae, sodales et risus. Curabitur euismod elit eu pulvinar ullamcorper. Vivamus pulvinar metus nec dolor pretium molestie. Praesent convallis porttitor augue, et elementum eros commodo id."
-
-
 
 mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,compMain,id,idLegend,labels,values,compValues){
 
@@ -87,8 +82,7 @@ mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("
 #' @param m Message to be printed
 #' @return NULL
 #' @export
-mxDebugMsg <- function(m=""){
- 
+mxDebugMsg <- function(m=""){ 
   options(digits.secs=6)
   cat(paste0("[",Sys.time(),"]",m,'\n'))
 }
@@ -175,7 +169,7 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
 
 mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),debug=TRUE,panelId="panelAlert"){
   tryCatch({
-    print(paste("mxCatch: ",title))
+    #print(paste("mxCatch: ",title))
     eval(expression)
   },error = function(e){
     session$output[[panelId]]<-renderUI({
@@ -560,4 +554,114 @@ addPaletteFun <- function(sty,pal){
 
 }
 
+mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,status){
+
+       if(!noDataCheck(style) && !any(sapply(style,is.null))){
+      vtOk = isTRUE(style$group == status$grp && grep(style$layer,status$lay)>0)
+      if(!vtOk){
+        mxDebugMsg("style vs status conflict: return NULL")
+        return()
+      }
+      if(vtOk){
+        mxDebugMsg("Update layer style")
+        tit <- style$title
+        col <- style$colors
+        pal <- style$paletteFun
+        val <- style$values
+        var <- style$variable
+        lay <- style$layer
+        opa <- style$opacity
+        sze <- style$size
+        grp <- style$group
+        leg <- style$hideLegends
+        bnd <- style$bounds
+        mxDebugMsg("Begin style")
+        start = Sys.time()
+        legendId = sprintf("%s_legends",grp)
+        proxyMap <- leafletProxy("mapxMap")
+        if(is.null(tit))tit=lay
+        if(!leg){
+          mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
+          proxyMap %>%
+          addLegend(position="topright",pal=pal,values=val,title=tit,layerId = legendId)
+        }else{
+          mxDebugMsg(sprintf("Remove legend layer id %s", legendId))
+          proxyMap %>%
+          removeControl(legendId)
+        }
+
+        names(col) <- val
+        jsColorsPalette <- sprintf("var colorsPalette=%s;",toJSON(col,collapse=""))
+        jsDataCol <- sprintf("var dataColumn ='%s' ;",var)
+        jsOpacity <- sprintf("var opacity =%s ;",opa)
+        jsSize <- sprintf("var size =%s; ", sze)
+        jsUpdate <- sprintf("leafletvtGroup.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
+
+        jsStyle = "updateStyle = function (feature) {
+        var style = {};
+        var selected = style.selected = {};
+        var type = feature.type;
+        var defaultColor = 'rgba(0,0,0,0)';
+        var dataCol = defaultColor;
+        var val = feature.properties[dataColumn];
+        if( typeof(val) != 'undefined'){ 
+          var dataCol = hex2rgb(colorsPalette[val],opacity);
+          if(typeof(dataCol) == 'undefined'){
+            dataCol = defaultColor;
+          }
+        }
+        switch (type) {
+          case 1: //'Point'
+          style.color = dataCol;
+          style.radius = size;
+          selected.color = 'rgba(255,255,0,0.5)';
+          selected.radius = 6;
+          break;
+          case 2: //'LineString'
+          style.color = dataCol;
+          style.size = size;
+          selected.color = 'rgba(255,25,0,0.5)';
+          selected.size = size;
+          break;
+          case 3: //'Polygon'
+          style.color = dataCol;
+          style.outline = {
+            color: dataCol,
+            size: 1
+          };
+          selected.color = 'rgba(255,0,0,0)';
+          selected.outline = {
+            color: 'rgba(255,0,0,0.9)',
+            size: size
+          };
+          break;
+        };
+        return style;
+
+      };
+      "
+      # jsStyle = "updateStyle = function(){s={};s.color=randomHsl(0.8); return s;};"
+      #jsTimeBefore = "var d= new Date(); console.log('Time before style' + d + d.getMilliseconds());"
+      #jsTimeAfter = "var d= new Date(); console.log('Time after style' + d + d.getMilliseconds());"
+      jsCode = paste(
+        jsColorsPalette,
+        jsDataCol,
+        jsOpacity,
+        jsSize,
+        jsStyle,
+        jsUpdate
+        )
+
+
+     # session$sendCustomMessage(type="jsCode",list(code=jsTimeBefore))
+      session$sendCustomMessage(type="jsCode",list(code=jsCode))
+     # session$sendCustomMessage(type="jsCode",list(code=jsTimeAfter))
+
+      #      setLayerZIndex(group=grp,zIndex=15)
+      stop <- Sys.time() - start
+      mxDebugMsg(paste("End style. Timing=",stop))
+      cat(paste(paste0(rep("-",80),collapse=""),"\n"))
+        }
+        }
+        }
 
