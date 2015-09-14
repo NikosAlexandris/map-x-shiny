@@ -129,7 +129,7 @@ server <- function(input, output, session) {
       views = list()
       if(!noDataCheck(cntry)){
         viewsDf <- mxGetViewsList(dbInfo,mxConfig$viewsListTableName,country=cntry)
-        if(nrow(viewsDf)>0){
+        if(isTRUE(nrow(viewsDf)>0)){
           # create list of map views
           for(i in viewsDf$id){
             views[[i]] <- as.list(viewsDf[viewsDf$id==i,])
