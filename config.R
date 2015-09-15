@@ -19,10 +19,12 @@ mxConfig$os<-Sys.info()['sysname']
 
 switch(mxConfig$os,
   'Darwin'={
+    mxConfig$portVt <- 3030
     print("map-x launched on MAC OX X")
 
   },
   "Linux"={
+    mxConfig$portVt <- 3001
     print("map-x launched on LINUX")
   } 
   )
@@ -71,8 +73,8 @@ mxConfig$viewsListTableName = "mx_views"
 
 mxConfig$noData = "[NO DATA]"
 mxConfig$noLayer = "[NO LAYER]"
-#mxConfig$restartPgRestApi = "pm2 restart app"
-mxConfig$restartPgRestApi = "pathToTmp=/home/vagrant/tools/PGRrestAPI/tmp; mkdir -p $pathToTmp touch $pathToTmp/restart.txt"
+mxConfig$restartPgRestApi = "pm2 restart pgrestapi"
+#mxConfig$restartPgRestApi = "pathToTmp=/home/vagrant/tools/PGRestAPI/tmp; mkdir -p $pathToTmp touch $pathToTmp/restart.txt"
 
 #
 # set available palettes
