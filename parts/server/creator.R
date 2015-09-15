@@ -157,7 +157,7 @@
       #mxDebugMsg("Update layers list")
       
      # mxCatch("Update input: pgrestapi layer list",{
-        layers <- vtGetLayers(port=3030,grepExpr=paste0("^",cntry,"_"))
+        layers <- vtGetLayers(port=mxConfig$portVt,grepExpr=paste0("^",cntry,"_"))
         if(!noDataCheck(layers)){
           choice = c(choice,layers)  
         }
@@ -176,7 +176,7 @@
         vars = mxConfig$noData
         lay = input$selLayer
         if(!noDataCheck(lay)){
-          variables <- vtGetColumns(table=lay,port=3030,exclude=c("geom","gid"))$column_name
+          variables <- vtGetColumns(table=lay,port=mxConfig$portVt,exclude=c("geom","gid"))$column_name
           if(!noDataCheck(variables)){
             vars = variables
           } 

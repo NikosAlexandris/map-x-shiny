@@ -471,7 +471,7 @@ server <- function(input, output, session) {
         mxDebugMsg(paste("Ready to add vector tiles",lay," in group",grp))
         isolate({
           if(mapViewMode == "mapViewsCreator"){
-            vars <- vtGetColumns(table=lay,port=3030)$column_name
+            vars <- vtGetColumns(table=lay,port=mxConfig$portVt)$column_name
             grpClean <- mxConfig$defaultGroup
           }else{
             vars <- c(mxStyle$variable)
