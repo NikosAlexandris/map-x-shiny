@@ -95,7 +95,7 @@
           )
         src = dat$datapath
 
-        # NOTE : no standard metod worked.
+        # NOTE : no standard method worked.
         # rgdal::writeOGR (require loading in r AND did not provide options AND did not allow mixed geometry) or gdalUtils::ogr2ogr failed (did not set -f option!).
         cmd = sprintf(
           "ogr2ogr
@@ -106,6 +106,7 @@
           -lco GEOMETRY_NAME=geom
           -lco SCHEMA=public
           -f 'PostgreSQL'
+          -overwrite
           -nln '%s'
           '%s'
           '%s'
@@ -113,7 +114,7 @@
           cmd <- gsub("\\n","",cmd)
           er = system(cmd,intern=TRUE)
 
-          if(mxConfig$os=="Darwin"){
+          if(isTRUE(mxConfig$os=="Darwin")){
             # note: use ssh-copy-id and accept known host. Use the browser the first time...
             # TODO: create a method to avoid this !
             if(!exists(remoteInfo))stop("No remoteInfo found in /settings/settings.R")
