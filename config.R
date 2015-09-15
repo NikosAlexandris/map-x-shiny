@@ -9,6 +9,27 @@ mxData <- list()
 mxConfig$defaultZoom = 9
 
 
+
+#
+# SET OS INFO
+#
+
+# grass binaries and libs
+mxConfig$os<-Sys.info()['sysname']
+
+switch(mxConfig$os,
+  'Darwin'={
+    print("map-x launched on MAC OX X")
+
+  },
+  "Linux"={
+    print("map-x launched on LINUX")
+  } 
+  )
+
+
+
+
 mxConfig$defaultGroup = "G1"
 #
 # INPUT FILE FORMATING
@@ -50,7 +71,8 @@ mxConfig$viewsListTableName = "mx_views"
 
 mxConfig$noData = "[NO DATA]"
 mxConfig$noLayer = "[NO LAYER]"
-mxConfig$restartPgRestApi = "pm2 restart app"
+#mxConfig$restartPgRestApi = "pm2 restart app"
+mxConfig$restartPgRestApi = "pathToTmp=/home/vagrant/tools/PGRrestAPI/tmp; mkdir -p $pathToTmp touch $pathToTmp/restart.txt"
 
 #
 # set available palettes
