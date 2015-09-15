@@ -113,13 +113,17 @@
           cmd <- gsub("\\n","",cmd)
           er = system(cmd,intern=TRUE)
 
-
-          # note: use ssh-copy-id and accept known host. Use the browser the first time...
-          # TODO: create a method to avoid this !
-          r <- remoteInfo
-      mxDebugMsg("Command to remote server to restart app")
-          remoteCmd(host=r$host,port=r$port,user=r$user,cmd=mxConfig$restartPgRestApi)
-         mxDebugMsg("invalidate layer list")
+          if(mxConfig$os=="Darwin"){
+            # note: use ssh-copy-id and accept known host. Use the browser the first time...
+            # TODO: create a method to avoid this !
+            if(!exists(remoteInfo))stop("No remoteInfo found in /settings/settings.R")
+            r <- remoteInfo
+            mxDebugMsg("Command remote server to restart app")
+            remoteCmd(host=r$host,port=r$port,user=r$user,cmd=mxConfig$restartPgRestApi)
+          }else{
+            system(mxConfig$restartPgRestApi)
+          }
+          mxDebugMsg("invalidate layer list")
           mxReact$layerListUpdate <- runif(1)
       }else{
         msgList <- paste("Error before importation. projOk=",projOk,"ellpsOk=",ellpsOk)
