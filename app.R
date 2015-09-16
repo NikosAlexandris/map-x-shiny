@@ -420,7 +420,7 @@ server <- function(input, output, session) {
           leaflet() %>%
           clearGroup(group) %>%
           addTiles(
-            'http://localhost:3030/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png',
+            'http://calc.grid.unep.ch:3030/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png',
             group=group,
             options=list(
               'zIndex'=0,
@@ -428,7 +428,7 @@ server <- function(input, output, session) {
               'maxZoom'=6)
             ) %>%  
           addTiles(
-            'http://localhost:3030/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png',
+            'http://calc.grid.unep.ch:3030/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png',
             group=group,
             options=list(
               'zIndex'=0,
@@ -441,7 +441,7 @@ server <- function(input, output, session) {
           leaflet() %>%
           clearGroup(group) %>%
           addTiles(
-            'http://localhost:3030/services/tiles/afg_base_layer/{z}/{x}/{y}.png',
+            'http://calc.grid.unep.ch:3030/services/tiles/afg_base_layer/{z}/{x}/{y}.png',
             group=group,
             options=list(
               'zIndex'=0
@@ -483,7 +483,7 @@ server <- function(input, output, session) {
           proxyMap %>%
           {if(!noDataCheck(grpClean)) clearGroup(.,group=grpClean) else . } %>%
           addVectorTiles(
-            url="localhost",
+            url="calc.grid.unep.ch",
             port=3030,
             geomColumn="geom", # should be auto resolved by PGRestAPI
             idColumn="gid", # should be auto resolved by PGRrestAPI
@@ -572,14 +572,14 @@ server <- function(input, output, session) {
               proxyMap %>%
               clearGroup(group) %>%
               addTiles(
-                'http://localhost:3030/services/tiles/cod_labels_0_6/{z}/{x}/{y}.png',
+                'http://calc.grid.unep.ch:3030/services/tiles/cod_labels_0_6/{z}/{x}/{y}.png',
                 group=group,
                 options=list(
                   'zIndex'=30,
                   'minZoom'=0,
                   'maxZoom'=6)
                 ) %>%  addTiles(
-                "http://localhost:3030/services/tiles/cod_labels_7_10/{z}/{x}/{y}.png;",
+                "http://calc.grid.unep.ch:3030/services/tiles/cod_labels_7_10/{z}/{x}/{y}.png;",
                 group=group,
                 options=list(
                   'zIndex'=30,
@@ -591,7 +591,7 @@ server <- function(input, output, session) {
               proxyMap %>%
               clearGroup(group) %>%
               addTiles(
-                'http://localhost:3030/services/tiles/afg_labels/{z}/{x}/{y}.png',
+                'http://calc.grid.unep.ch:3030/services/tiles/afg_labels/{z}/{x}/{y}.png',
                 group=group,
                 options=list(
                   zIndex=30
