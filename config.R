@@ -81,7 +81,7 @@ mxConfig$viewsListTableName = "mx_views"
 
 mxConfig$noData = "[NO DATA]"
 mxConfig$noLayer = "[NO LAYER]"
-mxConfig$restartPgRestApi = "pm2 restart pgrestapi"
+mxConfig$restartPgRestApi = "pm2 restart 'pgrestapi'"
 #mxConfig$restartPgRestApi = "pathToTmp=/home/vagrant/tools/PGRestAPI/tmp; mkdir -p $pathToTmp touch $pathToTmp/restart.txt"
 
 #
