@@ -11,7 +11,7 @@ observe({
   allowMapSection <- mxAllow(
     logged = mxReact$mxLogged,
     roleNum = mxConfig$rolesVal[[mxReact$mxRole]],
-    roleLowerLimit = 100
+    roleLowerLimit = 101
     )
 
   mxReact$uiDisplayMap <- allowMapSection
