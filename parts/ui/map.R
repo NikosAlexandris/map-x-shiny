@@ -1,9 +1,6 @@
 #
 # MAP-CONTENT
 #
-
-
-
 uiMapCreator <-tagList(
   #
   # MAP CREATOR
@@ -115,47 +112,59 @@ uiMapCreator <-tagList(
       )
     )
 
+
+  #
+  # MAP SECTION
+  #
+
   tags$section(id="sectionMap",
-    div(class="map-wrapper col-xs-12",
-      #
-      # ERROR PANNEL
-      #
-      uiOutput('panelAlert'),
-      # LEAFLET
-      leafletOutput("mapxMap",width="100%",height="100%"),
-      div(id="info-box",
-        div(id="info-box-container",
-          h4("Object information"),
-          div(id="info-box-content")
-          )
-        ),
-      div(id="map-left",class="scrollable",
-        div(class="map-text scrollable",
-          h2(textOutput("titlePanelMode")),
-          div(class="row",
-            div(class="map-text-left",
-              conditionalPanel(condition="mxPanelMode.mode == 'mapViewsExplorer'",
-                uiMapList
+    conditionalPanel(condition="output.uiDisplayMap==true",
+      div(class="map-wrapper col-xs-12",
+        #
+        # ERROR PANNEL
+        #
+        uiOutput('panelAlert'),
+        #
+        # LEAFLET PART
+        #
+        leafletOutput("mapxMap",width="100%",height="100%"),
+        div(id="info-box",
+          div(id="info-box-container",
+            h4("Object information"),
+            div(id="info-box-content")
+            )
+          ),
+        #
+        # MAP LEFT
+        #
+        div(id="map-left",class="scrollable",
+          div(class="map-text scrollable",
+            h2(textOutput("titlePanelMode")),
+            div(class="row",
+              div(class="map-text-left",
+                conditionalPanel(condition="mxPanelMode.mode == 'mapViewsExplorer'",
+                  uiMapList
+                  ),
+                conditionalPanel(condition="mxPanelMode.mode == 'mapViewsCreator'",
+                  uiMapCreator
+                  ),
+                conditionalPanel(condition="mxPanelMode.mode == 'mapViewsConfig'",
+                  uiMapConfig
+                  ) 
                 ),
-              conditionalPanel(condition="mxPanelMode.mode == 'mapViewsCreator'",
-                uiMapCreator
-                ),
-              conditionalPanel(condition="mxPanelMode.mode == 'mapViewsConfig'",
-                uiMapConfig
-                ) 
-              ),
-            div(class="map-text-nav",
-              tags$ul(class="nav",
-                tags$li(tags$button(id="btnStopMapScroll",class="btn-icon",icon("unlock"))),
-                tags$li(tags$button(id='btnViewsCollapse', class="btn-icon",icon("angle-double-left"))),
-                tags$li(actionButton('btnViewsExplorer',class="btn-icon",label=icon("map-o"))),
-                tags$li(actionButton('btnViewsCreator',class="btn-icon",label=icon("plus"))),
-                tags$li(tags$button(id='btnInfoClick',class="btn-icon",icon("info"))),
-                tags$li(actionButton('btnViewsConfig',class="btn-icon",label=icon("wrench")))
+              div(class="map-text-nav",
+                tags$ul(class="nav",
+                  tags$li(tags$button(id="btnStopMapScroll",class="btn-icon",icon("unlock"))),
+                  tags$li(tags$button(id='btnViewsCollapse', class="btn-icon",icon("angle-double-left"))),
+                  tags$li(actionButton('btnViewsExplorer',class="btn-icon",label=icon("map-o"))),
+                  tags$li(actionButton('btnViewsCreator',class="btn-icon",label=icon("plus"))),
+                  tags$li(tags$button(id='btnInfoClick',class="btn-icon",icon("info"))),
+                  tags$li(actionButton('btnViewsConfig',class="btn-icon",label=icon("wrench")))
+                  )
                 )
               )
-            )
-          ) 
+            ) 
+          )
         )
       )
     )

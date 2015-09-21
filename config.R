@@ -14,13 +14,14 @@ mxConfig$defaultZoom = 9
 # SET OS INFO
 #
 
-# grass binaries and libs
+# set location specific variable.
+# In this case : Darwin = devel environment; linux = production environment
 mxConfig$os<-Sys.info()['sysname']
 
 switch(mxConfig$os,
   'Darwin'={
     mxConfig$portVt <- 3030
-    mxConfig$hostVt <- "calc.grid.unep.ch"
+    mxConfig$hostVt <- "localhost"
     print("map-x launched on MAC OX X")
 
   },
@@ -32,7 +33,12 @@ switch(mxConfig$os,
   )
 
 
-
+mxConfig$rolesVal <- list(
+  "superuser" = 1000,
+  "admin" = 1000,
+  "user" = 100,
+  "visitor" = 0
+  )
 
 mxConfig$defaultGroup = "G1"
 #
@@ -152,13 +158,22 @@ mxConfig$countryListChoices = countryList
 mxConfig$countryListHtml  = HTML(
   paste0(
       paste0("<li class='dropdown-header'>Pending</li>"),
-      #paste0("<li><a href=?country=",countryList$pending,"#sectionCountry>",names(countryList$pending),"</a></li>",collapse=""),
       paste0("<li><a href=?country=",countryList$pending,"#>",names(countryList$pending),"</a></li>",collapse=""),
       paste0("<li class='dropdown-header'>Potential</li>"),
-      #paste0("<li><a href=?country=",countryList$potential,"#sectionCountry>",names(countryList$potential),"</a></li>",collapse="")
       paste0("<li><a href=?country=",countryList$potential,"#>",names(countryList$potential),"</a></li>",collapse="")
       )
   )
+
+#
+#output$countryDropDown  = renderUI(HTML(
+#  paste0(
+#      paste0("<li class='dropdown-header'>Pending</li>"),
+#      paste0("<li><a href=?country=",countryList$pending,"#>",names(countryList$pending),"</a></li>",collapse=""),
+#      paste0("<li class='dropdown-header'>Potential</li>"),
+#      paste0("<li><a href=?country=",countryList$potential,"#>",names(countryList$potential),"</a></li>",collapse="")
+#      )
+#  ))
+#
 
 
 mxData$countryInfo <- fromJSON('data/countriesEitiStory.json')
@@ -200,7 +215,8 @@ mxConfig$class = list(
 mxConfig$subclass = list(
   'dev' = list(
     'Unemployment'='unemployment',
-    'Poverty' ='poverty'
+    'Poverty' ='poverty',
+    'Agriculture' = 'agriculture'
     ),
   'env' = list(
     'Forest cover'='forest',
@@ -236,3 +252,88 @@ mxData$rgi_score_2013$iso3 <- countrycode(mxData$rgi_score_2013$Country,'country
 names(mxData$rgi_score_2013)
 
 #
+
+
+#
+# BASE LAYER
+#
+
+
+mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,lat=0,zoom=5)){
+  switch(iso3,
+    "COD"={
+      leaflet() %>%
+      clearGroup(group) %>%
+      addTiles(
+        paste0("http://",mxConfig$hostVt,":3030/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png"),
+        group=group,
+        options=list(
+          "zIndex"=0,
+          "minZoom"=0,
+          "maxZoom"=6)
+        ) %>%  
+      addTiles(
+       paste0("http://",mxConfig$hostVt,":3030/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png"),
+        group=group,
+        options=list(
+          "zIndex"=0,
+          "minZoom"=7,
+          "maxZoom"=10)
+        ) %>%
+      setView(center$lng,center$lat,center$zoom)
+    },
+    "AFG"={
+      leaflet() %>%
+      clearGroup(group) %>%
+      addTiles(
+        paste0("http://",mxConfig$hostVt,":3030/services/tiles/afg_base_layer/{z}/{x}/{y}.png"),
+        group=group,
+        options=list(
+          "zIndex"=0
+          )
+        )%>% setView(center$lng,center$lat,center$zoom)
+    } 
+    )
+}
+
+
+#
+# LABEL LAYER
+#
+
+
+mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
+  switch(iso3,
+    "COD"={
+      proxyMap %>%
+      clearGroup(group) %>%
+      addTiles(
+        paste0("http://",mxConfig$hostVt,":3030/services/tiles/cod_labels_0_6/{z}/{x}/{y}.png"),
+        group=group,
+        options=list(
+          "zIndex"=30,
+          "minZoom"=0,
+          "maxZoom"=6)
+        ) %>%  addTiles(
+        paste0("http://",mxConfig$hostVt,":3030/services/tiles/cod_labels_7_10/{z}/{x}/{y}.png;"),
+        group=group,
+        options=list(
+          "zIndex"=30,
+          "minZoom"=7,
+          "maxZoom"=10)
+        )
+    },
+    "AFG"={
+      proxyMap %>%
+      clearGroup(group) %>%
+      addTiles(
+        paste0("http://",mxConfig$hostVt,":3030/services/tiles/afg_labels/{z}/{x}/{y}.png"),
+        group=group,
+        options=list(
+          zIndex=30
+          )
+        )
+    }
+    )
+}
+
