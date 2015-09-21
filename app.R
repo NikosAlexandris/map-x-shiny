@@ -37,7 +37,8 @@ ui <- tagList(
     # SECTIONS
     #
     loadUi('parts/ui/nav.R'),
-    loadUi('parts/ui/intro.R'), # contain also login
+    loadUi('parts/ui/intro.R'), 
+    loadUi('parts/ui/login.R'),
     loadUi('parts/ui/about.R'),
     loadUi('parts/ui/country.R'),
     loadUi('parts/ui/map.R'),
@@ -146,18 +147,9 @@ server <- function(input, output, session) {
 
 
   observe({
-    selCountry = input$selectCountryNav
-    if(!noDataCheck(selCountry)){
-      mxReact$selectCountry = selCountry
-      updateSelectInput(session,'selectCountry',selected=selCountry)
-    }
-  })
-
-  observe({
     selCountry = input$selectCountry
-    if(!noDataCheck(selCountry)){
+    if(!noDataCheck(selCountry) && mxReact$mxLogged){
       mxReact$selectCountry = selCountry
-      updateSelectInput(session,'selectCountryNav',selected=selCountry)
     }
   })
 

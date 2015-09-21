@@ -3,25 +3,20 @@
 
 
 #
-# UI ACCESS
+# COUNTRY ACCESS
 #
-#
-#observe({
-#output$uiCountry <- renderUI(mxUiAccess(
-#    logged = mxReact$mxLogged,
-#    roleNum = mxConfig$rolesVal[[mxReact$mxRole]],
-#    roleMax = 1000,
-#    roleMin = 0,
-#    uiDefault = tagList(),
-#    uiRestricted = uiCountry
-#    ))
-#})
-#
-#
-#
-#
+observe({
+  allowCountrySection <- mxAllow(
+    logged = mxReact$mxLogged,
+    roleName = mxReact$mxRole,
+    roleLowerLimit = 99
+    )
+  mxReact$uiDisplayCountry <- allowCountrySection
+  mxUiEnable(id="sectionCountry",enable=allowCountrySection) 
+})
 
- 
+
+
 
   #
   # Update ui with country data

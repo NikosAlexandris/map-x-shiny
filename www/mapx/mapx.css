@@ -94,6 +94,11 @@ body.noscroll {
   background-color:#31C3CD;
 }
 
+#sectionLogin {
+  padding-top:60px;
+  color: #fff;
+  background-color:#333;
+}
 
 
 
@@ -949,4 +954,19 @@ select:focus, select:active{
 :focus {
 outline:0px;
 }
+
+
+.mxHide {
+  position: absolute !important;
+  top: -9999px !important;
+}
+
+
+.mxLogin, .mxLogin label {
+width=100%;
+font-size: large; 
+font-weight: 100;
+letter-spacing: 2px;
+}
+
 

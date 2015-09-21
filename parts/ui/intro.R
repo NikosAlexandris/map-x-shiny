@@ -16,8 +16,7 @@ tags$section(id="sectionTop",class="intro container-fluid",
       tags$img(src="img/g7-vect-optimized.svg",class="map-x-logo")
       #tags$img(src="img/g7plus.png",class="map-x-logo")
       ),
-    hr(),
-    loadUi('parts/ui/login.R')
+    hr()
     )
   )
 

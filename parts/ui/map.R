@@ -118,7 +118,7 @@ uiMapCreator <-tagList(
   #
 
   tags$section(id="sectionMap",
-    conditionalPanel(condition="output.uiDisplayMap==true",
+#    conditionalPanel(condition="output.uiDisplayMap==true",
       div(class="map-wrapper col-xs-12",
         #
         # ERROR PANNEL
@@ -166,7 +166,7 @@ uiMapCreator <-tagList(
             ) 
           )
         )
-      )
+     # )
     )
 
 
