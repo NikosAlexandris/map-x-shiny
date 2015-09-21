@@ -1,7 +1,9 @@
 
-# 
-# country
-# 
+
+#
+# ui country
+#
+
 tags$section(id="sectionCountry",class="container-fluid",
   tagList(
     div(class="row",
@@ -60,4 +62,3 @@ tags$section(id="sectionCountry",class="container-fluid",
       )
     )
   )
-

@@ -90,7 +90,7 @@ mxDebugMsg <- function(m=""){
 
 mxTogglePanel <- function(session=shiny::getDefaultReactiveDomain(),id){
   jsToggle <- paste0("$('#",paste(id,"content",sep="_"),"').toggle();")
- session$sendCustomMessage(
+  session$sendCustomMessage(
     type="jsCode",
     list(code=jsToggle)
     )
@@ -100,7 +100,7 @@ mxTogglePanel <- function(session=shiny::getDefaultReactiveDomain(),id){
 mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionButton=NULL,background=TRUE,defaultButtonText="OK",style=NULL,class=NULL,hideCloseButton=FALSE,draggable=TRUE){ 
   #classVect <- c('panel-modal',sprintf("panel-%s",id))
   #classModal <- paste(classVect,collapse=" ")
-  
+
   classModal = "panel-modal"
   idBack = paste(id,"background",sep="_")
   idContent = paste(id,"content",sep="_")
@@ -115,7 +115,7 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
 
 
 
-  
+
   # if explicit FALSE is given, remove modal button. 
   if(isTRUE(is.logical(listActionButton) && !isTRUE(listActionButton)))listActionButton=NULL
 
@@ -128,9 +128,9 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
 
   tagList( 
     if(background){
-    div(id=idBack,class=paste("panel-modal-background"))
+      div(id=idBack,class=paste("panel-modal-background"))
     },
-    
+
     absolutePanel(draggable=draggable,
       id=idContent,
       class=paste(class,classModal,"panel-modal-content"),
@@ -181,7 +181,7 @@ mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),
     })
   },message = function(m){
     if(debug){
-    session$output[[panelId]]<-renderUI({
+      session$output[[panelId]]<-renderUI({
         mxPanelAlert("warning",title,message=tagList(p(m$message),p(style="",paste("(",paste(m$call,collapse=" "),")"))))
       })
     }
@@ -225,10 +225,10 @@ setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="le
   if(!noDataCheck(group)){
     jsCode = sprintf("if(typeof %s !== 'undefined'){%s.%s.setOpacity(%s)};",layer,layer,group,opacity)
     mxDebugMsg(jsCode)
-  session$sendCustomMessage(
-    type="jsCode",
-    list(code=jsCode)
-    )
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=jsCode)
+      )
   }
 }
 
@@ -255,6 +255,30 @@ setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtGr
   }
 }
 
+#' Password input
+#' 
+#' @param inputId Input id
+#' @param label Label to display
+#' @export
+pwdInput <- function(inputId, label) {
+  tagList(
+    tags$label(label),
+    tags$input(id = inputId,class="mxLoginInput",type="password", value="")
+    )
+}
+
+#' User name input
+#' 
+#' @param inputId Input id
+#' @param label Label to display
+#' @export
+usrInput <- function(inputId, label) {
+  tagList(
+    tags$label(label),
+    tags$input(id = inputId, class="mxLoginInput usernameInput", value="")
+    )
+}
+
 
 
 #' Toggle html element by class
@@ -263,10 +287,10 @@ setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtGr
 #' @export 
 toggleClass <- function(session=shiny:::getDefaultReactiveDomain(),class=''){
   if(!is.null(session)){
-  session$sendCustomMessage(
-    type="jsCode",
-    list(code=sprintf("$('.test').hide()"))
-    )
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=sprintf("$('.test').hide()"))
+      )
   }
 }
 #' @export
@@ -327,10 +351,10 @@ dbTestConnection <- function(dbInfo=NULL){
   d <- dbInfo
 
   tryCatch({
-  drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-  con <- dbConnect(drv)
-  
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    con <- dbConnect(drv)
+
   })
 
 }
@@ -418,20 +442,22 @@ loadUi<-function(path){
 
 
 
-  mxGetViewsList <- function(dbInfo=NULL, table=NULL,validated=TRUE,archived=FALSE,country="AFG"){
-    tryCatch({
-      d <- dbInfo
-      drv <- dbDriver("PostgreSQL") 
-      con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-      country = paste0("'",country,"'",collapse=",")
-      if(isTRUE(table %in% dbListTables(con))){ 
-        sql <- sprintf("SELECT * FROM %s WHERE validated is %s AND archived is %s AND country IN (%s)",table,validated,archived,country)
-        res <- dbGetQuery(con,sql)
-        dbDisconnect(con) 
-          return(res)
-      }
-    },finally=dbDisconnect(con)) 
-  }
+mxGetViewsList <- function(dbInfo=NULL, table=NULL,validated=TRUE,archived=FALSE,country="AFG"){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL") 
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    country = paste0("'",country,"'",collapse=",")
+    if(isTRUE(table %in% dbListTables(con))){
+      sql <- sprintf("SELECT * FROM %s WHERE validated is %s AND archived is %s AND country IN (%s)",table,validated,archived,country)
+      res <- dbGetQuery(con,sql)
+      dbDisconnect(con) 
+      return(res)
+    }else{
+      mxDebugMsg(paste("mxGetViewsList: table",table," content requested, but not found in db."))
+    }
+  },finally=if(exists('con'))dbDisconnect(con)) 
+}
 
 
 mxFileInput<-function (inputId, label, fileAccept=NULL, multiple=FALSE){
@@ -469,13 +495,13 @@ mxActionButtonToggle <- function(id,session=shiny:::getDefaultReactiveDomain(),d
 
 remoteCmd <- function(host=NULL,user=NULL,port=NULLL,cmd=NULL){
   if(!is.null(cmd)){
-   res =  system(sprintf("ssh -p %s %s@%s %s",port,user,host,cmd),intern=TRUE)
+    res =  system(sprintf("ssh -p %s %s@%s %s",port,user,host,cmd),intern=TRUE)
   }
   return(res)
 }
 
 
- 
+
 
 
 
@@ -491,22 +517,22 @@ remoteCmd <- function(host=NULL,user=NULL,port=NULLL,cmd=NULL){
 #' @param geomCol Set the name of the geometry column
 dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, overwrite=FALSE, keyCol="gid", srid=4326, geomCol="geom") {
 
- library(rgeos)
-   
+  library(rgeos)
+
   # Create well known text and add to spatial DF
   spatialwkt <- writeWKT(spatial.df, byid=TRUE)
   spatial.df$wkt <- spatialwkt
-  
+
   # Add temporary unique ID to spatial DF
   spatial.df$spatial_id <- 1:nrow(spatial.df)
-  
+
   # Set column names to lower case
   names(spatial.df) <- tolower(names(spatial.df))
-  
+
   # Upload DF to DB
   data.df <- spatial.df@data
   rv <- dbWriteTable(con, c(schemaname, tablename), data.df, overwrite=overwrite, row.names=FALSE)
-  
+
   # Create geometry column and clean up table
   schema.table <- paste(schemaname, ".", tablename, sep="")
   query1 <- sprintf("ALTER TABLE %s ADD COLUMN %s GEOMETRY;", schema.table, geomCol)
@@ -515,18 +541,18 @@ dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, over
   query3 <- sprintf("ALTER TABLE %s DROP COLUMN spatial_id;",schema.table)
   query4 <- sprintf("ALTER TABLE %s DROP COLUMN wkt;",schema.table)
   query5 <- sprintf("SELECT UpdateGeometrySRID('%s','%s','%s',%s);",schemaname,tablename,geomCol,srid)
- 
+
 
   er <- dbGetQuery(con, statement=query1)
   er <- dbGetQuery(con, statement=query2)
   er <- dbGetQuery(con, statement=query3)
   er <- dbGetQuery(con, statement=query4)
   er <- dbGetQuery(con, statement=query5)
- 
+
 
   if(!is.null(keyCol)){
-  query6 <- sprintf("ALTER TABLE %s ADD COLUMN %s SERIAL PRIMARY KEY;", schema.table, keyCol)
-  er <- dbGetQuery(con, statement=query6)
+    query6 <- sprintf("ALTER TABLE %s ADD COLUMN %s SERIAL PRIMARY KEY;", schema.table, keyCol)
+    er <- dbGetQuery(con, statement=query6)
   }
 
 
@@ -556,112 +582,163 @@ addPaletteFun <- function(sty,pal){
 
 mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,status){
 
-       if(!noDataCheck(style) && !any(sapply(style,is.null))){
-      vtOk = isTRUE(style$group == status$grp && grep(style$layer,status$lay)>0)
-      if(!vtOk){
-        mxDebugMsg("style vs status conflict: return NULL")
-        return()
+  if(!noDataCheck(style) && !any(sapply(style,is.null))){
+    vtOk = isTRUE(style$group == status$grp && grep(style$layer,status$lay)>0)
+    if(!vtOk){
+      mxDebugMsg("style vs status conflict: return NULL")
+      return()
+    }
+    if(vtOk){
+      mxDebugMsg("Update layer style")
+      tit <- style$title
+      col <- style$colors
+      pal <- style$paletteFun
+      val <- style$values
+      var <- style$variable
+      lay <- style$layer
+      opa <- style$opacity
+      sze <- style$size
+      grp <- style$group
+      leg <- style$hideLegends
+      bnd <- style$bounds
+      mxDebugMsg("Begin style")
+      start = Sys.time()
+      legendId = sprintf("%s_legends",grp)
+      proxyMap <- leafletProxy("mapxMap")
+      if(is.null(tit))tit=lay
+      if(!leg){
+        mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
+        proxyMap %>%
+        addLegend(position="topright",pal=pal,values=val,title=tit,layerId = legendId)
+      }else{
+        mxDebugMsg(sprintf("Remove legend layer id %s", legendId))
+        proxyMap %>%
+        removeControl(legendId)
       }
-      if(vtOk){
-        mxDebugMsg("Update layer style")
-        tit <- style$title
-        col <- style$colors
-        pal <- style$paletteFun
-        val <- style$values
-        var <- style$variable
-        lay <- style$layer
-        opa <- style$opacity
-        sze <- style$size
-        grp <- style$group
-        leg <- style$hideLegends
-        bnd <- style$bounds
-        mxDebugMsg("Begin style")
-        start = Sys.time()
-        legendId = sprintf("%s_legends",grp)
-        proxyMap <- leafletProxy("mapxMap")
-        if(is.null(tit))tit=lay
-        if(!leg){
-          mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
-          proxyMap %>%
-          addLegend(position="topright",pal=pal,values=val,title=tit,layerId = legendId)
-        }else{
-          mxDebugMsg(sprintf("Remove legend layer id %s", legendId))
-          proxyMap %>%
-          removeControl(legendId)
-        }
 
-        names(col) <- val
-        jsColorsPalette <- sprintf("var colorsPalette=%s;",toJSON(col,collapse=""))
-        jsDataCol <- sprintf("var dataColumn ='%s' ;",var)
-        jsOpacity <- sprintf("var opacity =%s ;",opa)
-        jsSize <- sprintf("var size =%s; ", sze)
-        jsUpdate <- sprintf("leafletvtGroup.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
+      names(col) <- val
+      jsColorsPalette <- sprintf("var colorsPalette=%s;",toJSON(col,collapse=""))
+      jsDataCol <- sprintf("var dataColumn ='%s' ;",var)
+      jsOpacity <- sprintf("var opacity =%s ;",opa)
+      jsSize <- sprintf("var size =%s; ", sze)
+      jsUpdate <- sprintf("leafletvtGroup.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
 
-        jsStyle = "updateStyle = function (feature) {
-        var style = {};
-        var selected = style.selected = {};
-        var type = feature.type;
-        var defaultColor = 'rgba(0,0,0,0)';
-        var dataCol = defaultColor;
-        var val = feature.properties[dataColumn];
-        if( typeof(val) != 'undefined'){ 
-          var dataCol = hex2rgb(colorsPalette[val],opacity);
-          if(typeof(dataCol) == 'undefined'){
-            dataCol = defaultColor;
-          }
+      jsStyle = "updateStyle = function (feature) {
+      var style = {};
+      var selected = style.selected = {};
+      var type = feature.type;
+      var defaultColor = 'rgba(0,0,0,0)';
+      var dataCol = defaultColor;
+      var val = feature.properties[dataColumn];
+      if( typeof(val) != 'undefined'){ 
+        var dataCol = hex2rgb(colorsPalette[val],opacity);
+        if(typeof(dataCol) == 'undefined'){
+          dataCol = defaultColor;
         }
-        switch (type) {
-          case 1: //'Point'
-          style.color = dataCol;
-          style.radius = size;
-          selected.color = 'rgba(255,255,0,0.5)';
-          selected.radius = 6;
-          break;
-          case 2: //'LineString'
-          style.color = dataCol;
-          style.size = size;
-          selected.color = 'rgba(255,25,0,0.5)';
-          selected.size = size;
-          break;
-          case 3: //'Polygon'
-          style.color = dataCol;
-          style.outline = {
-            color: dataCol,
-            size: 1
-          };
-          selected.color = 'rgba(255,0,0,0)';
-          selected.outline = {
-            color: 'rgba(255,0,0,0.9)',
-            size: size
-          };
-          break;
+      }
+      switch (type) {
+        case 1: //'Point'
+        style.color = dataCol;
+        style.radius = size;
+        selected.color = 'rgba(255,255,0,0.5)';
+        selected.radius = 6;
+        break;
+        case 2: //'LineString'
+        style.color = dataCol;
+        style.size = size;
+        selected.color = 'rgba(255,25,0,0.5)';
+        selected.size = size;
+        break;
+        case 3: //'Polygon'
+        style.color = dataCol;
+        style.outline = {
+          color: dataCol,
+          size: 1
         };
-        return style;
-
+        selected.color = 'rgba(255,0,0,0)';
+        selected.outline = {
+          color: 'rgba(255,0,0,0.9)',
+          size: size
+        };
+        break;
       };
-      "
-      # jsStyle = "updateStyle = function(){s={};s.color=randomHsl(0.8); return s;};"
-      #jsTimeBefore = "var d= new Date(); console.log('Time before style' + d + d.getMilliseconds());"
-      #jsTimeAfter = "var d= new Date(); console.log('Time after style' + d + d.getMilliseconds());"
-      jsCode = paste(
-        jsColorsPalette,
-        jsDataCol,
-        jsOpacity,
-        jsSize,
-        jsStyle,
-        jsUpdate
+      return style;
+
+    };
+    "
+    # jsStyle = "updateStyle = function(){s={};s.color=randomHsl(0.8); return s;};"
+    #jsTimeBefore = "var d= new Date(); console.log('Time before style' + d + d.getMilliseconds());"
+    #jsTimeAfter = "var d= new Date(); console.log('Time after style' + d + d.getMilliseconds());"
+    jsCode = paste(
+      jsColorsPalette,
+      jsDataCol,
+      jsOpacity,
+      jsSize,
+      jsStyle,
+      jsUpdate
+      )
+
+
+    # session$sendCustomMessage(type="jsCode",list(code=jsTimeBefore))
+    session$sendCustomMessage(type="jsCode",list(code=jsCode))
+    # session$sendCustomMessage(type="jsCode",list(code=jsTimeAfter))
+
+    #      setLayerZIndex(group=grp,zIndex=15)
+    stop <- Sys.time() - start
+    mxDebugMsg(paste("End style. Timing=",stop))
+    cat(paste(paste0(rep("-",80),collapse=""),"\n"))
+  }
+}
+}
+
+mxSelectInput<-function(inputId,choices=NULL,selected=NULL){
+  opt <- NULL
+  if(!noDataCheck(choices)){
+    if(noDataCheck(selected))selected=choices[1]
+    opt <- shiny:::selectOptions(choices,selected="")
+  }
+  tagList(
+    div(class=c('form-group','shiny-input-container'),
+      div(
+        tags$select(id=inputId,class=c("form-control",class),opt)
         )
+      )
+    )
+}
 
 
-     # session$sendCustomMessage(type="jsCode",list(code=jsTimeBefore))
-      session$sendCustomMessage(type="jsCode",list(code=jsCode))
-     # session$sendCustomMessage(type="jsCode",list(code=jsTimeAfter))
+#' Control ui access
+#' @param logged Boolean. Is the user logged in ?
+#' @param roleNum Numeric. Role in numeric format
+#' @param roleLowerLimit Numeric. Minumum role requirement
+#' @param uiDefault TagList. Default ui.
+#' @param uiRestricted TagList. Restricted ui.
+#' @export
+mxUiAccess <- function(logged,roleNum,roleLowerLimit,uiDefault,uiRestricted){
+  uiOut <- uiDefault
+  if(isTRUE(logged) && is.numeric(roleNum)){
+    if(noDataCheck(roleLowerLimit))roleLowerLimit=0
+    if(roleNum>=roleLowerLimit){
+      uiOut<-uiRestricted
+    }
+  }
+  return(uiOut)
+}
 
-      #      setLayerZIndex(group=grp,zIndex=15)
-      stop <- Sys.time() - start
-      mxDebugMsg(paste("End style. Timing=",stop))
-      cat(paste(paste0(rep("-",80),collapse=""),"\n"))
-        }
-        }
-        }
+
+#' Control ui access
+#' @param logged Boolean. Is the user logged in ?
+#' @param roleNum Numeric. Role in numeric format
+#' @param roleLowerLimit Numeric. Minumum role requirement
+#' @export
+mxAllow <- function(logged,roleNum,roleLowerLimit){
+  allow <- FALSE
+  if(isTRUE(logged) && is.numeric(roleNum)){
+    if(noDataCheck(roleLowerLimit))roleLowerLimit=0
+    if(roleNum>=roleLowerLimit){
+      allow <- TRUE
+    }
+  }
+  return(allow)
+}
 

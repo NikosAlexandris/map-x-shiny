@@ -2,15 +2,26 @@
 
 
 
+#
+# UI ACCESS
+#
+#
+#observe({
+#output$uiCountry <- renderUI(mxUiAccess(
+#    logged = mxReact$mxLogged,
+#    roleNum = mxConfig$rolesVal[[mxReact$mxRole]],
+#    roleMax = 1000,
+#    roleMin = 0,
+#    uiDefault = tagList(),
+#    uiRestricted = uiCountry
+#    ))
+#})
+#
+#
+#
+#
 
-  observe({
-    selCountry = input$selectCountry
-    if(!noDataCheck(selCountry)){
-      mxReact$selectCountry = selCountry
-    }
-  })
-
-
+ 
 
   #
   # Update ui with country data
