@@ -83,7 +83,7 @@ server <- function(input, output, session) {
     c(id=3,u="dag",l="b4683fef34f6bb7234f2603699bd0ded", k="b4683fef34f6bb7234f2603699bd0ded", r="admin"),
     c(id=4,u="nicolas",l="deb97a759ee7b8ba42e02dddf2b412fe", k="deb97a759ee7b8ba42e02dddf2b412fe", r="admin"),
     c(id=5,u="paulina",l="e16866458c9403fe9fb3df93bd4b3a41", k="e16866458c9403fe9fb3df93bd4b3a41", r="admin"),
-    c(id=5,u="greg",l="e16866458c9403fe9fb3df93bd4b3a41v",k="e16866458c9403fe9fb3df93bd4b3a41v", r="user")
+    c(id=5,u="greg",l="ea26b0075d29530c636d6791bb5d73f4",k="ea26b0075d29530c636d6791bb5d73f4", r="user")
     )
   pwd<-as.data.frame(pwd,stringsAsFactors=F)
   #
