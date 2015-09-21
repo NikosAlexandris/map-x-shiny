@@ -21,6 +21,7 @@ ui <- tagList(
     tags$meta(name="viewport",content="width=device-width, initial-scale=1"),
     tags$meta(name="description", content=""),
     tags$meta(name="author", content=""),
+    tags$meta(name="robots", content="noindex"),
     #
     #STYLE SHEET
     #
