@@ -21,7 +21,7 @@ observe({
   navMenu <- mxUiAccess(
     logged = mxReact$mxLogged,
     roleNum = mxConfig$rolesVal[[mxReact$mxRole]],
-    roleLowerLimit = 100,
+    roleLowerLimit = 101,
     uiDefault = navMenuDefault,
     uiRestricted = navMenuResticted
     )
