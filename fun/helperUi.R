@@ -731,8 +731,11 @@ mxUiAccess <- function(logged,roleNum,roleLowerLimit,uiDefault,uiRestricted){
 #' @param roleNum Numeric. Role in numeric format
 #' @param roleLowerLimit Numeric. Minumum role requirement
 #' @export
-mxAllow <- function(logged,roleNum,roleLowerLimit){
+mxAllow <- function(logged,roleName,roleLowerLimit){
   allow <- FALSE
+  if(noDataCheck(roleName))return(FALSE)
+  roleNum = mxConfig$rolesVal[[roleName]]
+
   if(isTRUE(logged) && is.numeric(roleNum)){
     if(noDataCheck(roleLowerLimit))roleLowerLimit=0
     if(roleNum>=roleLowerLimit){
@@ -741,4 +744,24 @@ mxAllow <- function(logged,roleNum,roleLowerLimit){
   }
   return(allow)
 }
+
+mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,enable=TRUE){
+  if(!enable){
+    #js <- sprintf("$('#%s').css('display','none')",id)
+    #js <- sprintf("$('#%s').css('visibility','hidden')",id)
+    js <- sprintf("$('#%s').addClass('mxHide')",id)
+  }else{
+    js <- sprintf("$('#%s').removeClass('mxHide')",id)
+    #js <- sprintf("$('#%s').css('display','')",id)
+    #js <- sprintf("$('#%s').css('visibility','visible')",id)
+  }
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=js)
+      )
+}
+
+
+
+
 

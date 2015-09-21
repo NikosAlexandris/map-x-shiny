@@ -10,14 +10,11 @@ source("parts/server/creator.R",local=T)
 observe({
   allowMapSection <- mxAllow(
     logged = mxReact$mxLogged,
-    roleNum = mxConfig$rolesVal[[mxReact$mxRole]],
+    roleName = mxReact$mxRole,
     roleLowerLimit = 101
     )
-
   mxReact$uiDisplayMap <- allowMapSection
-  output$uiDisplayMap <- reactive(allowMapSection)
-  outputOptions(output, 'uiDisplayMap', suspendWhenHidden=FALSE)
-  
+  mxUiEnable(id="sectionMap",enable=allowMapSection) 
 })
 
 
