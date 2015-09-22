@@ -61,9 +61,14 @@ body.noscroll {
   /*background-color: #1E88E5;*/
   background-color : rgb(47,47,47);
 }
-
+#sectionAdmin {
+  padding-top:40px;
+  height:100%;
+  color: #fff;
+  background-color:#353535;
+}
 #sectionCountry {
-  padding-top:60px;
+  padding-top:40px;
   /*max-height: 100%;*/
   /*max-height: 100vh;*/
   color: black;
@@ -72,7 +77,7 @@ body.noscroll {
   background-color:#FFF;
 }
 #sectionAbout {
-  padding-top:60px;
+  padding-top:40px;
   height:100%;
   color: #fff;
   background-color: #FCA900;
@@ -88,16 +93,21 @@ body.noscroll {
 }
 
 #sectionContact {
-  padding-top:60px;
+
+  padding-top:40px;
   height:500px;
   color: #fff;
   background-color:#31C3CD;
 }
 
 #sectionLogin {
-  padding-top:60px;
+
+  padding-top:40px;
   color: #fff;
-  background-color:#333;
+  background-color:#2D3539;
+  -webkit-box-shadow: inset 0px 21px 22px -10px rgba(0,0,0,0.75);
+  -moz-box-shadow: inset 0px 21px 22px -10px rgba(0,0,0,0.75);
+  box-shadow: inset 0px 21px 22px -10px rgba(0,0,0,0.75);
 }
 
 
@@ -155,7 +165,7 @@ box-sizing: border-box;
 
 #map-left {
   z-index: 1020;
-  padding-top:60px;
+  padding-top:40px;
   position: absolute;
   bottom: 0px;
   left: 0;
@@ -197,7 +207,7 @@ box-sizing: border-box;
 }
 
 .leaflet-tile-loaded {
-      z-index:10;
+  z-index:10;
 }
 
 
@@ -292,12 +302,6 @@ input:checked + .map-views-item {
   background: rgba(255,255,255,0.8);
   color: black;
 }
-
-
-
-
-
-
 
 
 .map-views-class {
@@ -728,7 +732,7 @@ p {
 
 
 .content-section {
-  padding-top: 70px;
+  padding-top: 20px;
 }
 
 

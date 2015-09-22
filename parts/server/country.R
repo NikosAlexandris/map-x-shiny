@@ -6,24 +6,16 @@
 # COUNTRY ACCESS
 #
 observe({
-  allowCountrySection <- mxAllow(
-    logged = mxReact$userLogged,
-    roleName = mxReact$userRole,
-    roleLowerLimit = 99
-    )
-  mxReact$uiDisplayCountry <- allowCountrySection
-  mxUiEnable(id="sectionCountry",enable=allowCountrySection) 
+  mxUiEnable(id="sectionCountry",enable=mxReact$allowCountry) 
 })
 
 
+#
+# Update ui with country data
+#
 
-
-  #
-  # Update ui with country data
-  #
-
-  observe({
-    # mxCatch("Get country indicators",{
+observe({
+  if(mxReact$allowCountry){
     cSelect <- mxReact$selectCountry
     if(!noDataCheck(cSelect)){
       if(cSelect %in% names(mxData$countryInfo)){
@@ -80,32 +72,29 @@ observe({
       names(cListChoice) <- c(as.character(mxConfig$countryListChoices$potential),as.character(mxConfig$countryListChoices$pending))
       countryNameNav <- cListChoice[[cSelect]]
 
-
-
-
       navCountryName <- tagList(
-          tags$img(src="img/logo_white.svg"),
-          tags$span(countryNameNav)
+        tags$img(src="img/logo_white.svg"),
+        tags$span(countryNameNav)
         )
 
       output$countryName <- renderText(countryName)
       output$countryNameNav <- renderUI(navCountryName)
       output$countryMetrics <- renderUI(countryMetrics)
       output$countryNarrative <- renderUI(countryNarrative)
-      #})
     }
-  })
+  }
+})
 
 
 
-  #
-  # SHOW INDEX
-  #
+#
+# SHOW INDEX
+#
 
 
 
-  observe({
-
+observe({
+  if(mxReact$allowCountry){
     mxCatch("Plot WDI data",{
       idx = input$selectIndicator
       cnt = mxReact$selectCountry
@@ -133,6 +122,7 @@ observe({
           })
         }
       }
-  })
-  })
+        })
+  }
+})
 
