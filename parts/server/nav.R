@@ -3,15 +3,15 @@
 
 observe({
   allowMap <- mxAllow(
-    logged = mxReact$mxLogged,
-    roleName = mxReact$mxRole,
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
     roleLowerLimit = 101
     )
   mxUiEnable(id="btnNavMap",enable=allowMap)
   
   allowCountry <- mxAllow(
-    logged = mxReact$mxLogged,
-    roleName = mxReact$mxRole,
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
     roleLowerLimit = 99
     )
 

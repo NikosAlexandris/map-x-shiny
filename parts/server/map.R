@@ -9,8 +9,8 @@ source("parts/server/creator.R",local=T)
 #
 observe({
   allowMapSection <- mxAllow(
-    logged = mxReact$mxLogged,
-    roleName = mxReact$mxRole,
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
     roleLowerLimit = 101
     )
   mxReact$uiDisplayMap <- allowMapSection

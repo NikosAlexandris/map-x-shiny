@@ -7,8 +7,8 @@
 #
 observe({
   allowCountrySection <- mxAllow(
-    logged = mxReact$mxLogged,
-    roleName = mxReact$mxRole,
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
     roleLowerLimit = 99
     )
   mxReact$uiDisplayCountry <- allowCountrySection

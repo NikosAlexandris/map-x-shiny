@@ -25,13 +25,18 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
       exp <- as.numeric(as.POSIXlt(Sys.time()+nDaysExpires*3600*24,tz="gmt"))
       cmd <- sprintf("document.cookie='expires='+(new Date(%s*1000)).toUTCString();",exp)
     }
+
     for(i in 1:length(cookie)){
       val <- cookie[i]
+      if(names(val)=="d")stop('mxSetCookie:d is a reserved name')
       if(!is.na(val) && !is.null(val)){
         str <- sprintf("document.cookie='%s=%s';",names(val),val)
         cmd <- paste0(cmd,str,collapse="")
       }
     }
+    #Add date
+    addDate <- "document.cookie='d=new Date()'"
+    cmd <- paste(cmd,addDate)
   }
   if(length(cmd)>0){
     session$sendCustomMessage(
@@ -42,9 +47,9 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
 }
 
 mxReact <- reactiveValues(
-  mxLogged = FALSE,
-  mxRole = character(0),
-  mxUser = character(0),
+  userLogged = FALSE,
+  userRole = character(0),
+  userName = character(0),
   mxSecret = mxCreateSecret() 
   )
 
@@ -59,7 +64,7 @@ observeEvent(session$onFlushed,{
 
 
 observeEvent(input$btnLogin,{
-  if (mxReact$mxLogged == FALSE) {
+  if (mxReact$userLogged == FALSE) {
     if (!is.null(input$loginUser)) {
       if (input$btnLogin > 0) {
         lUser <- input$loginUser
@@ -80,34 +85,48 @@ observeEvent(input$btnLogin,{
 observeEvent(input$readCookie,{
   cat("Read cookies done.\n")
   val = input$readCookie 
-  if(length(val)<1)return()
-  if(val$s==mxReact$mxSecret){
-    # delete the secret
-    mxReact$mxSecret <- NULL
-    
-    msg = character(0)
-    idUser <- which(pwd$l==val$l)
-    idKey <- which(pwd$k==val$k) 
-    match <- isTRUE(idUser == idKey)
-    if(isTRUE(match)){
-      # retrieve info about the user
-      mxReact$mxLogged <- TRUE
-      mxReact$mxRole <- pwd[idKey,'r']
-      mxReact$mxUser <- pwd[idKey,'u']
-      msg= paste(mxReact$mxUser,"logged as", mxReact$mxRole)
-    } else  {
-      msg="Authentication  required"
+  nVal = names(val)
+  msg =  "Plase enter user name and key"
+  mxReact$userLogged <- FALSE
+  mxReact$userRole <- NULL
+  mxReact$userName <- NULL
+  mxReact$userLastLogin <- NULL
+  mxReact$userEmail <- NULL
+
+  if(isTRUE("l" %in% nVal && "k" %in% nVal)){
+    if(val$s==mxReact$mxSecret){
+      # delete the secret
+      mxReact$mxSecret <- NULL
+
+      msg = character(0)
+      idUser <- which(pwd$l==val$l)
+      idKey <- which(pwd$k==val$k) 
+      match <- isTRUE(idUser == idKey)
+      if(isTRUE(match)){
+        # retrieve info about the user
+        mxReact$userLogged <- TRUE
+        mxReact$userRole <- pwd[idKey,'r']
+        mxReact$userName <- pwd[idKey,'u']
+        mxReact$userLastLogin <- pwd[idKey,'d']
+        mxReact$userEmail <- pwd[idKey,'e']
+        msg= paste("ACCESS GRANTED FOR:",
+          mxReact$userName,
+          "with email",mxReact$userEmail,
+          "logged as", mxReact$userRole,
+          "since",mxReact$userLastLogin
+          )
+      } else  {
+        msg=paste("ACCESS DENIED",msg,collapse="")
+      }
     }
-
-    output$loginValidation <- renderText(msg)   
-
   }
 
+  output$loginValidation <- renderText(msg)   
       })
 
 
 observe({
-print(mxReact$mxLogged)
+print(mxReact$userLogged)
 })
 
 observeEvent(input$btnLogout,{
