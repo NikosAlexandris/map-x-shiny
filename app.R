@@ -78,16 +78,23 @@ server <- function(input, output, session) {
   # k = key
   # e = email
   # r = role
+  # d = last date login
+  # a = actually logged
+  # c = country allowed (all,pending,complete or single iso3)
   pwd <- rbind(
-    c(id=0,u="fred", l="570a90bfbf8c7eab5dc5d4e26832d5b1",k="570a90bfbf8c7eab5dc5d4e26832d5b1", r="superuser"),
-    c(id=1,u="pierre",l="84675f2baf7140037b8f5afe54eef841" ,k="84675f2baf7140037b8f5afe54eef841", r="superuser"),
-    c(id=2,u="david",l="172522ec1028ab781d9dfd17eaca4427",k="172522ec1028ab781d9dfd17eaca4427", r="admin"),
-    c(id=3,u="dag",l="b4683fef34f6bb7234f2603699bd0ded", k="b4683fef34f6bb7234f2603699bd0ded", r="admin"),
-    c(id=4,u="nicolas",l="deb97a759ee7b8ba42e02dddf2b412fe", k="deb97a759ee7b8ba42e02dddf2b412fe", r="admin"),
-    c(id=5,u="paulina",l="e16866458c9403fe9fb3df93bd4b3a41", k="e16866458c9403fe9fb3df93bd4b3a41", r="admin"),
-    c(id=5,u="greg",l="ea26b0075d29530c636d6791bb5d73f4",k="ea26b0075d29530c636d6791bb5d73f4", r="user")
+    c(id=0,u="fred", l="570a90bfbf8c7eab5dc5d4e26832d5b1",k="570a90bfbf8c7eab5dc5d4e26832d5b1", r="superuser",e=",mail@example.com"),
+    c(id=1,u="pierre",l="84675f2baf7140037b8f5afe54eef841" ,k="84675f2baf7140037b8f5afe54eef841", r="superuser",e="mail@example.com"),
+    c(id=2,u="david",l="172522ec1028ab781d9dfd17eaca4427",k="172522ec1028ab781d9dfd17eaca4427", r="admin",e="mail@example.com"),
+    c(id=3,u="dag",l="b4683fef34f6bb7234f2603699bd0ded", k="b4683fef34f6bb7234f2603699bd0ded", r="admin",e="mail@example.com"),
+    c(id=4,u="nicolas",l="deb97a759ee7b8ba42e02dddf2b412fe", k="deb97a759ee7b8ba42e02dddf2b412fe", r="admin",e="mail@example.com"),
+    c(id=5,u="paulina",l="e16866458c9403fe9fb3df93bd4b3a41", k="e16866458c9403fe9fb3df93bd4b3a41", r="admin",e="mail@example.com"),
+    c(id=6,u="greg",l="ea26b0075d29530c636d6791bb5d73f4",k="ea26b0075d29530c636d6791bb5d73f4", r="user",e="mail@example.com"),
+    c(id=7,u="guest",l="084e0343a0486ff05530df6c705c8bb4",k="084e0343a0486ff05530df6c705c8bb4", r="user",e="mail@example.com")
     )
   pwd<-as.data.frame(pwd,stringsAsFactors=F)
+  pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 
+
+
   #
   # show debugger
   #
@@ -148,7 +155,7 @@ server <- function(input, output, session) {
 
   observe({
     selCountry = input$selectCountry
-    if(!noDataCheck(selCountry) && mxReact$mxLogged){
+    if(!noDataCheck(selCountry) && mxReact$userLogged){
       mxReact$selectCountry = selCountry
     }
   })
