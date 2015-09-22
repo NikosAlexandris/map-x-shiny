@@ -110,11 +110,9 @@ function clearListCookies()
     var value="";
     document.cookie = name + "=" + value + expires + "; path=/";                    
   }
-  readCookie();
-  //window.location = ""; 
+  //readCookie();
+  window.location = ""; 
 }
-
-
 
 
 $( document ).ready(function( $ ) {

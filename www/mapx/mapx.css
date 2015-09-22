@@ -976,3 +976,13 @@ letter-spacing: 2px;
 #loginValidation {
 font-size: 11px;
 }
+
+
+.mxTableContainer {
+padding:10px;
+}
+#userTable {
+color:black;
+}
+
+

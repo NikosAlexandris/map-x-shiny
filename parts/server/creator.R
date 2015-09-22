@@ -1,6 +1,8 @@
-  observe({
-
-  if(isTRUE(mxReact$mapPanelMode == "mapViewsCreator")){
+observe({ 
+  if(
+    mxReact$allowViewsCreator &&
+    isTRUE(mxReact$mapPanelMode == "mapViewsCreator")
+    ){
 
     #
     # Update map coordinate values
@@ -54,11 +56,11 @@
         outTxt = (sprintf("<b style=\"color:#00CC00\">(ok)</b> %s",newLayerName))
         valid = TRUE
       }
-      
-      output$newLayerNameValidation = renderUI(HTML(outTxt))
-     mxActionButtonToggle(id='fileNewLayer',disable=!valid) 
 
-     mxReact$newLayerName <- ifelse(valid,newLayerName,"")
+      output$newLayerNameValidation = renderUI(HTML(outTxt))
+      mxActionButtonToggle(id='fileNewLayer',disable=!valid) 
+
+      mxReact$newLayerName <- ifelse(valid,newLayerName,"")
 
     })
 
@@ -133,187 +135,187 @@
     })
 
 
-    observeEvent(input$btnViewsRefresh,{
-      r <- remoteInfo
-      mxDebugMsg("Command to remote server to restart app")
-      remoteCmd(host=r$host,port=r$port,user=r$user,cmd=mxConfig$restartPgRestApi)
-      mxDebugMsg("invalidate layer list")
-      mxReact$layerListUpdate <- runif(1)    
+        observeEvent(input$btnViewsRefresh,{
+          r <- remoteInfo
+          mxDebugMsg("Command to remote server to restart app")
+          remoteCmd(host=r$host,port=r$port,user=r$user,cmd=mxConfig$restartPgRestApi)
+          mxDebugMsg("invalidate layer list")
+          mxReact$layerListUpdate <- runif(1)    
     })
 
 
 
-  #
-  # Populate layer selection
-  #
-    observe({
-      # default
-      choice <- mxConfig$noData
-      # take reactivity on select input
+        #
+        # Populate layer selection
+        #
+        observe({
+          # default
+          choice <- mxConfig$noData
+          # take reactivity on select input
 
-      cntry <- tolower(mxReact$selectCountry)
-      # reactivity after updateVector in postgis
-      update <- mxReact$layerListUpdate
-      #mxDebugMsg("Update layers list")
-      
-     # mxCatch("Update input: pgrestapi layer list",{
-        layers <- vtGetLayers(port=mxConfig$portVt,grepExpr=paste0("^",cntry,"_"))
-        if(!noDataCheck(layers)){
-          choice = c(choice,layers)  
-        }
-        updateSelectInput(session,"selLayer",choices=choice)
-        mxReact$layerList = choice
-      #   })
-    })
+          cntry <- tolower(mxReact$selectCountry)
+          # reactivity after updateVector in postgis
+          update <- mxReact$layerListUpdate
+          #mxDebugMsg("Update layers list")
 
-
-  #
-  # Populate column selection
-  # 
-
-    observe({
-      mxCatch("Update input: layer columns",{
-        vars = mxConfig$noData
-        lay = input$selLayer
-        if(!noDataCheck(lay)){
-          variables <- vtGetColumns(table=lay,port=mxConfig$portVt,exclude=c("geom","gid"))$column_name
-          if(!noDataCheck(variables)){
-            vars = variables
-          } 
-        }
-        updateSelectInput(session, "selColumnVar", choices=vars)
-         })
-    })
+          # mxCatch("Update input: pgrestapi layer list",{
+          layers <- vtGetLayers(port=mxConfig$portVt,grepExpr=paste0("^",cntry,"_"))
+          if(!noDataCheck(layers)){
+            choice = c(choice,layers)  
+          }
+          updateSelectInput(session,"selLayer",choices=choice)
+          mxReact$layerList = choice
+          #   })
+        })
 
 
-  #
-  # get selected variable summary and populate palette input
-  #
+        #
+        # Populate column selection
+        # 
 
-  observe({
-    lay = input$selLayer
-    var = input$selColumnVar
-    isolate({
-      if(!noDataCheck(lay) && !noDataCheck(var)){
-        layerSummary <- dbGetColumnInfo(dbInfo,lay,var)
-        if(noDataCheck(layerSummary)){
-          return(NULL)
-        }
-        type <- layerSummary$scaleType
-      #  if(type == "continuous"){
-      #    paletteChoice <- mxConfig$colorPalettesContinuous
-      #  }else{
-      #    paletteChoice<- mxConfig$colorPalettesDiscrete
-      #  }
-        paletteChoice <- mxConfig$colorPalettes
-        mxStyle$scaleType <- layerSummary$scaleType
-        mxStyle$values <- layerSummary$dValues
-        mxStyle$nDistinct <- layerSummary$nDistinct
-        mxStyle$nMissing <- layerSummary$nNa
-        mxStyle$paletteChoice <- paletteChoice
-
-        updateSelectInput(session,"selPalette",choices=paletteChoice)
-        #mxDebugMsg('Set layer summary')
-      }
-    })
-  })
-
-
-  #
-  # Set layer options based on inputs
-  #
-
-
-  observe({
-    mxStyle$title <- if(!noDataCheck(input$mapViewTitle)) input$mapViewTitle 
-  })
-
-  observe({
-    mxStyle$layer <-if(!noDataCheck(input$selLayer))input$selLayer
-  })
-
-  observe({
-    mxStyle$variable <- if(!noDataCheck(input$selColumnVar))input$selColumnVar
-  })
-
-  observe({
-    mxStyle$palette  <- if(!noDataCheck(input$selPalette))input$selPalette
-  })
-
-  observe({
-    mxStyle$opacity <- if(!noDataCheck(input$selOpacity))input$selOpacity
-  })
-
-  observe({
-    mxStyle$basemap <- if(!noDataCheck(input$selectBaseMap))input$selectBaseMap
-  })
-
-  observe({
-    mxStyle$size <- if(!noDataCheck(input$selSize))input$selSize
-  })
-
-  observe({
-    mxStyle$hideLabels <- if(!noDataCheck(input$checkBoxHideLabels))input$checkBoxHideLabels
-  })
-
-  observe({
-    mxStyle$hideLegends <- if(!noDataCheck(input$checkBoxHideLegends)) input$checkBoxHideLegends 
-  })
-
-
-
-  #
-  # Set current group.
-  #
-  observe({
-    mxStyle$group = mxConfig$defaultGroup
-  })
-
-  #
-  # SAVE STYLE
-  # 
-
-  observeEvent(input$btnMapCreatorSave,{
-    mxCatch(title="Save style",{
-      sty <- reactiveValuesToList(mxStyle)
-      tableName <- mxConfig$viewsListTableName
-      d <- dbInfo
-      drv <- dbDriver("PostgreSQL")
-      con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-
-      tryCatch({
-        tableAppend = isTRUE( tableName %in% dbListTables(con))
-        tbl = as.data.frame(stringsAsFactors=FALSE,list(
-            id =  randomName(),
-            country = mxReact$selectCountry,
-            title = input$mapViewTitle,
-            class = input$mapViewClass,
-            layer = sty$layer,
-            editor = "f@fxi.io",
-            reviever = "f@fxi.io",
-            revision = 0,
-            validated = TRUE,
-            archived = FALSE,
-            dateCreated = date(),
-            dataModifed = date(),
-            dateValidated = date(),
-            dateVariableMax = max(input$mapViewDateRange),
-            dateVariableMin = min(input$mapViewDateRange),
-            style = toJSON(sty,collapse="")
-            )
-          )
-        dbWriteTable(con,tableName,value=tbl,append=tableAppend,row.names=F)
-      },finally=dbDisconnect(con)
-      )
-
-      mxDebugMsg(sprintf("Write style %s in table %s", tbl$id, tbl$layer))
-      mxReact$viewsListUpdate <- runif(1)
-      output$txtValidationCreator = renderText({"ok."})
-  })
+        observe({
+          mxCatch("Update input: layer columns",{
+            vars = mxConfig$noData
+            lay = input$selLayer
+            if(!noDataCheck(lay)){
+              variables <- vtGetColumns(table=lay,port=mxConfig$portVt,exclude=c("geom","gid"))$column_name
+              if(!noDataCheck(variables)){
+                vars = variables
+              } 
+            }
+            updateSelectInput(session, "selColumnVar", choices=vars)
 })
+        })
+
+
+        #
+        # get selected variable summary and populate palette input
+        #
+
+        observe({
+          lay = input$selLayer
+          var = input$selColumnVar
+          isolate({
+            if(!noDataCheck(lay) && !noDataCheck(var)){
+              layerSummary <- dbGetColumnInfo(dbInfo,lay,var)
+              if(noDataCheck(layerSummary)){
+                return(NULL)
+              }
+              type <- layerSummary$scaleType
+              #  if(type == "continuous"){
+              #    paletteChoice <- mxConfig$colorPalettesContinuous
+              #  }else{
+              #    paletteChoice<- mxConfig$colorPalettesDiscrete
+              #  }
+              paletteChoice <- mxConfig$colorPalettes
+              mxStyle$scaleType <- layerSummary$scaleType
+              mxStyle$values <- layerSummary$dValues
+              mxStyle$nDistinct <- layerSummary$nDistinct
+              mxStyle$nMissing <- layerSummary$nNa
+              mxStyle$paletteChoice <- paletteChoice
+
+              updateSelectInput(session,"selPalette",choices=paletteChoice)
+              #mxDebugMsg('Set layer summary')
+            }
+          })
+        })
+
+
+        #
+        # Set layer options based on inputs
+        #
+
+
+        observe({
+          mxStyle$title <- if(!noDataCheck(input$mapViewTitle)) input$mapViewTitle 
+        })
+
+        observe({
+          mxStyle$layer <-if(!noDataCheck(input$selLayer))input$selLayer
+        })
+
+        observe({
+          mxStyle$variable <- if(!noDataCheck(input$selColumnVar))input$selColumnVar
+        })
+
+        observe({
+          mxStyle$palette  <- if(!noDataCheck(input$selPalette))input$selPalette
+        })
+
+        observe({
+          mxStyle$opacity <- if(!noDataCheck(input$selOpacity))input$selOpacity
+        })
+
+        observe({
+          mxStyle$basemap <- if(!noDataCheck(input$selectBaseMap))input$selectBaseMap
+        })
+
+        observe({
+          mxStyle$size <- if(!noDataCheck(input$selSize))input$selSize
+        })
+
+        observe({
+          mxStyle$hideLabels <- if(!noDataCheck(input$checkBoxHideLabels))input$checkBoxHideLabels
+        })
+
+        observe({
+          mxStyle$hideLegends <- if(!noDataCheck(input$checkBoxHideLegends)) input$checkBoxHideLegends 
+        })
+
+
+
+        #
+        # Set current group.
+        #
+        observe({
+          mxStyle$group = mxConfig$defaultGroup
+        })
+
+        #
+        # SAVE STYLE
+        # 
+
+        observeEvent(input$btnMapCreatorSave,{
+          mxCatch(title="Save style",{
+            sty <- reactiveValuesToList(mxStyle)
+            tableName <- mxConfig$viewsListTableName
+            d <- dbInfo
+            drv <- dbDriver("PostgreSQL")
+            con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+
+            tryCatch({
+              tableAppend = isTRUE( tableName %in% dbListTables(con))
+              tbl = as.data.frame(stringsAsFactors=FALSE,list(
+                  id =  randomName(),
+                  country = mxReact$selectCountry,
+                  title = input$mapViewTitle,
+                  class = input$mapViewClass,
+                  layer = sty$layer,
+                  editor = "f@fxi.io",
+                  reviever = "f@fxi.io",
+                  revision = 0,
+                  validated = TRUE,
+                  archived = FALSE,
+                  dateCreated = date(),
+                  dataModifed = date(),
+                  dateValidated = date(),
+                  dateVariableMax = max(input$mapViewDateRange),
+                  dateVariableMin = min(input$mapViewDateRange),
+                  style = toJSON(sty,collapse="")
+                  )
+                )
+              dbWriteTable(con,tableName,value=tbl,append=tableAppend,row.names=F)
+            },finally=dbDisconnect(con)
+            )
+
+            mxDebugMsg(sprintf("Write style %s in table %s", tbl$id, tbl$layer))
+            mxReact$viewsListUpdate <- runif(1)
+            output$txtValidationCreator = renderText({"ok."})
+          })
+        })
 
 
 
 
   }
-  })
+})

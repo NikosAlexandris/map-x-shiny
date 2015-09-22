@@ -100,17 +100,7 @@ updateMapElement = function(){
         }
         toggleCollapseInfoClick = !toggleCollapseInfoClick;
       });
-
-
-
-
-}
-
-
-
-
-
-
+};
 
 
 

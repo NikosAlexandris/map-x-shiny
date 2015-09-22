@@ -99,7 +99,6 @@ observeEvent(input$readCookie,{
     if(val$s==mxReact$mxSecret){
       # delete the secret
       mxReact$mxSecret <- NULL
-
       msg = character(0)
       idUser <- which(pwd$l==val$l)
       idKey <- which(pwd$k==val$k) 
@@ -139,6 +138,12 @@ observeEvent(input$btnLogout,{
 # ALLOW PARTS
 #
 observe({
+  #NOTE: order is important
+  mxReact$allowViewsCreator <- mxAllow(
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
+    roleLowerLimit = 1000
+    )
   mxReact$allowMap <- mxAllow(
     logged = mxReact$userLogged,
     roleName = mxReact$userRole,
@@ -154,10 +159,6 @@ observe({
     roleName = mxReact$userRole,
     roleLowerLimit = 1000
     )
-  mxReact$allowViewsCreator <- mxAllow(
-    logged = mxReact$userLogged,
-    roleName = mxReact$userRole,
-    roleLowerLimit = 1000
-    )
+
 })
 

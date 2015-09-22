@@ -2,20 +2,34 @@
 # admin panel
 #
 
+
+userPanel = tagList(
+  div(class="mxTableContainer", hotable('userTable')),
+  tags$ul(class="list-inline",
+    tags$li(
+      actionButton("btnAdmRmUser","Remove selected (test)"),
+      actionButton("btnAdmUpdateUser","Update (test)")
+      )
+    )
+  )
+
+
+
+
+
 tags$section(id="sectionAdmin",class="container-fluid",
   div(class="row",
-    div(class="col-lg-8 col-lg-offset-2",
-      h2("Admin panel"),
-      tabsetPanel(
-        tabsetPanel(
-          tabPanel("USERS",  p()),
-          tabPanel("LAYERS", p()),
+    div(class="col-xs-12",
+      h2("Admin"),
+      actionButton("btnDebug",class="btn-default btn-lg","Show debugger"),
+      hr(),
+        tabsetPanel(type="pills",
+          tabPanel("USERS", userPanel),
           tabPanel("VIEWS",  p()),
+          tabPanel("LAYERS", p()),
           tabPanel("STORY MAPS",  p()),
-          tabPanel("MAINTENANCE",p()),
-          tabPanel("GAME")
+          tabPanel("MAINTENANCE",p())
           )
-        )
       )
     )
   )

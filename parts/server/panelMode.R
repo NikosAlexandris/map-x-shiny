@@ -1,47 +1,55 @@
 
 
-  #
-  # set map panel mode TODO: clean this. Mode is stored in a visible javascrip object : not secure.
-  #
+#
+# set map panel mode TODO: clean this. Mode is stored in a visible javascrip object : not secure.
+#
 
+observe({
+  if(mxReact$allowMap){
+    mxCatch(title="set panel mode",{
+      #
+      # DEFAULT
+      #
 
-  mxCatch(title="set panel mode",{
-    # default
-    output$titlePanelMode <- renderText({
-      panelMode <- mxSetMapPanelMode(mode='mapViewsExplorer',title='Map view explorer')
-      mxReact$mapPanelMode <- panelMode$mode
-      panelMode$title
-    })
+      output$titlePanelMode <- renderText({
+        panelMode <- mxSetMapPanelMode(mode='mapViewsExplorer',title='Map views explorer')
+        mxReact$mapPanelMode <- panelMode$mode
+        panelMode$title
+      })
 
-    # Creator mode
-    observeEvent(input$btnViewsCreator,{
-      panelMode = mxSetMapPanelMode(mode='mapViewsCreator',title='Map views creator')
-      mxReact$mapPanelTitle = panelMode$title
-      mxReact$mapPanelMode  = panelMode$mode
-    })
+      #
+      # ACTION HANDLER
+      #
 
-    # explorer mode
-    observeEvent(input$btnViewsExplorer,{
-      panelMode = mxSetMapPanelMode(mode='mapViewsExplorer',title='Map views explorer')
-      mxReact$mapPanelTitle <- panelMode$title
-      mxReact$mapPanelMode  <- panelMode$mode
-    })
+      # Creator mode
+      observeEvent(input$btnViewsCreator,{
+        if(mxReact$allowViewsCreator){
+          panelMode = mxSetMapPanelMode(mode='mapViewsCreator',title='Map views creator')
+          mxReact$mapPanelTitle = panelMode$title
+          mxReact$mapPanelMode  = panelMode$mode
+        }
+      })
 
-    # explorer mode
-    observeEvent(input$btnViewsConfig,{
-      panelMode = mxSetMapPanelMode(mode='mapViewsConfig',title='Map views config')
-      mxReact$mapPanelTitle <- panelMode$title
-      mxReact$mapPanelMode  <- panelMode$mode
-    })
-
-
-
-    observe({ 
-      title <- mxReact$mapPanelTitle
-      if(noDataCheck(title))return()
-      output$titlePanelMode <- renderText({title}) 
-    })
-
-
-  })
-
+      # explorer mode
+      observeEvent(input$btnViewsExplorer,{
+        panelMode = mxSetMapPanelMode(mode='mapViewsExplorer',title='Map views explorer')
+        mxReact$mapPanelTitle <- panelMode$title
+        mxReact$mapPanelMode  <- panelMode$mode
+      })
+      # config mode
+      observeEvent(input$btnViewsConfig,{
+        panelMode = mxSetMapPanelMode(mode='mapViewsConfig',title='Map views config')
+        mxReact$mapPanelTitle <- panelMode$title
+        mxReact$mapPanelMode  <- panelMode$mode
+      })
+      #
+      # UPDATE TITLE
+      #
+      observe({ 
+        title <- mxReact$mapPanelTitle
+        if(noDataCheck(title))return()
+        output$titlePanelMode <- renderText({title}) 
+      })
+})
+  }
+})
