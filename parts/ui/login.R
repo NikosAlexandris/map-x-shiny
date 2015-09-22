@@ -6,7 +6,7 @@ tags$section(id="sectionLogin",class="container-fluid",
     div(class="col-lg-10 col-lg-offset-1",
       ## Login module;
       div(class="mxLogin",
-        h2("User login"),
+        h2("User authentication"),
         tags$ul(class="list-inline",
           #tags$li(textInput("loginEmail", "Email:")),
           tags$li(usrInput("loginUser", "User name")),  

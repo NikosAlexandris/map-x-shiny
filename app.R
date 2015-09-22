@@ -2,6 +2,7 @@
 #source("fun.R")
 source("loadlib.R")
 source("fun/helperUi.R")
+source('fun/handson.R')
 source("settings/settings.R")
 source("config.R")
 
@@ -27,6 +28,7 @@ ui <- tagList(
     #
     tags$link(href="font-awesome-4.4.0/css/font-awesome.min.css",rel="stylesheet",type="text/css"),
     tags$link(href="theme/grayscale/bootstrap.min.css",rel="stylesheet",type="text/css"),
+    tags$link(rel="stylesheet",type="text/css",href='handsontable/handsontable.full.min.css'),
     tags$link(href="mapx/mapx.css",rel="stylesheet",type="text/css")
     ),
   tags$body(id="page-top",`data-spy`="scroll",`data-target`=".navbar-fixed-top", `data-offset`="0",
@@ -57,6 +59,8 @@ ui <- tagList(
     tags$script(src="bootstrap/js/bootstrap.min.js"),
     tags$script(src="pwd/pwd.js"),
     tags$script(src="pwd/md5.js"),
+    tags$script(src='handsontable/handsontable.full.min.js'),
+    tags$script(src='handsontable/shinyskyHandsonTable.js'),
     tags$script(src="mapx/mapx.js")
     )
   )
@@ -69,33 +73,6 @@ ui <- tagList(
 # Server
 #
 server <- function(input, output, session) {
-
-  #
-  # md5 hashed pwd
-  #
-
-  # u = user
-  # l = login
-  # k = key
-  # e = email
-  # r = role
-  # d = last date login
-  # a = actually logged
-  # c = country allowed (all,pending,complete or single iso3)
-  pwd <- rbind(
-    c(id=0,u="fred", l="570a90bfbf8c7eab5dc5d4e26832d5b1",k="570a90bfbf8c7eab5dc5d4e26832d5b1", r="superuser",e=",mail@example.com"),
-    c(id=1,u="pierre",l="84675f2baf7140037b8f5afe54eef841" ,k="84675f2baf7140037b8f5afe54eef841", r="superuser",e="mail@example.com"),
-    c(id=2,u="david",l="172522ec1028ab781d9dfd17eaca4427",k="172522ec1028ab781d9dfd17eaca4427", r="user",e="mail@example.com"),
-    c(id=3,u="dag",l="b4683fef34f6bb7234f2603699bd0ded", k="b4683fef34f6bb7234f2603699bd0ded", r="user",e="mail@example.com"),
-    c(id=4,u="nicolas",l="deb97a759ee7b8ba42e02dddf2b412fe", k="deb97a759ee7b8ba42e02dddf2b412fe", r="admin",e="mail@example.com"),
-    c(id=5,u="paulina",l="e16866458c9403fe9fb3df93bd4b3a41", k="e16866458c9403fe9fb3df93bd4b3a41", r="user",e="mail@example.com"),
-    c(id=6,u="greg",l="ea26b0075d29530c636d6791bb5d73f4",k="ea26b0075d29530c636d6791bb5d73f4", r="user",e="mail@example.com"),
-    c(id=7,u="guest",l="084e0343a0486ff05530df6c705c8bb4",k="084e0343a0486ff05530df6c705c8bb4", r="user",e="mail@example.com")
-    )
-  pwd<-as.data.frame(pwd,stringsAsFactors=F)
-  pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 
-
-
   #
   # show debugger
   #
@@ -112,8 +89,30 @@ server <- function(input, output, session) {
   mxStyle <- reactiveValues()
 
 
-  
-  mxReact$uiDisplayMap = FALSE
+  #
+  # md5 hashed pwd (for testing only)
+  #
+
+  # u = user
+  # l = login
+  # k = key
+  # e = email
+  # r = role
+  # d = last date login
+  # a = actually logged
+  # c = country allowed (all,pending,complete or single iso3)
+  pwd <- rbind(
+    c(id=0,u="fred", l="570a90bfbf8c7eab5dc5d4e26832d5b1",k="570a90bfbf8c7eab5dc5d4e26832d5b1", r="superuser",e="mail@example.com"),
+    c(id=1,u="pierre",l="84675f2baf7140037b8f5afe54eef841" ,k="84675f2baf7140037b8f5afe54eef841", r="superuser",e="mail@example.com"),
+    c(id=2,u="david",l="172522ec1028ab781d9dfd17eaca4427",k="172522ec1028ab781d9dfd17eaca4427", r="user",e="mail@example.com"),
+    c(id=3,u="dag",l="b4683fef34f6bb7234f2603699bd0ded", k="b4683fef34f6bb7234f2603699bd0ded", r="user",e="mail@example.com"),
+    c(id=4,u="nicolas",l="deb97a759ee7b8ba42e02dddf2b412fe", k="deb97a759ee7b8ba42e02dddf2b412fe", r="admin",e="mail@example.com"),
+    c(id=5,u="paulina",l="e16866458c9403fe9fb3df93bd4b3a41", k="e16866458c9403fe9fb3df93bd4b3a41", r="user",e="mail@example.com"),
+    c(id=6,u="greg",l="ea26b0075d29530c636d6791bb5d73f4",k="ea26b0075d29530c636d6791bb5d73f4", r="user",e="mail@example.com"),
+    c(id=7,u="guest",l="084e0343a0486ff05530df6c705c8bb4",k="084e0343a0486ff05530df6c705c8bb4", r="user",e="mail@example.com")
+    )
+  pwd<-as.data.frame(pwd,stringsAsFactors=F)
+  pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 
 
 
 

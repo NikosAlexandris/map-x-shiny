@@ -10,8 +10,7 @@
         tags$ul(class="list-inline banner-social-buttons",
           tags$li(
             tags$a(href="https://twitter.com",class="btn btn-default btn-lg",tags$i(class="fa fa-twitter fa-fw"),tags$span(class="network-name","Twitter")),
-            tags$a(href="https://github.com/unep-grid",class="btn btn-default btn-lg",tags$i(class="fa fa-github fa-fw"),tags$span(class="network-name","Github")),
-            tags$li(actionButton("btnDebug",class="btn-default btn-lg","Show debugger"))
+            tags$a(href="https://github.com/unep-grid",class="btn btn-default btn-lg",tags$i(class="fa fa-github fa-fw"),tags$span(class="network-name","Github"))
             )
           )
         )
