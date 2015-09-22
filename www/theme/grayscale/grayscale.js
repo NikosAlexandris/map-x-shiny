@@ -19,7 +19,7 @@ $(function() {
         var $anchor = $(this);
         console.log($($anchor.attr('href')));
         $('html, body').stop().animate({
-            scrollTop: $($anchor.attr('href')).offset().top
+            scrollTop: $($anchor.attr('href')).offset().top -55
         }, 1000, 'easeOutQuad');
         event.preventDefault();
     });
@@ -32,9 +32,9 @@ $('.navbar-collapse ul li a').click(function() {
 
     // Get the HTML DOM element that will contain your map 
     // We are using a div with id="map" seen below in the <body>
-
-$('.dropdown-menu li').click(function(e){
-    e.preventDefault();
-      var selected = $(this).text();
-        $('.category').val(selected);  
-});
+//
+//$('.dropdown-menu li').click(function(e){
+//    e.preventDefault();
+//      var selected = $(this).text();
+//        $('.category').val(selected);  
+//});

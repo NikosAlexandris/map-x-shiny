@@ -34,11 +34,13 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
         cmd <- paste0(cmd,str,collapse="")
       }
     }
-    #Add date
-    addDate <- "document.cookie='d=new Date()'"
-    cmd <- paste(cmd,addDate)
-  }
+    }
   if(length(cmd)>0){
+
+    #Add date
+    addDate <- ";if(document.cookie.indexOf('d=')==-1){document.cookie='d='+new Date();}"
+    cmd <- paste(cmd,addDate)
+
     session$sendCustomMessage(
       type="mxSetCookie",
       list(code=cmd)
@@ -113,7 +115,7 @@ observeEvent(input$readCookie,{
           mxReact$userName,
           "with email",mxReact$userEmail,
           "logged as", mxReact$userRole,
-          "since",mxReact$userLastLogin
+          "since",val$d
           )
       } else  {
         msg=paste("ACCESS DENIED",msg,collapse="")
@@ -130,6 +132,32 @@ print(mxReact$userLogged)
 })
 
 observeEvent(input$btnLogout,{
-  cat("log out requested\n")
   mxSetCookie(cookie=res,deleteAll=TRUE)
       })
+
+#
+# ALLOW PARTS
+#
+observe({
+  mxReact$allowMap <- mxAllow(
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
+    roleLowerLimit = 100
+    )
+  mxReact$allowCountry <- mxAllow(
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
+    roleLowerLimit = 99
+    )
+  mxReact$allowAdmin <- mxAllow(
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
+    roleLowerLimit = 1000
+    )
+  mxReact$allowViewsCreator <- mxAllow(
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
+    roleLowerLimit = 1000
+    )
+})
+

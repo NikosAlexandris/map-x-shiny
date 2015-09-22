@@ -8,13 +8,8 @@ source("parts/server/creator.R",local=T)
 # MAP SECTION RESTRICTED AREA
 #
 observe({
-  allowMapSection <- mxAllow(
-    logged = mxReact$userLogged,
-    roleName = mxReact$userRole,
-    roleLowerLimit = 101
-    )
-  mxReact$uiDisplayMap <- allowMapSection
-  mxUiEnable(id="sectionMap",enable=allowMapSection) 
+  mxUiEnable(id="sectionMap",enable=mxReact$allowMap) 
+  mxUiEnable(id="btnViewsCreator",enable=mxReact$allowViewsCreator) 
 })
 
 
@@ -23,7 +18,7 @@ observe({
   #
 
   observe({
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Populate views from db",{
       cntry <- mxReact$selectCountry
       update <- mxReact$viewsListUpdate
@@ -50,7 +45,7 @@ observe({
   # VIEWS LIST TO HTML
   #
   observe({
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="HTML views construction",{
       v <- mxReact$views
       if(!is.null(v)){
@@ -109,7 +104,7 @@ observe({
 
   observe({
 
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Views manager",{
       vUrl = mxReact$viewsFromUrl
       vMenu = input$viewsFromMenu
@@ -140,7 +135,7 @@ observe({
 
   # add vector tiles
   observeEvent(mxReact$viewsToDisplay,{
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Display selected views",{
       # begin 
 
@@ -239,7 +234,7 @@ observe({
 
   # on tile loaded, set style
   observeEvent(input$leafletvtStatus,{
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Set style object after tiles loaded",{
       
       lay = input$leafletvtStatus$lay
@@ -278,7 +273,7 @@ observe({
   # wms
   observe({
 
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Add wms service",{
       wms <- input$txtConfigAddWms
       if(!noDataCheck(wms)){
@@ -303,7 +298,7 @@ observe({
   #
 
   observeEvent(input$btnViewsExplorer,{
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Clean creator layers",{
     dGroup <- mxConfig$defaultGroup
     legendId <- paste(dGroup,"_legends")
@@ -322,7 +317,7 @@ observe({
   #
 
   output$mapxMap <- renderLeaflet({
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxDebugMsg("DISPLAY MAIN MAP")
     group = "main"
     iso3 <- mxReact$selectCountry
@@ -342,7 +337,7 @@ observe({
   #
 
   observe({ 
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Add vector tiles",{
       grp <- mxStyle$group
       lay <- mxStyle$layer
@@ -390,7 +385,7 @@ observe({
 
   observeEvent(input$btnZoomToLayer,{
 
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Btn zoom to layer",{
       lay <- mxStyle$layer
       if(noDataCheck(lay))return()
@@ -414,7 +409,7 @@ observe({
 
   observe({
 
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Additional base map",{
       #if(mxReact$mapPanelMode=="mapViewsStory"){
         layId = "basemap"
@@ -451,7 +446,7 @@ observe({
 
   observe({
 
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Set layer labels",{
       group = "labels"
       hideLabels <- mxStyle$hideLabels
@@ -473,7 +468,7 @@ observe({
   #  Set layer colors
   #
   layerStyle <- reactive({
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Set reactive function for style",{
       #up <- mxStyle$update
       sty <- reactiveValuesToList(mxStyle)
@@ -498,7 +493,7 @@ observe({
 
   # mode explorer
   observeEvent(input$leafletvtStatus,{
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap){
     mxCatch(title="Update layer style, explorer mode",{
       if(isTRUE(mxReact$mapPanelMode=="mapViewsExplorer")){
         sty <- layerStyle() 
@@ -511,8 +506,7 @@ observe({
 
   # mode creator
  observe({
-
-    if(mxReact$uiDisplayMap){
+    if(mxReact$allowMap && mxReact$allowViewsCreator){
    mxCatch(title="Update style, creator mode",{
       if(isTRUE(mxReact$mapPanelMode=="mapViewsCreator")){
         sta <- input$leafletvtStatus
@@ -528,7 +522,7 @@ observe({
 ## SET JQUERY EVENT IF MAP IS DISPLAYED
 ##
 #observe({
-#  if(mxReact$uiDisplayMap){
+#  if(mxReact$allowMap){
 #    session$sendCustomMessage(
 #      type="mapUiUpdate",
 #      list(code=runif(1))

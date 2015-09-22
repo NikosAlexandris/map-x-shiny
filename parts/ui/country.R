@@ -4,19 +4,21 @@
 # ui country
 #
 
+
+
 tags$section(id="sectionCountry",class="container-fluid",
   tagList(
     div(class="row",
-      div(class="col-lg-12 col-lg-offset-2 col-md-offset-1",
+      div(class="col-lg-10 col-lg-offset-1",
         h2(textOutput('countryName')),
-        div(class="col-lg-4 col-md-5",
+        div(class="col-md-6 col-xs-12 text-left",
           h3('Key metrics'),
           selectInput("selectCountry","Change country",choices=""),
           uiOutput("countryMetrics"),
           h3('Abstract'),
           uiOutput("countryNarrative")
           ),
-        div(class="col-lg-4 col-md-5",
+        div(class="col-md-6 col-xs-12 text-left",
           h3('Indicators'),
           tabsetPanel(id="tabIndicators",type="pills",
             tabPanel('RGI',    
