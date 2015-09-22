@@ -19,7 +19,7 @@ $(function() {
         var $anchor = $(this);
         console.log($($anchor.attr('href')));
         $('html, body').stop().animate({
-            scrollTop: $($anchor.attr('href')).offset().top -55
+            scrollTop: $($anchor.attr('href')).offset().top - $(".navbar-header").height() 
         }, 1000, 'easeOutQuad');
         event.preventDefault();
     });

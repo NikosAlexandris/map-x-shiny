@@ -23,7 +23,6 @@ var mxPanelMode = {};
 var leafletvtGroup = {};
 
 updateMapElement = function(){
-  console.log($("#map-left"));
   $("#btnStopMapScroll").click(function(){
         var idSection = "#sectionMap";
         idScroll = "#map-left";
@@ -34,7 +33,10 @@ updateMapElement = function(){
         $scrolable = $(idScroll);
 
         if(toggleScrollMap){
-          window.location = idSection ;  
+ $('html, body').stop().animate({
+            scrollTop: $(idSection).offset().top - $(".navbar-header").height() 
+        }, 1000, 'easeOutQuad');
+          //window.location = idSection ;  
           $body.addClass('noscroll');
           $scrolable.on({
             'mouseenter': function () {
