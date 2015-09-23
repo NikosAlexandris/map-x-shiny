@@ -132,7 +132,6 @@ observe({
     observeEvent(mxReact$viewsToDisplay,{
         mxCatch(title="Display selected views",{
           # begin 
-
           # reactive values
           vData = mxReact$views    
           vToDisplay = mxReact$viewsToDisplay
@@ -187,8 +186,8 @@ observe({
               pal <- sty$palette
               val <- sty$values
 
-              sty<-addPaletteFun(sty,pal)
-              palFun = sty$paletteFun
+              sty <- addPaletteFun(sty,pal)
+              palFun <- sty$paletteFun
 
               mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
               proxyMap %>%
@@ -287,6 +286,8 @@ observe({
 
     observeEvent(input$btnViewsExplorer,{
         mxCatch(title="Clean creator layers",{
+          mxStyle <- reactiveValues()
+
           dGroup <- mxConfig$defaultGroup
           legendId <- paste0(dGroup,"_legends")
           proxyMap <- leafletProxy("mapxMap")
@@ -296,7 +297,20 @@ observe({
 })
     })
 
+    #
+    # CLEAR LAYER AFTER CREATOR MODE
+    #
 
+
+    observeEvent(input$btnViewsCreator,{
+      mxCatch(title="Clean explorer layers",{
+        mxStyle <- reactiveValues()
+
+          mxReact$viewsToDisplay = ""
+
+
+})
+    })
 
     #
     # MAIN MAP
@@ -325,7 +339,7 @@ observe({
     #
 
     observe({ 
-        mxCatch(title="Add vector tiles",{
+       # mxCatch(title="Add vector tiles",{
           grp <- mxStyle$group
           lay <- mxStyle$layer
 
@@ -345,25 +359,29 @@ observe({
             if(!noDataCheck(vars)){
               proxyMap <- leafletProxy("mapxMap")
               proxyMap %>%
-              clearGroup(mxConfig$defaultGroup)%>%
-              #{if(!noDataCheck(grpClean)) clearGroup(.,group=grpClean) else . } %>%
+              clearGroup(mxConfig$defaultGroup)
+
+              proxyMap %>%
               addVectorTiles(
                 url=mxConfig$hostVt,
-                port=3030,
+                port=mxConfig$portVt,
                 geomColumn="geom", # should be auto resolved by PGRestAPI
                 idColumn="gid", # should be auto resolved by PGRrestAPI
                 table=lay,
                 dataColumn=vars,
                 group = grp
                 )  
-
               mxDebugMsg(paste("Start downloading",lay))
             }
           }
-})
+#})
     })
 
 
+
+ #   observeEvent(input$leafletvtStatus,{
+ #     sta = input$leafletvtStatus 
+ #   })
 
     #
     # Set map center based on center of layer
@@ -448,51 +466,77 @@ observe({
     #  Set layer colors
     #
     layerStyle <- reactive({
-        mxCatch(title="Set reactive function for style",{
-          #up <- mxStyle$update
-          sty <- reactiveValuesToList(mxStyle)
-          palOk <- isTRUE(sty$palette %in% sty$paletteChoice)
-          if(!any(sapply(sty,noDataCheck)) && palOk){ 
-            sty <- addPaletteFun(sty,sty$palette)
-            sty$colors <- sty$paletteFun(sty$values)
-            return(sty)
-          }else{
-            return()
+      mxCatch(title="Set layerStyle()",{
+        # check if vector tiles are loaded 
+        # and if they correspond to mxStyle
+        grpLocal <- mxStyle$group
+        layLocal <- mxStyle$layer
+        grpClient <- input$leafletvtStatus$grp
+        layClient <- input$leafletvtStatus$lay
+        if(
+          !noDataCheck(grpLocal) && 
+          !noDataCheck(grpClient) && 
+          !noDataCheck(layLocal) && 
+          !noDataCheck(layClient)
+          ){
+          if(
+            grpClient == grpLocal && 
+            layClient == sprintf("%s_%s",layLocal,mxConfig$defaultGeomCol)
+            ){
+            sty <- reactiveValuesToList(mxStyle)
+            if(!any(sapply(sty,noDataCheck))){
+              palOk <- isTRUE(sty$palette %in% sty$paletteChoice)
+              if(palOk){ 
+                sty <- addPaletteFun(sty,sty$palette)
+                sty$colors <- sty$paletteFun(sty$values)
+                return(sty)
+              }
+            }
           }
+        }
+        return(NULL)
 })
     })
 
 
-
-
-    # 
-    # Update layer color and legend
-    # 
-
-    # mode explorer
-    observeEvent(input$leafletvtStatus,{
-        mxCatch(title="Update layer style, explorer mode",{
-          if(isTRUE(mxReact$mapPanelMode=="mapViewsExplorer")){
-            sty <- layerStyle() 
-            sta <- input$leafletvtStatus 
-            mxSetStyle(style=sty,status=sta)
-          }
-})
-    })
-
-    # mode creator
     observe({
-      if(mxReact$allowViewsCreator){
-        mxCatch(title="Update style, creator mode",{
-          if(isTRUE(mxReact$mapPanelMode=="mapViewsCreator")){
-            sty <- layerStyle()
-            sta <- input$leafletvtStatus
-            mxSetStyle(style=sty,status=sta)
-          }
-})
+      sty = layerStyle()
+      if(!noDataCheck(sty)){
+      mxDebugMsg(paste("layerStyle() received for",sty$group))
+      mxSetStyle(style=sty)
       }
     })
 
+#
+#
+#    # 
+#    # Update layer color and legend
+#    # 
+#
+#    # mode explorer
+#    observeEvent(input$leafletvtStatus,{
+#        mxCatch(title="Update layer style, explorer mode",{
+#          if(isTRUE(mxReact$mapPanelMode=="mapViewsExplorer")){
+#            sty <- layerStyle() 
+#            mxSetStyle(style=sty,status=sta)
+#          }
+#})
+#    })
+#
+#    # mode creator
+#    observe({
+#      if(mxReact$allowViewsCreator){
+#        mxCatch(title="Update style, creator mode",{
+#          if(isTRUE(mxReact$mapPanelMode=="mapViewsCreator")){
+#            sty <- layerStyle()
+#            sta <- input$leafletvtStatus
+#          mxDebugMsg(paste("mxSetStyle in observer requested for ",sty$group))
+#            mxSetStyle(style=sty,status=sta)
+#          }
+#})
+#      }
+#    })
+#
 
 
   }

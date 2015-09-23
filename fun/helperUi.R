@@ -580,17 +580,7 @@ addPaletteFun <- function(sty,pal){
 
 }
 
-mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,status){
-
-  if(!noDataCheck(style) && !any(sapply(style,is.null))){
-    print(style)
-    print(status)
-    vtOk = isTRUE(style$group == status$grp && grep(style$layer,status$lay)>0)
-    if(!vtOk){
-      mxDebugMsg("style vs status conflict: return NULL")
-      return()
-    }
-    if(vtOk){
+mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
       mxDebugMsg("Update layer style")
       tit <- style$title
       col <- style$colors
@@ -668,9 +658,6 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,status){
 
     };
     "
-    # jsStyle = "updateStyle = function(){s={};s.color=randomHsl(0.8); return s;};"
-    #jsTimeBefore = "var d= new Date(); console.log('Time before style' + d + d.getMilliseconds());"
-    #jsTimeAfter = "var d= new Date(); console.log('Time after style' + d + d.getMilliseconds());"
     jsCode = paste(
       jsColorsPalette,
       jsDataCol,
@@ -680,17 +667,10 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,status){
       jsUpdate
       )
 
-
-    # session$sendCustomMessage(type="jsCode",list(code=jsTimeBefore))
     session$sendCustomMessage(type="jsCode",list(code=jsCode))
-    # session$sendCustomMessage(type="jsCode",list(code=jsTimeAfter))
-
-    #      setLayerZIndex(group=grp,zIndex=15)
     stop <- Sys.time() - start
     mxDebugMsg(paste("End style. Timing=",stop))
     cat(paste(paste0(rep("-",80),collapse=""),"\n"))
-  }
-}
 }
 
 mxSelectInput<-function(inputId,choices=NULL,selected=NULL){

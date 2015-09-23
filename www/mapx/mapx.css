@@ -201,7 +201,9 @@ box-sizing: border-box;
 
 
 /* leaflet modification */
-
+.legend svg text {
+    fill: #FFF;
+}
 .leaflet-right {
   padding-top: 70px;
 }
