@@ -55,12 +55,12 @@ observe({
             clUn = unique(sapply(v,function(x)x$class))
             viewsList = list()
             for(i in names(v)){
-              title = v[[i]]$title 
-              class = v[[i]]$class
-              className = cl[cl$id == class,'n']
-              viewId = as.list(i)
-              names(viewId) = title
-              other = viewsList[[className]]
+              title <- v[[i]]$title 
+              class <- v[[i]]$class
+              className <- cl[cl$id == class,'n']
+              viewId <- as.list(i)
+              names(viewId) <- title
+              other <- viewsList[[className]]
               if(is.null(other)){
                 viewsList[[className]] <- viewId
               }else{

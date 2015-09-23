@@ -583,6 +583,8 @@ addPaletteFun <- function(sty,pal){
 mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,status){
 
   if(!noDataCheck(style) && !any(sapply(style,is.null))){
+    print(style)
+    print(status)
     vtOk = isTRUE(style$group == status$grp && grep(style$layer,status$lay)>0)
     if(!vtOk){
       mxDebugMsg("style vs status conflict: return NULL")
