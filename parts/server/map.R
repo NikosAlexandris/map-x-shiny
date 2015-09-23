@@ -371,7 +371,7 @@ observe({
                 dataColumn=vars,
                 group = grp
                 )  
-              mxDebugMsg(paste("Start downloading",lay))
+              mxDebugMsg(paste("Start downloading",lay,"from host",mxConfig$hostVt,"on port:",mxConfig$portVt))
             }
           }
 #})
