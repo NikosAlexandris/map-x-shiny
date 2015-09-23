@@ -193,7 +193,7 @@ mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),
 ##' @param session Shiny session
 ##' @param layer Leaflet.MapboxVectorTile layer group object name
 ##' @export
-#setLayerVisibility <- function(session=shiny:::getDefaultReactiveDomain(),views="leafletvtGroup",status="leafletvtVisible",group=NULL,visible=TRUE){
+#setLayerVisibility <- function(session=shiny:::getDefaultReactiveDomain(),views="leafletvtId",status="leafletvtVisible",group=NULL,visible=TRUE){
 #   if(!noDataCheck(group)){
 #     val = ifelse(visible,1,0)
 #     cond = ifelse(visible,'true','false')
@@ -221,7 +221,7 @@ mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),
 #' @param layer Leaflet.MapboxVectorTile layer group object name
 #' @param opacity Opacits
 #' @export
-setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="leafletvtGroup",group=NULL,opacity=1){
+setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="leafletvtId",group=NULL,opacity=1){
   if(!noDataCheck(group)){
     jsCode = sprintf("if(typeof %s !== 'undefined'){%s.%s.setOpacity(%s)};",layer,layer,group,opacity)
     mxDebugMsg(jsCode)
@@ -241,7 +241,7 @@ setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="le
 #' @param layer Leaflet.MapboxVectorTile layer group object name
 #' @param zIndex zIndex of the group
 #' @export
-setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtGroup",group=NULL,zIndex=15){
+setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtId",group=NULL,zIndex=15){
   if(!is.null(group)){
     jsCode <- sprintf("if(typeof %s !== 'undefined'){%s.%s.setZIndex(%s)};",layer,layer,group,zIndex)
   }else{ 
@@ -613,7 +613,8 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
       jsDataCol <- sprintf("var dataColumn ='%s' ;",var)
       jsOpacity <- sprintf("var opacity =%s ;",opa)
       jsSize <- sprintf("var size =%s; ", sze)
-      jsUpdate <- sprintf("leafletvtGroup.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
+      #jsUpdate <- sprintf("leafletvtId.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
+      jsUpdate <- sprintf("leafletvtId.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
 
       jsStyle = "updateStyle = function (feature) {
       var style = {};
