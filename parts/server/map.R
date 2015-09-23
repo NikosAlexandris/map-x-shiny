@@ -292,7 +292,8 @@ observe({
           legendId <- paste0(dGroup,"_legends")
           proxyMap <- leafletProxy("mapxMap")
           proxyMap %>%
-          hideGroup(dGroup) %>% 
+          #hideGroup(dGroup) %>% 
+          clearGroup(dGroup) %>% 
           removeControl(legendId) 
 })
     })
