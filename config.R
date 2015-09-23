@@ -41,6 +41,8 @@ mxConfig$rolesVal <- list(
   )
 
 mxConfig$defaultGroup = "G1"
+mxConfig$defaultGeomCol = "geom"
+
 #
 # INPUT FILE FORMATING
 #
