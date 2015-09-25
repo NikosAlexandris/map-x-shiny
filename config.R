@@ -82,6 +82,7 @@ mxConfig$viewsListTableName = "mx_views"
 
 
 mxConfig$noData = "[NO DATA]"
+mxConfig$noVariable = "[DEFAULT]"
 mxConfig$noLayer = "[NO LAYER]"
 mxConfig$restartPgRestApi = "pm2 restart 'pgrestapi'"
 #mxConfig$restartPgRestApi = "pathToTmp=/home/vagrant/tools/PGRestAPI/tmp; mkdir -p $pathToTmp touch $pathToTmp/restart.txt"
@@ -215,29 +216,36 @@ mxConfig$class = list(
   )
 
 mxConfig$subclass = list(
-  'dev' = list(
-    'Unemployment'='unemployment',
-    'Poverty' ='poverty',
-    'Agriculture' = 'agriculture'
+  "dev" = list(
+    "Unemployment" = "unemployment",
+    "Poverty" = "poverty",
+    "Agriculture" = "agriculture"
     ),
-  'env' = list(
-    'Forest cover'='forest',
-    'Deforestation'="deforest",
-    'Biodiversity'='biodiversity'
+  "env" = list(
+    "Forest cover" = "forest",
+    "Deforestation" = "deforest",
+    "Biodiversity" = "biodiversity"
     ),
-  'ext' = list(
-    'Mineral'='mineral',
-    "Oil"='oil',
-    "Forestry"="forestry",
-    "Artisanal mines"="mines_artisanal"
+  "ext" = list(
+    "Mineral" = "mineral",
+    "Oil" = "oil",
+    "Forestry" = "forestry",
+    "Artisanal mines" = "mines_artisanal"
     ),
-  'str'=list(
-    "Conflict"="conflict" 
+  "str" = list(
+    "Conflict" = "conflict" 
     )
   )
 
 mxConfig$yearsAvailable = format(Sys.time(),"%Y") : 1950
 
+
+#
+# Set default date for date picker
+#
+
+mxConfig$minDate <- "1970-01-01"
+mxConfig$maxDate <- "2200-01-01"
 
 
 

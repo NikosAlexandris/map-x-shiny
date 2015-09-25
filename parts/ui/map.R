@@ -33,8 +33,9 @@ uiMapCreator <-tagList(
               ),
             "style"=list("title"="Style settings",content=tagList(
                 selectInput("selLayer","Select a vector tiles layer",choices=""),
-                selectInput("selColumnVar","Select a variable",choices=""),
+                selectInput("selColumnVar","Select a variable to display",choices=""),
                 selectInput("selPalette","Select a palette",choices=""),
+                selectInput("selColumnVarToKeep","Select other variables to keep",choices="",multiple=T),
                 numericInput("selOpacity","Opacity",min=0,max=1,value=0.6,step=0.1),
                 numericInput("selSize","Size point / line",min=0,max=100,value=5,step=0.1),
                 ##checkboxInput("checkBoxInversePalette","Inverse palette"),
@@ -43,7 +44,9 @@ uiMapCreator <-tagList(
                   selectInput("selColumnDate","Select date column",choices="")
                   ))),
             "filter"=list("title"="Filter variable",content=tagList(
-                textInput("txtFilter","Set a perl regex")
+                p("NOT ENABLED")
+                #textInput("txtFilter","Set a perl regex")
+
                 )),
             "storyMap"=list("title"="Story map settings",content=tagList(
                 textOutput("txtLiveCoordinate"),
@@ -58,8 +61,8 @@ uiMapCreator <-tagList(
                 dateRangeInput("mapViewDateRange",
                   label = "Set a date range for this layer",
                   start = Sys.Date(), end = Sys.Date(),
-                  min = "01-01-1970", max = "01-01-2050",
-                  separator = " - ", format = "dd/mm/yyyy",
+                  min = mxConfig$minDate, max = mxConfig$maxDate,
+                  separator = " - ", format = "yyyy/mm/dd",
                   startview = "year", language = "en", weekstart = 1
                   ),
                 tags$b("Description"),

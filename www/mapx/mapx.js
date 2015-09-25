@@ -1,4 +1,7 @@
 
+var leafletvtId = {};
+var leafletvtSty = {};
+
 Shiny.addCustomMessageHandler("jsCode",
     function(message) {
       eval(message.code);
@@ -20,7 +23,6 @@ updateMapElement();
 
 
 var mxPanelMode = {};
-var leafletvtGroup = {};
 
 updateMapElement = function(){
   $("#btnStopMapScroll").click(function(){
@@ -103,7 +105,119 @@ updateMapElement = function(){
 };
 
 
+isCheckedId = function(id){
+  var el = document.getElementById(id);
+  if( el === null ){
+    return false
+  } else {
+    return el.checked == true;    
+  }
+};
 
+
+setOpacityForId = function(id,opacity){
+  if(typeof(leafletvtId[id]) !== "undefined" ){
+    leafletvtId[id].setOpacity(opacity);
+  }
+}
+
+
+
+setRange = function(id,min,max){
+  console.log(leafletvtSty);
+  leafletvtSty = leafletvtId.G1.vtStyle;
+  leafletvtSty.mxDateMin[0] = min;
+  leafletvtSty.mxDateMax[0] = max;
+  leafletvtId[id].setStyle(updateStyle);
+}
+
+
+
+
+
+
+
+updateStyle = function (feature) {
+  var style = {};
+  var selected = style.selected = {};
+  var  type = feature.type,
+  defaultColor = 'rgba(0,0,0,0)',
+  dataCol = defaultColor,
+  val = feature.properties[leafletvtSty.dataColum[0]],
+  dateStyleMin = leafletvtSty.mxDateMin[0],
+  dateStyleMax = leafletvtSty.mxDateMax[0],
+  dateFeatStart = feature.properties.mx_date_start,
+  dateFeatEnd = feature.properties.mx_date_end,
+  d = []; 
+
+  // skip = set feature style to default(transparent)
+  var skip = false ;
+  // if 
+  var hasDate = false ;
+
+  if( typeof(dateFeatEnd) != "undefined" && typeof(dateFeatStart) != "undefined" ){
+    hasDate = true;
+    d.push(
+        dateStyleMin,
+        dateStyleMax,
+        dateFeatStart,
+        dateFeatEnd
+        )
+      for(var i = 0; i<4; i++){
+        if ( typeof(d[i]) == 'undefined' || d[i] === null){
+          hasDate = false ;
+        };
+      };
+    if(hasDate){
+      //if(d[2] < d[0] || d[2] > d[0] || d[3] < d[0] || d[3] > d[1]){
+      if(d[2] < d[0] || d[3] > d[1]){
+        var skip = true ;
+      };
+    };
+  };
+
+     
+
+      if(skip){
+        dataCol = defaultColor ;
+      }else{
+        if( typeof(val) != 'undefined'){ 
+          var dataCol = hex2rgb(leafletvtSty.colorsPalette[val][0],leafletvtSty.opacity[0]);
+          if(typeof(dataCol) == 'undefined'){
+            dataCol = defaultColor;
+          }
+        }
+      }
+
+
+      switch (type) {
+        case 1: //'Point'
+        style.color = dataCol;
+        style.radius = leafletvtSty$size[0];
+        selected.color = 'rgba(255,255,0,0.5)';
+        selected.radius = 6;
+        break;
+        case 2: //'LineString'
+        style.color = dataCol;
+        style.size = leafletvtSty$size[0];
+        selected.color = 'rgba(255,25,0,0.5)';
+        selected.size = leafletvtSty.size[0];
+        break;
+        case 3: //'Polygon'
+        style.color = dataCol;
+        style.outline = {
+          color: dataCol,
+          size: 1
+        };
+        selected.color = 'rgba(255,0,0,0)';
+        selected.outline = {
+          color: 'rgba(255,0,0,0.9)',
+          size: 1
+        };
+        break;
+      };
+      return style;
+    };
 
 /*
    $( '#sectionMap.stopScroll' ).bind( 'mousewheel DOMMouseScroll', function ( e ) {

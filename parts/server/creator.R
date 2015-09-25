@@ -45,7 +45,7 @@ observe({
       sub <- input$selNewLayerSubClass
 
 
-      newLayerName <- tolower( paste0(cty,"__",ymn,"_",ymx,"__",cla,"_",sub))
+      newLayerName <- tolower( paste0(cty,"__",ymn,"_",ymx,"__",cla,"__",sub))
       dataExists <- tolower(newLayerName) %in% tolower(mxReact$layerList)
 
       valid = FALSE
@@ -116,10 +116,38 @@ observe({
           cmd <- gsub("\\n","",cmd)
           er = system(cmd,intern=TRUE)
 
+
+          tryCatch({
+            # update db if expire and octroyé column exist
+            d <- dbInfo
+            drv <- dbDriver("PostgreSQL")
+            con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+
+            cols <- dbListFields(con,nam)
+
+            if(! 'mx_date_end' %in% cols && ! 'mx_date_start' %in% cols ){
+              if('octroyé' %in% cols && 'exprire' %in% cols){
+                # TODO: drop old column, validate date formating.
+                # add columns
+                qAdd = sprintf("ALTER TABLE %s ADD mx_date_start bigint, ADD mx_date_end bigint;",nam)
+                dbGetQuery(con,qAdd)
+                # update date start
+                qStart = sprintf("UPDATE %s SET mx_date_start = extract(epoch from to_timestamp(octroyé,'YYYY/MM/DD'));",nam)
+                dbGetQuery(con,qStart)
+                # update date end
+                qEnd = sprintf("UPDATE %s SET mx_date_end = extract(epoch from to_timestamp(expire,'YYYY/MM/DD'));",nam)
+                dbGetQuery(con,qEnd)
+              }
+
+            }
+          },finally={if(exists(con)){dbDisconnect(con)}}
+            )
+
+
           if(isTRUE(mxConfig$os=="Darwin")){
             # note: use ssh-copy-id and accept known host. Use the browser the first time...
             # TODO: create a method to avoid this !
-            if(!exists(remoteInfo))stop("No remoteInfo found in /settings/settings.R")
+            if(!exists('remoteInfo'))stop("No remoteInfo found in /settings/settings.R")
             r <- remoteInfo 
             mxDebugMsg("Command remote server to restart app")
             remoteCmd(host=r$host,port=r$port,user=r$user,cmd=mxConfig$restartPgRestApi)
@@ -183,7 +211,24 @@ observe({
                 vars = variables
               } 
             }
+            if("mx_date_start" %in% vars && "mx_date_end" %in% vars){
+              tryCatch({
+             d <- dbInfo
+            drv <- dbDriver("PostgreSQL")
+            con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+            q <- sprintf("SELECT min(mx_date_start),max(mx_date_end) FROM %s;",lay)
+            mxDate <- dbGetQuery(con,q)
+            mx <- as.Date(as.POSIXct(max(mxDate), origin="1970-01-01"))
+            mn <- as.Date(as.POSIXct(min(mxDate), origin="1970-01-01"))
+            updateDateRangeInput(session,"mapViewDateRange",start=mn,end=mx)
+              },finally={if(exists('con'))dbDisconnect(con)}
+            )
+            }else{ 
+            updateDateRangeInput(session,"mapViewDateRange",start=mxConfig$minDate,end=mxConfig$maxDate)
+            }
+            
             updateSelectInput(session, "selColumnVar", choices=vars)
+            updateSelectInput(session, "selColumnVarToKeep", choices=c(mxConfig$noVariable,vars),selected=mxConfig$noVariable)
 })
         })
 
@@ -237,6 +282,7 @@ observe({
         observe({
           mxStyle$variable <- if(!noDataCheck(input$selColumnVar))input$selColumnVar
         })
+   
 
         observe({
           mxStyle$palette  <- if(!noDataCheck(input$selPalette))input$selPalette
@@ -263,6 +309,14 @@ observe({
         })
 
 
+        observe({
+          dRange <- input$mapViewDateRange
+          if(isTRUE(length(dRange)==2)){
+            mxStyle$mxDateMin <- min(dRange)
+            mxStyle$mxDateMax <- max(dRange)
+          }
+        })
+
 
         #
         # Set current group.
@@ -278,7 +332,11 @@ observe({
         observeEvent(input$btnMapCreatorSave,{
           mxCatch(title="Save style",{
             sty <- reactiveValuesToList(mxStyle)
+            vToKeep <- input$selColumnVarToKeep
+            vToKeep = vToKeep[!vToKeep %in% mxConfig$noVariable]
+            sty$variableToKeep =vToKeep
             tableName <- mxConfig$viewsListTableName
+
             d <- dbInfo
             drv <- dbDriver("PostgreSQL")
             con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
@@ -291,8 +349,8 @@ observe({
                   title = input$mapViewTitle,
                   class = input$mapViewClass,
                   layer = sty$layer,
-                  editor = "f@fxi.io",
-                  reviever = "f@fxi.io",
+                  editor = mxReact$userName,
+                  reviever = "",
                   revision = 0,
                   validated = TRUE,
                   archived = FALSE,
