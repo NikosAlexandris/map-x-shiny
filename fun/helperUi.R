@@ -725,3 +725,26 @@ mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,enable=T
 
 
 
+
+    mxCheckboxIcon <- function(id,icon){
+      tagList(
+          div(class="checkbox",style="display:inline-block",
+            tags$label(
+              tags$input(type="checkbox",class="vis-hidden",id=id),
+              tags$span(icon(icon))
+              )
+            )
+        )
+    }
+
+    
+    mxSliderOpacity <- function(id,opacity){
+      onInputDo=sprintf("setOpacityForId('%s',this.value)",id)
+      tagList(
+        tags$label("Set opacity",
+          tags$input(type="range",name=sprintf("sliderOpacityFor_%s",id),min=0,max=1,step=0.01,value=opacity,onInput=onInputDo )
+          )
+        )
+    }
+    
+    

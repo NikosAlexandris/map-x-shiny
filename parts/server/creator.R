@@ -184,7 +184,6 @@ observe({
           cntry <- tolower(mxReact$selectCountry)
           # reactivity after updateVector in postgis
           update <- mxReact$layerListUpdate
-          #mxDebugMsg("Update layers list")
 
           # mxCatch("Update input: pgrestapi layer list",{
           layers <- vtGetLayers(port=mxConfig$portVt,grepExpr=paste0("^",cntry,"_"))
@@ -213,23 +212,25 @@ observe({
             }
             if("mx_date_start" %in% vars && "mx_date_end" %in% vars){
               tryCatch({
-             d <- dbInfo
-            drv <- dbDriver("PostgreSQL")
-            con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-            q <- sprintf("SELECT min(mx_date_start),max(mx_date_end) FROM %s;",lay)
-            mxDate <- dbGetQuery(con,q)
-            mx <- as.Date(as.POSIXct(max(mxDate), origin="1970-01-01"))
-            mn <- as.Date(as.POSIXct(min(mxDate), origin="1970-01-01"))
-            updateDateRangeInput(session,"mapViewDateRange",start=mn,end=mx)
+                d <- dbInfo
+                drv <- dbDriver("PostgreSQL")
+                con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+                q <- sprintf("SELECT min(mx_date_start),max(mx_date_end) FROM %s;",lay)
+                mxDate <- dbGetQuery(con,q)
+                mx <- as.Date(as.POSIXct(max(mxDate), origin="1970-01-01"))
+                mn <- as.Date(as.POSIXct(min(mxDate), origin="1970-01-01"))
+                updateDateRangeInput(session,"mapViewDateRange",start=mn,end=mx)
               },finally={if(exists('con'))dbDisconnect(con)}
-            )
+                )
+              mxStyle$hasDateColumns = TRUE
             }else{ 
-            updateDateRangeInput(session,"mapViewDateRange",start=mxConfig$minDate,end=mxConfig$maxDate)
+              updateDateRangeInput(session,"mapViewDateRange",start=mxConfig$minDate,end=mxConfig$maxDate)
+              mxStyle$hasDateColumns = FALSE
             }
-            
+
             updateSelectInput(session, "selColumnVar", choices=vars)
-            updateSelectInput(session, "selColumnVarToKeep", choices=c(mxConfig$noVariable,vars),selected=mxConfig$noVariable)
-})
+            updateSelectInput(session, "selColumnVarToKeep", choices=c(vars,mxConfig$noVariable),selected=vars[1])
+            })
         })
 
 
@@ -332,9 +333,18 @@ observe({
         observeEvent(input$btnMapCreatorSave,{
           mxCatch(title="Save style",{
             sty <- reactiveValuesToList(mxStyle)
+            # save additional variables
+            hasDate <- mxStyle$hasDateColumns
             vToKeep <- input$selColumnVarToKeep
-            vToKeep = vToKeep[!vToKeep %in% mxConfig$noVariable]
-            sty$variableToKeep =vToKeep
+            vToKeep <- vToKeep[!vToKeep %in% mxConfig$noVariable]
+            if(hasDate){
+              vToKeep <- unique(c("mx_date_start","mx_date_end",vToKeep))
+            }
+            sty$variableToKeep <- vToKeep
+            # save has date state
+            sty$hasDateColumns <- hasDate
+            
+
             tableName <- mxConfig$viewsListTableName
 
             d <- dbInfo

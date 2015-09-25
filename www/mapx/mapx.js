@@ -124,15 +124,11 @@ setOpacityForId = function(id,opacity){
 
 
 setRange = function(id,min,max){
-  console.log(leafletvtSty);
-  leafletvtSty = leafletvtId.G1.vtStyle;
+  leafletvtSty = leafletvtId[id].vtStyle;
   leafletvtSty.mxDateMin[0] = min;
   leafletvtSty.mxDateMax[0] = max;
   leafletvtId[id].setStyle(updateStyle);
 }
-
-
-
 
 
 
@@ -169,7 +165,6 @@ updateStyle = function (feature) {
         };
       };
     if(hasDate){
-      //if(d[2] < d[0] || d[2] > d[0] || d[3] < d[0] || d[3] > d[1]){
       if(d[2] < d[0] || d[3] > d[1]){
         var skip = true ;
       };
@@ -179,7 +174,7 @@ updateStyle = function (feature) {
      
 
       if(skip){
-        dataCol = defaultColor ;
+        return;
       }else{
         if( typeof(val) != 'undefined'){ 
           var dataCol = hex2rgb(leafletvtSty.colorsPalette[val][0],leafletvtSty.opacity[0]);
