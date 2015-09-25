@@ -581,98 +581,79 @@ addPaletteFun <- function(sty,pal){
 }
 
 mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
-      mxDebugMsg("Update layer style")
-      tit <- style$title
-      col <- style$colors
-      pal <- style$paletteFun
-      val <- style$values
-      var <- style$variable
-      lay <- style$layer
-      opa <- style$opacity
-      sze <- style$size
-      grp <- style$group
-      leg <- style$hideLegends
-      bnd <- style$bounds
-      mxDebugMsg("Begin style")
-      start = Sys.time()
-      legendId = sprintf("%s_legends",grp)
-      proxyMap <- leafletProxy("mapxMap")
-      if(is.null(tit))tit=lay
-      if(!leg){
-        mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
-        proxyMap %>%
-        addLegend(position="topright",pal=pal,values=val,title=tit,layerId = legendId)
-      }else{
-        mxDebugMsg(sprintf("Remove legend layer id %s", legendId))
-        proxyMap %>%
-        removeControl(legendId)
-      }
+  tit <- style$title
+  col <- style$colors
+  pal <- style$paletteFun
+  val <- style$values
+  var <- style$variable
+  lay <- style$layer
+  opa <- style$opacity
+  sze <- style$size
+  grp <- style$group
+  leg <- style$hideLegends
+  bnd <- style$bounds
+  mxd <- style$mxDateMax
+  mnd <- style$mxDateMin
+  
+  #
+  if(is.null(mnd))mnd=as.POSIXlt(mxConfig$minDate)
+  if(is.null(mxd))mxd=as.POSIXlt(mxConfig$maxDate)
 
-      names(col) <- val
-      jsColorsPalette <- sprintf("var colorsPalette=%s;",toJSON(col,collapse=""))
-      jsDataCol <- sprintf("var dataColumn ='%s' ;",var)
-      jsOpacity <- sprintf("var opacity =%s ;",opa)
-      jsSize <- sprintf("var size =%s; ", sze)
-      #jsUpdate <- sprintf("leafletvtId.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
-      jsUpdate <- sprintf("leafletvtId.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
+  #
+  mxDebugMsg("Begin style")
+  start = Sys.time()
+  
+  #
+  legendId = sprintf("%s_legends",grp)
+  proxyMap <- leafletProxy("mapxMap")
+  
+  if(is.null(tit))tit=lay
 
-      jsStyle = "updateStyle = function (feature) {
-      var style = {};
-      var selected = style.selected = {};
-      var type = feature.type;
-      var defaultColor = 'rgba(0,0,0,0)';
-      var dataCol = defaultColor;
-      var val = feature.properties[dataColumn];
-      if( typeof(val) != 'undefined'){ 
-        var dataCol = hex2rgb(colorsPalette[val],opacity);
-        if(typeof(dataCol) == 'undefined'){
-          dataCol = defaultColor;
-        }
-      }
-      switch (type) {
-        case 1: //'Point'
-        style.color = dataCol;
-        style.radius = size;
-        selected.color = 'rgba(255,255,0,0.5)';
-        selected.radius = 6;
-        break;
-        case 2: //'LineString'
-        style.color = dataCol;
-        style.size = size;
-        selected.color = 'rgba(255,25,0,0.5)';
-        selected.size = size;
-        break;
-        case 3: //'Polygon'
-        style.color = dataCol;
-        style.outline = {
-          color: dataCol,
-          size: 1
-        };
-        selected.color = 'rgba(255,0,0,0)';
-        selected.outline = {
-          color: 'rgba(255,0,0,0.9)',
-          size: size
-        };
-        break;
-      };
-      return style;
+  if(!leg){
+    mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
+    proxyMap %>%
+    addLegend(position="topright",pal=pal,values=val,title=tit,layerId = legendId)
+  }else{
+    mxDebugMsg(sprintf("Remove legend layer id %s", legendId))
+    proxyMap %>%
+    removeControl(legendId)
+  }
+  names(col) <- val
+  sList = jsonlite::toJSON(list(
+    colorsPalette = as.list(col),
+    dataColum = var,
+    opacity = opa,
+    size = sze,
+    mxDateMin = as.numeric(as.POSIXlt(mnd)),
+    mxDateMax = as.numeric(as.POSIXlt(mxd))
+    ))
 
-    };
-    "
-    jsCode = paste(
-      jsColorsPalette,
-      jsDataCol,
-      jsOpacity,
-      jsSize,
-      jsStyle,
-      jsUpdate
-      )
+  # send js
+  jsTmpStyle <-sprintf("leafletvtSty=%s;",sList)
+  jsUpdate <- sprintf("leafletvtId.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
+  jsSaveStyle <-sprintf("leafletvtId.%s.vtStyle = leafletvtSty;",grp)
 
-    session$sendCustomMessage(type="jsCode",list(code=jsCode))
-    stop <- Sys.time() - start
-    mxDebugMsg(paste("End style. Timing=",stop))
-    cat(paste(paste0(rep("-",80),collapse=""),"\n"))
+
+  jsCode <- paste(
+    jsTmpStyle,
+    jsUpdate,
+    jsSaveStyle,
+    collapse=""
+    )
+
+  session$sendCustomMessage(type="jsCode",list(code=jsCode))
+ 
+  # print timing
+  stop <- Sys.time() - start
+  mxDebugMsg(paste("End style. Timing=",stop))
 }
+
+
+
+
+
+
+
 
 mxSelectInput<-function(inputId,choices=NULL,selected=NULL){
   opt <- NULL
@@ -730,13 +711,9 @@ mxAllow <- function(logged,roleName,roleLowerLimit){
 
 mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,enable=TRUE){
   if(!enable){
-    #js <- sprintf("$('#%s').css('display','none')",id)
-    #js <- sprintf("$('#%s').css('visibility','hidden')",id)
     js <- sprintf("$('#%s').addClass('mxHide')",id)
   }else{
     js <- sprintf("$('#%s').removeClass('mxHide')",id)
-    #js <- sprintf("$('#%s').css('display','')",id)
-    #js <- sprintf("$('#%s').css('visibility','visible')",id)
   }
     session$sendCustomMessage(
       type="jsCode",

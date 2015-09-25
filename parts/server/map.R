@@ -13,7 +13,9 @@ observe({
   if(mxReact$allowMap){
     
     source('parts/server/upload.R',local=TRUE)
-    source("parts/server/creator.R",local=T)
+    source("parts/server/creator.R",local=TRUE)
+    source('parts/server/panelMode.R',local=TRUE)
+
 
 
 
@@ -43,11 +45,36 @@ observe({
 
 
 
+
+    mxCheckboxIcon <- function(id,icon){
+      tagList(
+          div(class="checkbox",style="display:inline-block",
+            tags$label(
+              tags$input(type="checkbox",class="vis-hidden",id=id),
+              tags$span(icon(icon))
+              )
+            )
+        )
+    }
+
+    
+    mxSliderOpacity <- function(id,opacity){
+      onInputDo=sprintf("setOpacityForId('%s',this.value)",id)
+      tagList(
+        tags$label("Set opacity",
+          tags$input(type="range",name=sprintf("sliderOpacityFor_%s",id),min=0,max=1,step=0.01,value=opacity,onInput=onInputDo )
+          )
+        )
+    }
+    
+    
+
     #
     # VIEWS LIST TO HTML
     #
     observe({
-        mxCatch(title="HTML views construction",{
+        start = Sys.time()
+       # mxCatch(title="HTML views construction",{
           v <- mxReact$views
           if(!is.null(v)){
             cl = mxConfig$class
@@ -74,12 +101,18 @@ observe({
               checkList <- tagList(checkList,tags$span(class="map-views-class",i))
               for(j in names(items)){
                 it <- items[j]
+                itId <- as.character(it)
+                itIdCheckOption <-sprintf('checkBoxOpt_%s',itId)
                 val <- div(class="checkbox",
                   tags$label(
-                    tags$input(type="checkbox",class="vis-hidden",name=id,value=as.character(it)),
+                    tags$input(type="checkbox",class="vis-hidden",name=id,value=itId),
                     div(class="map-views-item",
+                      mxCheckboxIcon(itIdCheckOption,"cog"),
                       tags$span(class='map-views-selector',names(it))
-                      )
+                      ) 
+                    ),
+                  conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
+                    mxSliderOpacity(itId,v[[itId]]$style$opacity)
                     )
                   )
                 checkList <- tagList(checkList,val)
@@ -94,7 +127,8 @@ observe({
               )
             output$checkInputViewsContainer <- renderUI(checkListOut)
           }
-})
+#})
+        mxDebugMsg(paste("Time for generating views list=",Sys.time()-start))
     })
 
 
@@ -155,16 +189,22 @@ observe({
 
 
           #
-          # VIEWS TO COMPUTE
+          # VIEWS FOR WICH DOWNLOAD VECTOR TILES
           #
 
+          
           if(!noDataCheck(vToCalc)){
             sty <- vData[[vToCalc]]$style
             if(!noDataCheck(sty)){
               mxDebugMsg(paste("First style computation for",vToCalc))
-              mxStyle$layer = sty$layer
-              mxStyle$group = vToCalc
-              mxStyle$variable = sty$variable
+              mxStyle$layer <- sty$layer
+              mxStyle$group <- vToCalc
+              mxStyle$variable <- sty$variable
+              vToKeep <- sty$variableToKeep 
+              # NOTE: as we check for null in layerStyle(),add "noData/noVariable" values..
+              if(is.null(vToKeep))vToKeep=mxConfig$noVariable
+              mxStyle$variableToKeep = vToKeep
+              # NOTE: should activate "start download tiles"
             }
             return()
           }
@@ -224,20 +264,29 @@ observe({
     })
 
 
-    # on tile loaded, set style
+    #
+    # MESSAGE FROM CLIENT : TILES ARE LOADED, DO SOMETHING
+    #
     observeEvent(input$leafletvtStatus,{
         mxCatch(title="Set style object after tiles loaded",{
 
-          lay = input$leafletvtStatus$lay
-          grp = input$leafletvtStatus$grp
-          vData = mxReact$views
+          lay <- input$leafletvtStatus$lay
+          grp <- input$leafletvtStatus$grp
+          vData <- mxReact$views
 
           if(isTRUE(!noDataCheck(grp) && !noDataCheck(lay))){
-            sty <-vData[[grp]]$style
+            sty <- vData[[grp]]$style
             if(!noDataCheck(sty)){
+
               mxStyle$scaleType <- sty$scaleType
               mxStyle$title <- sty$title
               mxStyle$variable <- sty$variable
+              # handle other varables. As it's new feature, old views don't have this.
+              vToKeep <- sty$variableToKeep 
+              if(is.null(vToKeep))vToKeep=mxConfig$noVariable
+              #as we check for null in layerStyle(),add "noData/noVariable" values..
+              mxStyle$variableToKeep = vToKeep
+
               mxStyle$values <- sty$values
               mxStyle$palette <- sty$palette
               mxStyle$paletteChoice <-  mxConfig$colorPalettes
@@ -272,13 +321,7 @@ observe({
     })
 
 
-    #
-    # MANAGE PANEL MODE
-    #
-
-    source('parts/server/panelMode.R',local=T)
-
-
+  
 
     #
     # CLEAR LAYER AFTER CREATOR MODE EXIT
@@ -292,7 +335,6 @@ observe({
           legendId <- paste0(dGroup,"_legends")
           proxyMap <- leafletProxy("mapxMap")
           proxyMap %>%
-          #hideGroup(dGroup) %>% 
           clearGroup(dGroup) %>% 
           removeControl(legendId) 
 })
@@ -349,12 +391,13 @@ observe({
           if(!noDataCheck(lay)){
             mxDebugMsg(paste("Ready to add vector tiles",lay," in group",grp))
             isolate({
+             var <- mxStyle$variable 
               if(mapViewMode == "mapViewsCreator"){
                 vars <- vtGetColumns(table=lay,port=mxConfig$portVt)$column_name
-                #grpClean <- mxConfig$defaultGroup
               }else{
-                vars <- c(mxStyle$variable)
-               # grpClean <- NULL
+                vToKeep <- mxStyle$variableToKeep
+                vToKeep <- vToKeep[!vToKeep %in% mxConfig$noVariable]
+                vars <- unique(c(var,vToKeep))
               }
             })
             if(!noDataCheck(vars)){
@@ -470,6 +513,7 @@ observe({
       mxCatch(title="Set layerStyle()",{
         # check if vector tiles are loaded 
         # and if they correspond to mxStyle
+  
         grpLocal <- mxStyle$group
         layLocal <- mxStyle$layer
         grpClient <- input$leafletvtStatus$grp
@@ -485,7 +529,7 @@ observe({
             layClient == sprintf("%s_%s",layLocal,mxConfig$defaultGeomCol)
             ){
             sty <- reactiveValuesToList(mxStyle)
-            if(!any(sapply(sty,noDataCheck))){
+            if(!any(sapply(sty,is.null))){
               palOk <- isTRUE(sty$palette %in% sty$paletteChoice)
               if(palOk){ 
                 sty <- addPaletteFun(sty,sty$palette)
@@ -500,44 +544,18 @@ observe({
     })
 
 
+    #
+    # FINAL STEP TO SET STYLE
+    #
+
     observe({
-      sty = layerStyle()
+      sty = layerStyle() # NOTE: Why this reactiv function invalidate the observer ?
       if(!noDataCheck(sty)){
-      mxDebugMsg(paste("layerStyle() received for",sty$group))
-      mxSetStyle(style=sty)
+        mxDebugMsg(paste("layerStyle() received for",sty$group))
+        mxSetStyle(style=sty)
       }
     })
 
-#
-#
-#    # 
-#    # Update layer color and legend
-#    # 
-#
-#    # mode explorer
-#    observeEvent(input$leafletvtStatus,{
-#        mxCatch(title="Update layer style, explorer mode",{
-#          if(isTRUE(mxReact$mapPanelMode=="mapViewsExplorer")){
-#            sty <- layerStyle() 
-#            mxSetStyle(style=sty,status=sta)
-#          }
-#})
-#    })
-#
-#    # mode creator
-#    observe({
-#      if(mxReact$allowViewsCreator){
-#        mxCatch(title="Update style, creator mode",{
-#          if(isTRUE(mxReact$mapPanelMode=="mapViewsCreator")){
-#            sty <- layerStyle()
-#            sta <- input$leafletvtStatus
-#          mxDebugMsg(paste("mxSetStyle in observer requested for ",sty$group))
-#            mxSetStyle(style=sty,status=sta)
-#          }
-#})
-#      }
-#    })
-#
 
 
   }
