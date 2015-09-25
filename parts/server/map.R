@@ -46,28 +46,6 @@ observe({
 
 
 
-    mxCheckboxIcon <- function(id,icon){
-      tagList(
-          div(class="checkbox",style="display:inline-block",
-            tags$label(
-              tags$input(type="checkbox",class="vis-hidden",id=id),
-              tags$span(icon(icon))
-              )
-            )
-        )
-    }
-
-    
-    mxSliderOpacity <- function(id,opacity){
-      onInputDo=sprintf("setOpacityForId('%s',this.value)",id)
-      tagList(
-        tags$label("Set opacity",
-          tags$input(type="range",name=sprintf("sliderOpacityFor_%s",id),min=0,max=1,step=0.01,value=opacity,onInput=onInputDo )
-          )
-        )
-    }
-    
-    
 
     #
     # VIEWS LIST TO HTML
@@ -102,6 +80,11 @@ observe({
               for(j in names(items)){
                 it <- items[j]
                 itId <- as.character(it)
+                hasDate <- isTRUE(v[[itId]]$style$hasDateColumns)
+                if(hasDate){
+                  maxDate <- v[[itId]]$dateVariableMax
+                  minDate <- v[[itId]]$dateVariableMin
+                }
                 itIdCheckOption <-sprintf('checkBoxOpt_%s',itId)
                 val <- div(class="checkbox",
                   tags$label(
@@ -111,8 +94,41 @@ observe({
                       tags$span(class='map-views-selector',names(it))
                       ) 
                     ),
-                  conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
-                    mxSliderOpacity(itId,v[[itId]]$style$opacity)
+                  conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption,id),
+                    mxSliderOpacity(itId,v[[itId]]$style$opacity),
+                    if(hasDate){
+                      tagList(
+                        tags$div(class="slider-date-container",
+                          tags$input(type="text",id=sprintf("slider-for-%s",itId)),
+                          tags$script(sprintf(
+                              "
+                              var min=%s,
+                              max=%s;
+                              $slider = $('#slider-for-%s');
+                              $slider.ionRangeSlider({
+                                type: 'double',
+                                min: min,
+                                max: max,
+                                from: min,
+                                to: max,
+                                step:1000*60*60*24*365 ,
+                                prettify: function (num) {
+                                  var m = moment(num)
+                                  return m.format('YYYY-MM-DD');
+                                },
+                                onChange: function (data) {
+                                  setRange('%s',data.from/1000,data.to/1000)
+                                }
+                              });",
+                              as.numeric(as.POSIXct(v[[itId]]$dateVariableMin))*1000,
+                              as.numeric(as.POSIXct(v[[itId]]$dateVariableMax))*1000,
+                              itId,
+                              itId
+                              )
+                            )
+                          )
+                        )
+                    }
                     )
                   )
                 checkList <- tagList(checkList,val)
@@ -378,7 +394,7 @@ observe({
 
 
     #
-    # Add vector tiles
+    # Add vector tiles with selected variables
     #
 
     observe({ 

@@ -97,23 +97,38 @@ uiMapCreator <-tagList(
     )
 
 
-  uiMapConfig <- tagList(
-    #
-    # MAP CONFIG
-    #
-    tags$section(id="sectionMapConfig",class="container-fluid",
-      div(class="row",
-        div(class="col-lg-12", 
-          h4('Opacity'),
-          sliderInput('sliderConfigOpacity','Change layers opacity',min=0,max=1,step=0.1,value=0.5),
-          h4('Set base map'),
-          selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
-          h4('Add wms'),
-          textInput("txtConfigAddWms","Paste WMS URL with {z}/{x}/{y} template")
+uiMapConfig <- tagList(
+  #
+  # MAP CONFIG
+  #
+  tags$section(id="sectionMapConfig",class="container-fluid",
+    div(class="row",
+      div(class="col-lg-12", 
+        mxAccordionGroup(id="mapConfig",
+          itemList=list(
+            "baseMap"=list("title"="Additional maps",content=tagList(
+                h4('Set base map'),
+                selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
+                h4('Add wms'),
+                textInput("txtWmsServer","Add wms server (not working yet)")
+                )
+              ),
+            "timeSlider"=list("title"="Time slider",content=tagList(
+                h4("Time slider"),
+                selectInput("selTimeSliderMap","Choose a view",choice=""),
+                sliderInput("sliderTimeFilter","Set a range",
+                  min=as.Date(as.POSIXlt(mxConfig$minDate)),
+                  max=as.Date(as.POSIXlt(mxConfig$maxDate)),
+                  value=c(as.Date(as.POSIXlt(mxConfig$minDate)),as.Date(as.POSIXlt(mxConfig$maxDate)))
+                  )
+                )
+              )
+            )
           )
         )
       )
     )
+  )
 
 
   #
