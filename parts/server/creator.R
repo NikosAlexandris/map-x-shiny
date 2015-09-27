@@ -126,7 +126,7 @@ observe({
             cols <- dbListFields(con,nam)
 
             if(! 'mx_date_end' %in% cols && ! 'mx_date_start' %in% cols ){
-              if('octroyé' %in% cols && 'exprire' %in% cols){
+              if('octroyé' %in% cols && 'expire' %in% cols){
                 # TODO: drop old column, validate date formating.
                 # add columns
                 qAdd = sprintf("ALTER TABLE %s ADD mx_date_start bigint, ADD mx_date_end bigint;",nam)
@@ -140,7 +140,7 @@ observe({
               }
 
             }
-          },finally={if(exists(con)){dbDisconnect(con)}}
+          },finally={if(exists('con')){dbDisconnect(con)}}
             )
 
 
