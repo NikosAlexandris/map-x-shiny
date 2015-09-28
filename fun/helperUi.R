@@ -659,13 +659,11 @@ mxSelectInput<-function(inputId,choices=NULL,selected=NULL){
   opt <- NULL
   if(!noDataCheck(choices)){
     if(noDataCheck(selected))selected=choices[1]
-    opt <- shiny:::selectOptions(choices,selected="")
+    opt <- HTML(sprintf("<option value=%s>%s</option>",choices,choices))
   }
   tagList(
-    div(class=c('form-group','shiny-input-container'),
-      div(
-        tags$select(id=inputId,class=c("form-control",class),opt)
-        )
+    div(class="form-control form-group shiny-input-container mx-select-input-container",
+        tags$select(id=inputId,class="form-control shiny-bound-input  mx-select-input",opt)
       )
     )
 }
@@ -747,4 +745,16 @@ mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,enable=T
         )
     }
     
-    
+   
+#
+    # Language selector by id
+    #
+
+l <- function(id=NULL){
+  mxConfig$languageTooltip[[id]][[mxConfig$languageChoice]]
+}
+
+#
+#  tooltip configuration
+#
+

@@ -111,7 +111,8 @@ observe({
                                 max: max,
                                 from: min,
                                 to: max,
-                                step:1000*60*60*24*365 ,
+                                //step:1000*60*60*24*365 ,
+                                step:1000*60*60*24 ,
                                 prettify: function (num) {
                                   var m = moment(num)
                                   return m.format('YYYY-MM-DD');

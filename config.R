@@ -347,3 +347,81 @@ mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
     )
 }
 
+
+
+#
+#  Language
+#
+
+mxConfig$languageText <- NULL
+
+
+mxConfig$languageTooltip <- list(
+  #
+  # NAVIGATION BAR
+  #
+  "navBarHome"=list(
+    "en"="Home screen",
+    "fr"="Écran de départ"
+    ),
+  "navBarProfil"=list(
+    "en"="Authentication and profil",
+    "fr"="Authentification et profil "
+    ),
+  "navBarCountry"=list(
+    "en"="Country selection and statistics",
+    "fr"="Sélection du pays et statistiques"
+    ),
+  "navBarMap"=list(
+    "en"="Spatial analysis and web mapping",
+    "fr"="Analyse spatiale et cartographie interactive"
+    ),
+  "navBarAbout"=list(
+    "en"="About",
+    "fr"="À propos"
+    ),
+  "navBarAdmin"=list(
+    "en"="Admin panel",
+    "fr"="Panneau d'administration"
+    ),
+  "navBarContact"=list(
+    "en"="Contact map-x team",
+    "fr"="Contacter l'équipe map-x"
+    ),
+  #
+  # MAP LEFT PANEL BUTTONS
+  #
+
+  "mapLeftLock"=list(
+    "en"="Avoid scroll on left panel",
+    "fr"="Eviter le scroll sur le paneau de gauche"
+    ),
+  "mapLeftHide"=list(
+    "en"="Hide pannel",
+    "fr"="Masquer le paneau"
+    ),
+  "mapLeftExplorer"=list(
+    "en"="Display the map views explorer",
+    "fr"="Afficher l'explorateur de vues"
+    ),
+  "mapLeftAdd"=list(
+    "en"="Add data and configure views",
+    "fr"="Ajouter des données et configurer les vues"
+    ),
+  "mapLeftInfo"=list(
+    "en"="Display info panel",
+    "fr"="Afficher le panneau d'information"
+    ),
+  "mapLeftConfig"=list(
+    "en"="Display general configuration panel",
+    "fr"="Afficher le panneau de configuration général "
+    ),
+  "mapLeftAnalysis"=list(
+      "en"="Display spatial analysis panel",
+      "fr"="Afficher le paneau d'analyse spatiale"
+      )
+  )  
+
+
+
+mxConfig$languageChoice = "fr"

@@ -938,7 +938,7 @@ border-radius : 0px;
 
 
 .mxLoginInput, .mxLoginInput:focus {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: transparent;
     border: white;
     border-bottom: 1px solid white;
     border-left: 1px solid white;
@@ -1085,3 +1085,28 @@ input[type=range]:focus::-ms-fill-upper {
   margin-left: 20px;
   padding-right: 20px;
 }
+
+.mx-select-input-container, .mx-select-input-container:focus {
+  border:0;
+  color:white;
+  background:transparent;
+  border-radius:0;
+  outline:0;
+}
+
+
+.mx-select-input, .mx-select-input:focus {
+  border:0px;
+  color:white;
+  background:transparent;
+  border-radius:0px;
+  outline:0;
+}
+
+
+:focus {
+    outline: none;
+    outline: 0;
+    border-bottom : 1px solid white;
+}
+
