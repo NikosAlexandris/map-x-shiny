@@ -257,3 +257,20 @@ return false;
 });
 
 */
+
+
+function updateTitlesLang(){
+  var lang = $("#selectLanguage").val();
+  $("[mx_set_lang]").each(
+      function(){
+        var a = $(this).attr("mx_set_lang").split(".");
+        var attribute = a[0];
+        var group = a[1];
+        var key = a[2]; 
+        var text = loc[a[1]][a[2]][lang];
+        if(typeof text == "undefined")text= "NO TRANSLATION";
+        console.log(group+" "+key+" "+text);
+        $(this).attr(attribute, text)}
+      )
+};
+

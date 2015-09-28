@@ -172,20 +172,62 @@ uiMapConfig <- tagList(
                 ),
               div(class="map-text-nav",
                 tags$ul(class="nav",
-                  tags$li(tags$button(id="btnStopMapScroll",class="btn-icon",icon("unlock"))),
-                  tags$li(tags$button(id='btnViewsCollapse', class="btn-icon",icon("angle-double-left"))),
-                  tags$li(actionButton('btnViewsExplorer',class="btn-icon",label=icon("map-o"))),
-                  tags$li(actionButton('btnViewsCreator',class="btn-icon",label=icon("plus"))),
-                  tags$li(tags$button(id='btnInfoClick',class="btn-icon",icon("info"))),
-                  tags$li(actionButton('btnViewsConfig',class="btn-icon",label=icon("wrench")))
+                  tags$li(
+                    tags$button(
+                      mx_set_lang="title.mapLeft.lock",
+                      id="btnStopMapScroll",
+                      class="btn-icon",
+                      icon("unlock")
+                      )
+                    ),
+                  tags$li(
+                    tags$button(
+                      mx_set_lang="title.mapLeft.hide",
+                      id='btnViewsCollapse',
+                      class="btn-icon",
+                      icon("angle-double-left")
+                      )
+                    ),
+                  tags$li(
+                    actionButton('btnViewsExplorer',
+                      mx_set_lang="title.mapLeft.explorer",
+                      class="btn-icon",
+                      label=icon("map-o")
+                      )
+                    ),
+                  tags$li(
+                    actionButton('btnViewsCreator',
+                      mx_set_lang="title.mapLeft.add",
+                      class="btn-icon",
+                      label=icon("plus")
+                      )
+                    ),
+                  tags$li(
+                    tags$button(
+                      mx_set_lang="title.mapLeft.info",
+                      id='btnInfoClick',
+                      class="btn-icon",
+                      icon("info")
+                      )
+                    ),
+                  tags$li(
+                    actionButton('btnViewsConfig',
+                      mx_set_lang="title.mapLeft.config",
+                      class="btn-icon",
+                      label=icon("wrench")
+                      )
+                    ),
+                  tags$li(
+                    actionButton('btnViewsConfig',
+                      mx_set_lang="title.mapLeft.analysis",
+                      class="btn-icon",
+                      label=icon("gears")
+                      )
                   )
                 )
               )
             ) 
           )
         )
-     # )
+     )
     )
-
-
-

@@ -11,6 +11,7 @@ tags$section(id="sectionLogin",class="container-fluid",
           #tags$li(textInput("loginEmail", "Email:")),
           tags$li(usrInput("loginUser", "User name")),  
           tags$li(pwdInput("loginKey", "Key")),  
+          tags$li(mxSelectInput(inputId="selectLanguage",choices=c("fre","eng"),selected="fre"),onchange="updateTitlesLang()"),
           tags$li(actionButton("btnLogin", icon("sign-in"))),
           tags$li(actionButton("btnLogout", icon("sign-out"))),
           tags$li(textOutput("loginValidation"))

@@ -61,7 +61,8 @@ ui <- tagList(
     tags$script(src="pwd/md5.js"),
     tags$script(src='handsontable/handsontable.full.min.js'),
     tags$script(src='handsontable/shinyskyHandsonTable.js'),
-    tags$script(src="mapx/mapx.js")
+    tags$script(src="mapx/mapx.js"),
+    tags$script(src="language/ui.js")
     )
   )
 
@@ -135,13 +136,32 @@ server <- function(input, output, session) {
     mxCatch(title="Query url",{
       query <- parseQueryString(session$clientData$url_search,nested=TRUE)
 
-      if(isTRUE(query$country %in% mxConfig$countryListChoices$pending || query$country %in% mxConfig$countryListChoices$potential)){
+      #
+      # Country selection
+      #
+      if(isTRUE(
+          query$country %in% mxConfig$countryListChoices$pending ||
+          query$country %in% mxConfig$countryListChoices$potential
+          )){
         sel = query$country
       }else{
         sel = "AFG"
       }
       updateSelectInput(session,'selectCountry',selected=sel,choices=mxConfig$countryListChoices)
       updateSelectInput(session,'selectCountryNav',selected=sel,choices=mxConfig$countryListChoices)
+      #
+      # Language
+      #
+     if(isTRUE(query$language %in% c("eng","fre"))){
+       lang=query$language
+     }else{
+       lang="eng"
+     }
+     updateSelectInput(session,"selectLanguage",selected=lang)
+      #
+      # views selection
+      #
+      
       if(!is.null(query$views)){
         views <- unlist(strsplit(subPunct(query$views,";"),";"))
         if(!noDataCheck(views)){
@@ -161,6 +181,13 @@ server <- function(input, output, session) {
     }
   })
 
+
+  observe({
+    selLanguage = input$selectLanguage
+    if(!noDataCheck(selLanguage)){
+      mxReact$selectLanguage = selLanguage
+    } 
+  })
 
 
 } # end of server object
