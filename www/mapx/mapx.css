@@ -171,7 +171,7 @@ box-sizing: border-box;
   left: 0;
   height:100%;
   width:450px;
-  overflow-y: hidden;
+  overflow-y: scroll;
   transition: background 0.5s ease;
   background: rgba(47, 47, 47, 0.6);
 }
