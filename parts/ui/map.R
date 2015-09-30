@@ -110,17 +110,23 @@ uiMapConfig <- tagList(
                 h4('Set base map'),
                 selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
                 h4('Add wms'),
-                textInput("txtWmsServer","Add wms server (not working yet)")
+                actionLink("linkSetWmsExampleColumbia","http://sedac.ciesin.columbia.edu/geoserver/wms"),
+                actionLink("linkSetWmsExampleGrid","http://preview.grid.unep.ch:8080/geoserver/wms"),
+                textInput("txtWmsServer","Add wms server"),
+                actionButton("btnValidateWms",icon("refresh")),
+                textOutput("msgWmsServer"),
+                selectInput("selectWmsLayer","Select available layer",choices="")
                 )
               ),
             "timeSlider"=list("title"="Time slider",content=tagList(
-                h4("Time slider"),
-                selectInput("selTimeSliderMap","Choose a view",choice=""),
-                sliderInput("sliderTimeFilter","Set a range",
-                  min=as.Date(as.POSIXlt(mxConfig$minDate)),
-                  max=as.Date(as.POSIXlt(mxConfig$maxDate)),
-                  value=c(as.Date(as.POSIXlt(mxConfig$minDate)),as.Date(as.POSIXlt(mxConfig$maxDate)))
-                  )
+                p("")
+            #    h4("Time slider"),
+            #    selectInput("selTimeSliderMap","Choose a view",choice=""),
+            #    sliderInput("sliderTimeFilter","Set a range",
+            #      min=as.Date(as.POSIXlt(mxConfig$minDate)),
+            #      max=as.Date(as.POSIXlt(mxConfig$maxDate)),
+            #      value=c(as.Date(as.POSIXlt(mxConfig$minDate)),as.Date(as.POSIXlt(mxConfig$maxDate)))
+            #      )
                 )
               )
             )
@@ -218,8 +224,8 @@ uiMapConfig <- tagList(
                       )
                     ),
                   tags$li(
-                    actionButton('btnViewsConfig',
-                      mx_set_lang="title.mapLeft.analysis",
+                    actionButton('btnViewsToolbox',
+                      mx_set_lang="title.mapLeft.toolbox",
                       class="btn-icon",
                       label=icon("gears")
                       )
