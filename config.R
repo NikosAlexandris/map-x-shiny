@@ -26,7 +26,7 @@ switch(mxConfig$os,
 
   },
   "Linux"={
-    mxConfig$portVt <- 3001
+    mxConfig$portVt <- 3030
     mxConfig$hostVt <- "calc.grid.unep.ch"
     print("map-x launched on LINUX")
   } 
