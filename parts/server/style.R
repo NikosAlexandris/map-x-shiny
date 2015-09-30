@@ -29,7 +29,7 @@ observe({
         proxyMap %>%
         addVectorTiles(
           url=mxConfig$hostVt,
-          port=3030,
+          port=mxConfig$portVt,
           geomColumn="geom", # should be auto resolved by PGRestAPI
           idColumn="gid", # should be auto resolved by PGRrestAPI
           table=lay,
