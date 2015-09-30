@@ -9,7 +9,6 @@ mxData <- list()
 mxConfig$defaultZoom = 9
 
 
-
 #
 # SET OS INFO
 #
