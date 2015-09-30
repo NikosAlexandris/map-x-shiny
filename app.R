@@ -29,6 +29,8 @@ ui <- tagList(
     tags$link(href="font-awesome-4.4.0/css/font-awesome.min.css",rel="stylesheet",type="text/css"),
     tags$link(href="theme/grayscale/bootstrap.min.css",rel="stylesheet",type="text/css"),
     tags$link(rel="stylesheet",type="text/css",href='handsontable/handsontable.full.min.css'),
+    tags$link(rel="stylesheet",type="text/css",href='ionRangeSlider/css/ion.rangeSlider.css'),
+    tags$link(rel="stylesheet",type="text/css",href='ionRangeSlider/css/ion.rangeSlider.skinNice.css'),
     tags$link(href="mapx/mapx.css",rel="stylesheet",type="text/css")
     ),
   tags$body(id="page-top",`data-spy`="scroll",`data-target`=".navbar-fixed-top", `data-offset`="0",
@@ -48,10 +50,10 @@ ui <- tagList(
     loadUi('parts/ui/footer.R')
     ),
   #
-  # Scripts
+  # Scripts 
   #
   tags$head(
-    # TODO: uglify and concat js files
+    # TODO: uglify and concat js files  OR load with singleton when needed.
     tags$script(src="chartjs/Chart.min.js"),
     tags$script(src="mapx/mapxChartJsConf.js"),
     tags$script(src="theme/grayscale/grayscale.js"),
@@ -61,6 +63,7 @@ ui <- tagList(
     tags$script(src="pwd/md5.js"),
     tags$script(src='handsontable/handsontable.full.min.js'),
     tags$script(src='handsontable/shinyskyHandsonTable.js'),
+    tags$script(src='ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js'),
     tags$script(src="mapx/mapx.js"),
     tags$script(src="language/ui.js")
     )

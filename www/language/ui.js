@@ -54,9 +54,15 @@ loc = {
       "eng": "Display general configuration panel",
       "fre": "Afficher le panneau de configuration général "
     },
-    "analysis": {
-      "eng": "Display spatial analysis panel",
-      "fre": "Afficher le paneau d'analyse spatiale"
+    "toolbox": {
+      "eng": "Display spatial toolbox panel",
+      "fre": "Afficher la boîte à outils spatiale"
+    }
+  },
+  "login":{
+    "title":{
+      "eng":"User authentication",
+      "fre":"Authentification de l'utilisateur"
     }
   }
 };

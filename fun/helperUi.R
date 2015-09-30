@@ -68,7 +68,7 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
 #' @param title Optionnal title to be returned.
 #' @return title string
 #' @export
-mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("mapViewsConfig","mapViewsCreator","mapStoryCreator","mapViewsExplorer"),title=NULL){
+mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("mapViewsConfig","mapViewsCreator","mapStoryCreator","mapViewsExplorer","mapViewsToolbox"),title=NULL){
   mode = match.arg(mode)
   mxDebugMsg(paste("Set mode to : ", mode))
   jsCode <- sprintf("mxPanelMode.mode ='%s';",mode)

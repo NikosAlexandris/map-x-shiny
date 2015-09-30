@@ -270,7 +270,12 @@ function updateTitlesLang(){
         var text = loc[a[1]][a[2]][lang];
         if(typeof text == "undefined")text= "NO TRANSLATION";
         console.log(group+" "+key+" "+text);
-        $(this).attr(attribute, text)}
+        if(a[0]=="html"){
+          $(this).html(text)
+        }else{
+          $(this).attr(attribute, text)
+        }
+      }
       )
 };
 
