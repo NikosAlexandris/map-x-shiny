@@ -20,14 +20,14 @@ mxConfig$os<-Sys.info()['sysname']
 
 switch(mxConfig$os,
   'Darwin'={
-    mxConfig$portVt <- 3030
+    mxConfig$portVt <- 8080
     mxConfig$hostVt <- "localhost"
     print("map-x launched on MAC OX X")
 
   },
   "Linux"={
-    mxConfig$portVt <- 3001
-    mxConfig$hostVt <- "calc.grid.unep.ch"
+    mxConfig$portVt <- 80
+    mxConfig$hostVt <- "localhost"
     print("map-x launched on LINUX")
   } 
   )
