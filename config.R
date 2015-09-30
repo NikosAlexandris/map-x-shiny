@@ -17,7 +17,7 @@ mxConfig$os<-Sys.info()['sysname']
 switch(mxConfig$os,
   'Darwin'={
     mxConfig$portVt <- 8080
-    mxConfig$portVt <- 8080
+    mxConfig$portVtPublic <- 8080
     mxConfig$hostVt <- "localhost"
     print("map-x launched on MAC OX X")
 
@@ -273,7 +273,7 @@ mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,la
       leaflet() %>%
       clearGroup(group) %>%
       addTiles(
-        paste0("http://",mxConfig$hostVt,":3030/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png"),
+        paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png"),
         group=group,
         options=list(
           "zIndex"=0,
@@ -281,7 +281,7 @@ mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,la
           "maxZoom"=6)
         ) %>%  
       addTiles(
-       paste0("http://",mxConfig$hostVt,":3030/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png"),
+       paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png"),
         group=group,
         options=list(
           "zIndex"=0,
@@ -294,7 +294,7 @@ mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,la
       leaflet() %>%
       clearGroup(group) %>%
       addTiles(
-        paste0("http://",mxConfig$hostVt,":3030/services/tiles/afg_base_layer/{z}/{x}/{y}.png"),
+        paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/afg_base_layer/{z}/{x}/{y}.png"),
         group=group,
         options=list(
           "zIndex"=0
@@ -316,14 +316,14 @@ mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
       proxyMap %>%
       clearGroup(group) %>%
       addTiles(
-        paste0("http://",mxConfig$hostVt,":3030/services/tiles/cod_labels_0_6/{z}/{x}/{y}.png"),
+        paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/cod_labels_0_6/{z}/{x}/{y}.png"),
         group=group,
         options=list(
           "zIndex"=30,
           "minZoom"=0,
           "maxZoom"=6)
         ) %>%  addTiles(
-        paste0("http://",mxConfig$hostVt,":3030/services/tiles/cod_labels_7_10/{z}/{x}/{y}.png;"),
+        paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/cod_labels_7_10/{z}/{x}/{y}.png;"),
         group=group,
         options=list(
           "zIndex"=30,
@@ -335,7 +335,7 @@ mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
       proxyMap %>%
       clearGroup(group) %>%
       addTiles(
-        paste0("http://",mxConfig$hostVt,":3030/services/tiles/afg_labels/{z}/{x}/{y}.png"),
+        paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/afg_labels/{z}/{x}/{y}.png"),
         group=group,
         options=list(
           zIndex=30
