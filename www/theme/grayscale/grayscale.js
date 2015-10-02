@@ -20,7 +20,7 @@ $(function() {
         console.log($($anchor.attr('href')));
         $('html, body').stop().animate({
             scrollTop: $($anchor.attr('href')).offset().top - $(".navbar-header").height() 
-        }, 1000, 'easeOutQuad');
+        }, 500, 'easeOutQuad');
         event.preventDefault();
     });
 });

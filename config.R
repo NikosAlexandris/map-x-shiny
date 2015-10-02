@@ -82,7 +82,8 @@ mxConfig$viewsListTableName = "mx_views"
 mxConfig$noData = "[NO DATA]"
 mxConfig$noVariable = "[DEFAULT]"
 mxConfig$noLayer = "[NO LAYER]"
-mxConfig$restartPgRestApi = "pm2 restart 'pgrestapi'"
+#mxConfig$restartPgRestApi = "pm2 restart 'pgrestapi'"
+mxConfig$restartPgRestApi = "touch /home/vagrant/tools/PGRestAPI/tmp/restart.txt"
 #mxConfig$restartPgRestApi = "pathToTmp=/home/vagrant/tools/PGRestAPI/tmp; mkdir -p $pathToTmp touch $pathToTmp/restart.txt"
 
 #
@@ -276,7 +277,7 @@ mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,la
         paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png"),
         group=group,
         options=list(
-          "zIndex"=0,
+          "zIndex"=-5,
           "minZoom"=0,
           "maxZoom"=6)
         ) %>%  
@@ -284,7 +285,7 @@ mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,la
        paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png"),
         group=group,
         options=list(
-          "zIndex"=0,
+          "zIndex"=-5,
           "minZoom"=7,
           "maxZoom"=10)
         ) %>%
@@ -297,7 +298,7 @@ mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,la
         paste0("http://",mxConfig$hostVt,":",mxConfig$portVtPublic,"/services/tiles/afg_base_layer/{z}/{x}/{y}.png"),
         group=group,
         options=list(
-          "zIndex"=0
+          "zIndex"=-5
           )
         )%>% setView(center$lng,center$lat,center$zoom)
     } 

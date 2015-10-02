@@ -128,6 +128,7 @@ server <- function(input, output, session) {
   source('parts/server/country.R',local=TRUE)
   source('parts/server/map.R',local=TRUE)
   source('parts/server/admin.R',local=TRUE)
+  source('parts/server/analysis.R',local=TRUE)
 
 
  

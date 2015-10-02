@@ -58,57 +58,65 @@ observe({
         it <- items[j]
         itId <- as.character(it)
         hasDate <- isTRUE(v[[itId]]$style$hasDateColumns)
+        hasCompany <- isTRUE(v[[itId]]$style$hasCompanyColumn)
+        itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
+        itIdCheckOptionPanel <- sprintf('checkbox_opt_panel_%s',itId)
+        itIdFilterCompany <- sprintf('selectCompanyFilterFor_%s',itId)
+
         if(hasDate){
-          maxDate <- v[[itId]]$dateVariableMax
-          minDate <- v[[itId]]$dateVariableMin
+          timeSlider <- mxTimeSlider(
+            id=itId,
+            min=as.numeric(as.POSIXct(v[[itId]]$dateVariableMin))*1000,
+            max=as.numeric(as.POSIXct(v[[itId]]$dateVariableMax))*1000
+            )
+        }else{
+          timeSlider <- tags$div()
         }
-        itIdCheckOption <-sprintf('checkBoxOpt_%s',itId)
+
+
+        if(hasCompany){
+          q <- sprintf("SELECT DISTINCT(parties) FROM %s",v[[itId]]$layer)
+          companies<- mxDbGetQuery(dbInfo,q)$parties
+          companies <- companies[!is.na(companies)]
+          companies <- companies[order(companies)]
+          companies <- c("[ NO FILTER ]",companies)
+          filterSelect <- tagList(
+            selectInput(
+              itIdFilterCompany,
+              label="Filter by company",
+              choices=companies,
+              selected="[ NO FILTER ]",
+              selectize=FALSE
+              ),
+            tags$script(
+              sprintf("
+                $( '#%1$s' ).change(function () {
+                  $( '#%1$s option:selected' ).each(function() {
+                    setFilter('%2$s','%3$s','%4$s',$( this ).text());});}).change();
+                ",itIdFilterCompany,v[[itId]]$layer,itId,"parties")
+                )
+              )
+        }else{
+          filterSelect <- tags$div()
+        }
+
         val <- div(class="checkbox",
           tags$label(
-            tags$input(type="checkbox",class="vis-hidden",name=id,value=itId),
+            tags$input(type="checkbox",class="vis-hidden",name=id,value=itId,
+              onChange=sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOption,itIdCheckOptionPanel)),
             div(class="map-views-item",
-              mxCheckboxIcon(itIdCheckOption,"cog"),
+                mxCheckboxIcon(itIdCheckOption,"cog"), 
               tags$span(class='map-views-selector',names(it))
               ) 
             ),
           conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption,id),
-            mxSliderOpacity(itId,v[[itId]]$style$opacity),
-            if(hasDate){
-              tagList(
-                tags$div(class="slider-date-container",
-                  tags$input(type="text",id=sprintf("slider-for-%s",itId)),
-                  tags$script(sprintf(
-                      "
-                      var min=%s,
-                      max=%s;
-                      $slider = $('#slider-for-%s');
-                      $slider.ionRangeSlider({
-                        type: 'double',
-                        min: min,
-                        max: max,
-                        from: min,
-                        to: max,
-                        //step:1000*60*60*24*365 ,
-                        step:1000*60*60*24 ,
-                        prettify: function (num) {
-                          var m = moment(num)
-                          return m.format('YYYY-MM-DD');
-                        },
-                        onChange: function (data) {
-                          setRange('%s',data.from/1000,data.to/1000)
-                        }
-                      });",
-                      as.numeric(as.POSIXct(v[[itId]]$dateVariableMin))*1000,
-                      as.numeric(as.POSIXct(v[[itId]]$dateVariableMax))*1000,
-                      itId,
-                      itId
-                      )
-                    )
-                  )
-                )
-            }
+            tags$div(class="map-views-item-options",id=itIdCheckOptionPanel,
+              mxSliderOpacity(itId,v[[itId]]$style$opacity),
+              timeSlider,
+              filterSelect
             )
           )
+        )
         checkList <- tagList(checkList,val)
       }
     }
@@ -123,6 +131,30 @@ observe({
   }
   mxDebugMsg(paste("Time for generating views list=",Sys.time()-start))
 })
+
+
+          observe({
+            f<-input$filterLayer
+            if(!noDataCheck(f)){
+              ext <- dbGetFilterCenter(
+                dbInfo=dbInfo,
+                table=f$layer,
+                column=f$column,
+                value=f$value)
+              proxyMap <- leafletProxy("mapxMap")
+
+              proxyMap %>% fitBounds(
+                lng1=min(ext[c('lng1','lng2')]),
+                lat1=min(ext[c('lat1','lat2')]),
+                lng2=max(ext[c('lng1','lng2')]),
+                lat2=max(ext[c('lat1','lat2')])
+                )   
+
+
+            }
+
+          })
+
 
 
 #

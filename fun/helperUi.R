@@ -392,6 +392,44 @@ dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
 
 
 
+#' Get query extent
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param table Table/layer from which extract extent
+#' @param geomColumn set geometry column
+#' @return extent
+#' @export
+dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomColumn='geom'){
+  if(is.null(dbInfo) || is.null(table)) print("missing arguments in dbGetFilterCenter")
+  d <- dbInfo
+  tryCatch({
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    if(table %in% dbListTables(con)){
+      value <- gsub("'","''",value)
+      q = sprintf("
+      SELECT ST_Extent(%1$s) 
+      FROM (SELECT %1$s FROM %2$s WHERE %3$s = (E\'%4$s\') ) as tableFilter 
+      WHERE ST_isValid(%1$s)",geomColumn,table,column,value)
+      ext <- dbGetQuery(con,q)[[1]]
+      res <- ext %>%
+      strsplit(split=",")%>%
+      unlist()%>%
+ strsplit(split=" ")%>%
+      unlist()%>%
+      gsub("[a-z,A-Z]|\\(|\\)","",.)%>%
+      as.numeric()
+      names(res)<-c('lng1', 'lat1', 'lng2', 'lat2')
+      return(res)
+    }
+  },finally={
+    dbDisconnect(con)
+  })
+}
+
+
+
+
+
 
 mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
   if(is.null(style)) style <- ""
@@ -493,9 +531,16 @@ mxActionButtonToggle <- function(id,session=shiny:::getDefaultReactiveDomain(),d
 }
 
 
-remoteCmd <- function(host=NULL,user=NULL,port=NULLL,cmd=NULL){
+remoteCmd <- function(host=NULL,user=NULL,port=NULLL,cmd=NULL,vagrant=TRUE,sshConfig="settings/sshConfig"){
+  res=NULL
   if(!is.null(cmd)){
-    res =  system(sprintf("ssh -p %s %s@%s %s",port,user,host,cmd),intern=TRUE)
+    if(vagrant){
+      res =  system(sprintf("ssh %s -F %s -C \"%s\"",host,sshConfig,cmd),intern=TRUE)
+
+    }else{
+
+      res =  system(sprintf("ssh -p %s %s@%s %s",port,user,host,cmd),intern=TRUE)
+    }
   }
   return(res)
 }
@@ -735,16 +780,63 @@ mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,enable=T
         )
     }
 
-    
+
     mxSliderOpacity <- function(id,opacity){
-      onInputDo=sprintf("setOpacityForId('%s',this.value)",id)
       tagList(
-        tags$label("Set opacity",
-          tags$input(type="range",name=sprintf("sliderOpacityFor_%s",id),min=0,max=1,step=0.01,value=opacity,onInput=onInputDo )
+        tags$div(class="slider-date-container",
+          tags$input(type="text",id=sprintf("slider-opacity-for-%s",id)),
+          tags$script(sprintf(
+              "
+              $slider = $('#slider-opacity-for-%1$s');
+              $slider.ionRangeSlider({
+                min: 0,
+                max: 1,
+                from: %2$s,
+                step:0.1,
+                onChange: function (data) {
+                  setOpacityForId('%1$s',data.from)
+                }
+              });",
+              id,
+              opacity
+              )
+            )
           )
-        )
+        ) 
     }
-    
+
+
+    mxTimeSlider <-function(id,min,max){
+      tagList(
+        tags$div(class="slider-date-container",
+          tags$input(type="text",id=sprintf("slider-for-%s",id)),
+          tags$script(sprintf(
+              "
+              $slider = $('#slider-for-%3$s');
+              $slider.ionRangeSlider({
+                type: 'double',
+                min: %1$s,
+                max: %2$s,
+                from: %1$s,
+                to: %2$s,
+                step:1000*60*60*24 ,
+                prettify: function (num) {
+                  var m = moment(num)
+                  return m.format('YYYY-MM-DD');
+                },
+                onChange: function (data) {
+                  setRange('%3$s',data.from/1000,data.to/1000)
+                }
+              });",
+              min,
+              max,
+              id
+              )
+            )
+          )
+        ) 
+    }
+
    
 #
     # Language selector by id
@@ -757,4 +849,44 @@ l <- function(id=NULL){
 #
 #  tooltip configuration
 #
+
+# update text by id
+mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text){
+  if(is.null(text) || text==""){
+    return(NULL)
+  }else{
+    val<-paste0("$('#",id,"').html(\"",gsub("\"","\'",text),"\");")
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=val)
+      )
+  }
+}
+
+
+
+mxDbGetQuery <- function(dbInfo,query){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbGetQuery(con,query)
+    return(res)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+mxDbListTable<- function(dbInfo,query){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbListTables(con)
+    return(res)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+
+
 

@@ -126,7 +126,6 @@ observe({
       proxyMap %>%
       removeTiles(layerId=layId)
     }else{
-      mxDebugMsg("Set additional base layer")
       if(! selBaseMap == "mapbox"){
         proxyMap %>%
         removeTiles(layId) %>%
@@ -136,11 +135,22 @@ observe({
         removeTiles(layId) %>%
         addTiles(
           "https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
-          ,layerId=layId,options=list('zIndex'=0))
+          ,layerId=layId,options=list('zIndex'=-4))
       }
     }
 })
 })
+
+
+
+observeEvent(input$btnRemoveBaseMap,{
+  layerId <- "basemap"
+  proxyMap <- leafletProxy("mapxMap")
+  proxyMap %>% removeTiles(layerId)
+})
+
+
+
 
 
 #
@@ -163,7 +173,7 @@ observeEvent(input$linkSetWmsExampleGrid,{
 
 
 observeEvent(input$btnValidateWms,{
-  mxCatch(title="Wms server",{
+  mxCatch(title="WMS server",{
     wmsServer <- input$txtWmsServer
     if(!noDataCheck(wmsServer)){
 
@@ -173,7 +183,7 @@ observeEvent(input$btnValidateWms,{
       cachedRequest<-mxReact$wmsRequest[[wmsServer]]
 
       if(noDataCheck(cachedRequest)){ 
-        dat <- xmlToList(req)
+        dat <- XML::xmlToList(req)
         mxReact$wmsRequest[[wmsServer]] <- dat
       }else{
         dat <- cachedRequest 
@@ -194,18 +204,34 @@ observeEvent(input$btnValidateWms,{
 
 
 observe({
-  layerId = "wmslayer"
-  lay <- input$selectWmsLayer
-  url <- input$txtWmsServer
-  if(!noDataCheck(lay) && !noDataCheck(url)){
-    isolate({
-      dat<-mxReact$wmsRequest[[url]][['Capability']][['Layer']][[as.numeric(lay)]]
+  mxCatch(title="Add wms layer",{
+    layerId = "wmslayer"
+    lay <- input$selectWmsLayer
+    url <- input$txtWmsServer
+    if(!noDataCheck(lay) && !noDataCheck(url)){
+      isolate({
+        dat<-mxReact$wmsRequest[[url]][['Capability']][['Layer']][[as.numeric(lay)]]
+        proxyMap <- leafletProxy("mapxMap")
+        proxyMap %>% addWMSTiles(
+          layerId=layerId,
+          baseUrl=url,
+          layers=dat$Name,
+          options=list(
+            "transparent"="true",
+            "format"="image/png8",
+            "zIndex"=-1
+            )
+          )
+
+    })}
+})
+})
 
 
-      proxyMap <- leafletProxy("mapxMap")
-      proxyMap %>% addWMSTiles(layerId=layerId,baseUrl=url,layers=dat$Name)
-
-  })}
+observeEvent(input$btnRemoveWms,{
+    layerId = "wmslayer"
+   proxyMap <- leafletProxy("mapxMap")
+    proxyMap %>% removeTiles(layerId)
 })
 
 
