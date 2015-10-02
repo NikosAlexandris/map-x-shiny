@@ -1,6 +1,6 @@
 PackratFormat: 1.4
 PackratVersion: 0.4.4
-RVersion: 3.2.2
+RVersion: 3.2.0
 Repos: =http://cran.rstudio.com
 
 Package: BH
@@ -220,12 +220,12 @@ GithubSha1: d25611ac13a8bdf967a173e6afa73f1fdee9b6fe
 Package: leafletvt
 Source: github
 Version: 0.0.1
-Hash: 2a9e24e741f77a485aa2114cd3f51a8e
+Hash: a960e946dbb3e8e4022b9269cebaf5a1
 Requires: RPostgreSQL, curl, jsonlite, leaflet
 GithubRepo: leafletvt
 GithubUsername: fxi
 GithubRef: master
-GithubSha1: f313bc020001cbca45a1a8f82ff92a99d8c0ef3d
+GithubSha1: a32cf214decfab77fe96e29d3575ffd631715eee
 
 Package: longurl
 Source: CRAN
