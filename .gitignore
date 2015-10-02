@@ -1,6 +1,6 @@
 # settings
 settings/settings.R
-
+settings/sshConfig
 # History files
 .Rhistory
 .Rapp.history
@@ -17,3 +17,4 @@ packrat/lib*/
 .Rproj.user
 tests/testthat/packrat/
 packrat-scenario*/
+

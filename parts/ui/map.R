@@ -43,11 +43,6 @@ uiMapCreator <-tagList(
                 conditionalPanel(condition="input.checkBoxUseDate == true",
                   selectInput("selColumnDate","Select date column",choices="")
                   ))),
-            "filter"=list("title"="Filter variable",content=tagList(
-                p("NOT ENABLED")
-                #textInput("txtFilter","Set a perl regex")
-
-                )),
             "storyMap"=list("title"="Story map settings",content=tagList(
                 textOutput("txtLiveCoordinate"),
                 selectInput("selectBaseMap","Select a base map",choices=mxConfig$tileProviders),
@@ -104,30 +99,47 @@ uiMapConfig <- tagList(
   tags$section(id="sectionMapConfig",class="container-fluid",
     div(class="row",
       div(class="col-lg-12", 
-        mxAccordionGroup(id="mapConfig",
+        mxAccordionGroup(id="mapConfig",show=1,
           itemList=list(
             "baseMap"=list("title"="Additional maps",content=tagList(
                 h4('Set base map'),
                 selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
+                tags$ul(class="list-inline banner-social-buttons",
+                  tags$li(actionButton("btnRemoveBaseMap",icon("times")))
+                  ),
                 h4('Add wms'),
                 actionLink("linkSetWmsExampleColumbia","http://sedac.ciesin.columbia.edu/geoserver/wms"),
                 actionLink("linkSetWmsExampleGrid","http://preview.grid.unep.ch:8080/geoserver/wms"),
                 textInput("txtWmsServer","Add wms server"),
-                actionButton("btnValidateWms",icon("refresh")),
                 textOutput("msgWmsServer"),
-                selectInput("selectWmsLayer","Select available layer",choices="")
+                selectInput("selectWmsLayer","Select available layer",choices=""),
+                tags$ul(class="list-inline banner-social-buttons",
+                  tags$li(actionButton("btnValidateWms",icon("refresh"))),
+                  tags$li(actionButton("btnRemoveWms",icon("times")))
+                  )
                 )
-              ),
-            "timeSlider"=list("title"="Time slider",content=tagList(
-                p("")
-            #    h4("Time slider"),
-            #    selectInput("selTimeSliderMap","Choose a view",choice=""),
-            #    sliderInput("sliderTimeFilter","Set a range",
-            #      min=as.Date(as.POSIXlt(mxConfig$minDate)),
-            #      max=as.Date(as.POSIXlt(mxConfig$maxDate)),
-            #      value=c(as.Date(as.POSIXlt(mxConfig$minDate)),as.Date(as.POSIXlt(mxConfig$maxDate)))
-            #      )
-                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+
+
+uiMapAnalysis <- tagList(
+  #
+  # UI ANALYTICS
+  #
+  div(class="row",
+    div(class="col-lg-12", 
+      mxAccordionGroup(id="mapConfig",show=1,
+        itemList=list(
+          "analysis"=list("title"="Analysis",content=tagList(
+              selectInput("selectAnalysis","Select an analysis",
+                choices=list("Overlaps"="overlaps")
+                ),
+              uiOutput("uiAnalysis")
               )
             )
           )
@@ -171,6 +183,9 @@ uiMapConfig <- tagList(
                   ),
                 conditionalPanel(condition="mxPanelMode.mode == 'mapViewsCreator'",
                   uiMapCreator
+                  ),
+                conditionalPanel(condition="mxPanelMode.mode == 'mapViewsToolbox'",
+                  uiMapAnalysis
                   ),
                 conditionalPanel(condition="mxPanelMode.mode == 'mapViewsConfig'",
                   uiMapConfig

@@ -1110,3 +1110,12 @@ input[type=range]:focus::-ms-fill-upper {
     border-bottom : 1px solid white;
 }
 
+/* map views options */
+.map-views-item-options {
+  border-radius: 4px;
+  background: rgba(74, 74, 74, 0.52);
+  padding: 10px;
+  padding-left: 0px;
+  margin-left: 20px;
+}
+
