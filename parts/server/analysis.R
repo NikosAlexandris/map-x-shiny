@@ -78,7 +78,7 @@ observe({
           #
           "overlaps"=output$uiAnalysis<-renderUI({
             # prevent others layer to be evaluated.
-            idA = layers[grep("_ext_mineral",layers)]
+            idA = layers[grep("_ext__mineral",layers)]
             idB = layers[grep("_env_",layers)]
 
             if(noDataCheck(idA) || noDataCheck(idB)){
