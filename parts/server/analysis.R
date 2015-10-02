@@ -86,7 +86,7 @@ observe({
               idB <- mxConfig$noData
             }
             # send ui
-            tagList(
+           analysisUI <- tagList(
               selectInput("selectOverlapA","Map to query",choices=idA,selected=idA[1]),
               selectInput("selectOverlapAVar","Variable to keep",
                 choices="",
@@ -99,7 +99,7 @@ observe({
                 input.selectOverlapB != ''
                 )",
               actionButton("btnAnalysisOverlaps",icon("play")),
-              actionButton("btnAnalysisOverlaps",icon("play")),
+              actionButton("btnAnalysisRemoveLayer",icon("times")),
               span(id="txtAnalysisOverlaps","")
               )
             )
@@ -109,6 +109,13 @@ observe({
       }
     })
 
+
+observeEvent(input$btnAnalysisRemoveLayer,{
+  idLayer = "analysis"
+  proxyMap <- leafletProxy("mapxMap")
+  proxyMap %>% 
+  clearGroup(idLayer)
+    })
 
 observe({
   selLayer <- input$selectOverlapA
