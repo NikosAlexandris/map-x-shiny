@@ -1,6 +1,12 @@
+/* temporary object to hold ui and style state*/
 var leafletvtId = {};
 var leafletvtSty = {};
+var mxPanelMode = {};
 
+
+//
+// Shiny binding 
+// 
 Shiny.addCustomMessageHandler("jsCode",
     function(message) {
       eval(message.code);
@@ -14,16 +20,20 @@ Shiny.addCustomMessageHandler("mapUiUpdate",
     }
     );
 
-
+// 
+// when document ready, apply the  map panel element interaction functions.
+// 
 $(function() {
   updateMapElement();
 });
 
-
-
-var mxPanelMode = {};
-
-updateMapElement = function(){
+//
+// Update map panel elements interaction 
+//
+function updateMapElement(){
+  //
+  //  map panel lock button 
+  //
   $("#btnStopMapScroll").click(function(){
     var idSection = "#sectionMap";
     idScroll = "#map-left";
@@ -37,7 +47,6 @@ updateMapElement = function(){
       $('html, body').stop().animate({
         scrollTop: $(idSection).offset().top - $(".navbar-header").height() 
       }, 100, 'easeOutQuad');
-      //window.location = idSection ;  
       $body.addClass('noscroll');
       $scrolable.on({
         'mouseenter': function () {
@@ -51,7 +60,6 @@ updateMapElement = function(){
       });
       $(idBtn).html("<i class='fa fa-lock'>");
     }else{
-
       $body.removeClass('noscroll');
       $(idScroll).off('mouseenter');
       $(idScroll).off('mouseleave');
@@ -60,20 +68,21 @@ updateMapElement = function(){
     toggleScrollMap = !toggleScrollMap ;
   });
 
-
-  /* collapse handle */
+  //
+  // Panel animation
+  //
   var idViews = "#map-left",
   idBtnViews = "#btnViewsCollapse",
   idInfo = "#info-box" ,
   idBtnInfo = "#btnInfoClick",
   idTitlePanel = "#titlePanelMode",
-  /*  classLegends = ".info",*/
 
+  // set default state
   toggleScrollMap = true,
   toggleCollapseViews = true,
   toggleCollapseInfoClick = true;
 
-  /* toggle info box panel  */
+  // add a click function to btn collapse views 
   $(idBtnViews).click(function(){
     if(toggleCollapseViews){
       $(idViews).animate({left:"-360px"},500);
@@ -89,65 +98,76 @@ updateMapElement = function(){
     toggleCollapseViews = !toggleCollapseViews;
   });
 
-
-  /* toggle info panel and lengends */
+  // add a click function to btn info panel
   $(idBtnInfo).click(function(){
     if(toggleCollapseInfoClick){
       $(idInfo).animate({height:"200px"},500);
-      /* $(classLegends).animate({right:"0px"},500);*/
     }else{ 
       $(idInfo).animate({height:"0px"},500);
-      /* $(classLegends).animate({right:"-250px"},500);*/
     }
     toggleCollapseInfoClick = !toggleCollapseInfoClick;
   });
-};
+}
 
-
-isCheckedId = function(id){
+//
+// check if given id is checked 
+//
+function isCheckedId(id){
   var el = document.getElementById(id);
   if( el === null ){
     return false;
   } else {
     return el.checked === true;    
   }
-};
+}
 
-isCheckedValue = function(id){
-  $("input:checked").val()==id;
-};
+//
+// check if checked input's value is the given id 
+//
+function isCheckedValue(id){
+  var checkedId = $("input:checked").val();
+  return checkedId == id;
 
+}
 
+//
+// hide panel if given item id is not checked 
+//
 function toggleOptions(id,idOption,idOptionPanel) {
   if($('input[value='+id+']').prop("checked")){
     $('#'+idOption).css("display","block");
-      $('#'+idOptionPanel).css("display","block");
+    $('#'+idOptionPanel).css("display","block");
   }else{ 
     $('#'+idOption).css("display","none");
-      $('#'+idOptionPanel).css("display","none");
+    $('#'+idOptionPanel).css("display","none");
   }
 
-};
+}
 
-
-setOpacityForId = function(id,opacity){
+//
+// change opacity for given layer id
+//
+function setOpacityForId(id,opacity){
   if(typeof(leafletvtId[id]) !== "undefined" ){
     leafletvtId[id].setOpacity(opacity);
   }
-};
+}
 
-
-setRange = function(id,min,max){
+//
+// copy the original style of the layer, set min and max date and update style 
+//
+function setRange(id,min,max){
   leafletvtSty = leafletvtId[id].vtStyle;
   leafletvtSty.mxDateMin[0] = min;
   leafletvtSty.mxDateMax[0] = max;
   leafletvtId[id].setStyle(updateStyle);
-};
+}
 
 
-
-
-setFilter = function(layer,id,column,value){
+//
+// If a filter column and value is given, set style options and update style with filter function 
+//
+function setFilter(layer,id,column,value){
   if(typeof(leafletvtId[id]) == "undefined")return;
   if(value !="[ NO FILTER ]"){
     var d = {};
@@ -167,7 +187,10 @@ setFilter = function(layer,id,column,value){
   }
 }
 
-updateStyleFilter = function (feature) {
+//
+// handle style when filter by column and value is requested 
+//
+function updateStyleFilter(feature){
   var style = {};
   var selected = style.selected = {};
   var  type = feature.type,
@@ -178,21 +201,21 @@ updateStyleFilter = function (feature) {
   filterValue = leafletvtSty.mxFilterValue,
   value = feature.properties[filterColumn],
   skip = false;
- 
-  if(typeof(value)=="undefined"){
-  return;
+
+  if( typeof(value)=="undefined"){
+    return;
   }
-  
+
   if( typeof(filterColumn) != "undefined" && typeof(filterValue) != "undefined" && typeof(value) != "undefined" ){
     if(filterValue!=value){
-    skip = true;
+      skip = true;
     }
   }
   if(skip){
     return;
   }else{
     if( typeof(val) != 'undefined'){ 
- //dataCol = hex2rgb(leafletvtSty.colorsPalette[val][0],leafletvtSty.opacity[0]);
+      //dataCol = hex2rgb(leafletvtSty.colorsPalette[val][0],leafletvtSty.opacity[0]);
       dataCol = 'rgba(255,0,0,1)';
       if(typeof(dataCol) == 'undefined'){
         dataCol = defaultColor;
@@ -226,13 +249,14 @@ updateStyleFilter = function (feature) {
         size: 1
       };
       break;
-  };
+  }
   return style;
-};
+}
 
-
-
-defaultStyle = function(feature) {
+//
+// Default style if no colors are needed. e.g. if we need to show a filtered views.
+//
+function defaultStyle(feature) {
   var style = {};
   var selected = style.selected = {};
   var type = feature.type;
@@ -266,12 +290,15 @@ defaultStyle = function(feature) {
         size: size
       };
       break;
-  };
+  }
   return style;
 }
 
 
-updateStyle = function (feature) {
+//
+// Update style and apply time slider filtering if data has date columns.
+//
+function updateStyle(feature) {
   var style = {};
   var selected = style.selected = {};
   var  type = feature.type,
@@ -326,13 +353,13 @@ updateStyle = function (feature) {
   switch (type) {
     case 1: //'Point'
       style.color = dataCol;
-      style.radius = leafletvtSty$size[0];
+      style.radius = leafletvtSty.size[0];
       selected.color = 'rgba(255,255,0,0.5)';
       selected.radius = 6;
       break;
     case 2: //'LineString'
       style.color = dataCol;
-      style.size = leafletvtSty$size[0];
+      style.size = leafletvtSty.size[0];
       selected.color = 'rgba(255,25,0,0.5)';
       selected.size = leafletvtSty.size[0];
       break;
@@ -348,71 +375,7 @@ updateStyle = function (feature) {
         size: 1
       };
       break;
-  };
+  }
   return style;
-};
-
-/*
-   $( '#sectionMap.stopScroll' ).bind( 'mousewheel DOMMouseScroll', function ( e ) {
-   var e0 = e.originalEvent,
-   delta = e0.wheelDelta || -e0.detail;
-
-   this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
-   e.preventDefault();
-   });
-
-*/
-
-/*
-// Closes the sidebar menu
-$("#menu-close").click(function(e) {
-console.log('click');
-e.preventDefault();
-$("#sidebar-wrapper").toggleClass("active");
-});
-
-// Opens the sidebar menu
-$("#menu-toggle").click(function(e) {
-e.preventDefault();
-$("#sidebar-wrapper").toggleClass("active");
-});
-
-// Scrolls to the selected menu item on the page
-$(function() {
-$('a[href*=#]:not([href=#])').click(function() {
-if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') || location.hostname == this.hostname) {
-
-var target = $(this.hash);
-target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
-if (target.length) {
-$('html,body').animate({
-scrollTop: target.offset().top
-}, 1000);
-return false;
 }
-}
-});
-});
-
-*/
-
-
-function updateTitlesLang(){
-  var lang = $("#selectLanguage").val();
-  $("[mx_set_lang]").each(
-      function(){
-        var a = $(this).attr("mx_set_lang").split(".");
-        var attribute = a[0];
-        var group = a[1];
-        var key = a[2]; 
-        var text = loc[a[1]][a[2]][lang];
-        if(typeof text == "undefined")text= "NO TRANSLATION";
-        if(a[0]=="html"){
-          $(this).html(text)
-        }else{
-          $(this).attr(attribute, text)
-        }
-      }
-      )
-};
 

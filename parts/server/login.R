@@ -1,52 +1,7 @@
 #### Log in module ###
 
 
-mxCreateSecret =  function(n=20){
-  stopifnot(require(digest))
-  digest::digest(paste(letters[round(runif(n)*24)],collapse=""))
-}
 
-
-#' Save named list of value into cookie
-#' Note : don't use this for storing sensitive data, unless you have a trusted network.
-#' @param session Shiny session object. By default: default reactive domain.
-#' @param cookie Named list holding paired cookie value. e.g. (list(whoAteTheCat="Alf"))
-#' @param nDaysExpires Integer of days for the cookie expiration
-#' @return NULL
-#' @export
-mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpires=NULL,deleteAll=FALSE){
-
-  cmd=character(0)
-  if(deleteAll){
-    cmd = "clearListCookies()"
-  }else{
-    stopifnot(!is.null(cookie) | is.list(cookie))
-    if(is.numeric(nDaysExpires) ){
-      exp <- as.numeric(as.POSIXlt(Sys.time()+nDaysExpires*3600*24,tz="gmt"))
-      cmd <- sprintf("document.cookie='expires='+(new Date(%s*1000)).toUTCString();",exp)
-    }
-
-    for(i in 1:length(cookie)){
-      val <- cookie[i]
-      if(names(val)=="d")stop('mxSetCookie:d is a reserved name')
-      if(!is.na(val) && !is.null(val)){
-        str <- sprintf("document.cookie='%s=%s';",names(val),val)
-        cmd <- paste0(cmd,str,collapse="")
-      }
-    }
-    }
-  if(length(cmd)>0){
-
-    #Add date
-    addDate <- ";if(document.cookie.indexOf('d=')==-1){document.cookie='d='+new Date();}"
-    cmd <- paste(cmd,addDate)
-
-    session$sendCustomMessage(
-      type="mxSetCookie",
-      list(code=cmd)
-      )
-  }
-}
 
 mxReact <- reactiveValues(
   userLogged = FALSE,

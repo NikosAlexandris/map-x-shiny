@@ -9,7 +9,7 @@ observe({
     update <- mxReact$viewsListUpdate
     views = list()
     if(!noDataCheck(cntry)){
-      viewsDf <- mxGetViewsList(dbInfo,mxConfig$viewsListTableName,country=cntry)
+      viewsDf <- mxGetViewsTable(dbInfo,mxConfig$viewsListTableName,country=cntry)
       if(isTRUE(nrow(viewsDf)>0)){
         # create list of map views
         for(i in viewsDf$id){
@@ -140,7 +140,9 @@ observe({
                 dbInfo=dbInfo,
                 table=f$layer,
                 column=f$column,
-                value=f$value)
+                value=f$value,
+                operator="="
+                )
               proxyMap <- leafletProxy("mapxMap")
 
               proxyMap %>% fitBounds(
