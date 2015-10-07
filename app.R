@@ -1,8 +1,8 @@
 
 #source("fun.R")
 source("loadlib.R")
-source("fun/helperUi.R")
-source('fun/handson.R')
+source("helper/R/mapx.R")
+source('helper/R/handson.R')
 source("settings/settings.R")
 source("config.R")
 
@@ -34,20 +34,17 @@ ui <- tagList(
     tags$link(href="mapx/mapx.css",rel="stylesheet",type="text/css")
     ),
   tags$body(id="page-top",`data-spy`="scroll",`data-target`=".navbar-fixed-top", `data-offset`="0",
-    #
-    # PANELS
-    #
     # 
     # SECTIONS
     #
-    loadUi('parts/ui/nav.R'),
-    loadUi('parts/ui/intro.R'), 
-    loadUi('parts/ui/login.R'),
-    loadUi('parts/ui/country.R'),
-    loadUi('parts/ui/map.R'),
-    loadUi('parts/ui/about.R'),
-    loadUi('parts/ui/admin.R'),
-    loadUi('parts/ui/footer.R')
+    loadUi("parts/ui/nav.R"),
+    loadUi("parts/ui/intro.R"), 
+    loadUi("parts/ui/login.R"),
+    loadUi("parts/ui/country.R"),
+    loadUi("parts/ui/map.R"),
+    loadUi("parts/ui/about.R"),
+    loadUi("parts/ui/admin.R"),
+    loadUi("parts/ui/footer.R")
     ),
   #
   # Scripts 
@@ -61,9 +58,9 @@ ui <- tagList(
     tags$script(src="bootstrap/js/bootstrap.min.js"),
     tags$script(src="pwd/pwd.js"),
     tags$script(src="pwd/md5.js"),
-    tags$script(src='handsontable/handsontable.full.min.js'),
-    tags$script(src='handsontable/shinyskyHandsonTable.js'),
-    tags$script(src='ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js'),
+    tags$script(src="handsontable/handsontable.full.min.js"),
+    tags$script(src="handsontable/shinyskyHandsonTable.js"),
+    tags$script(src="ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js"),
     tags$script(src="mapx/mapx.js"),
     tags$script(src="language/ui.js")
     )
@@ -74,7 +71,7 @@ ui <- tagList(
 
 
 #
-# Server
+# SERVER
 #
 server <- function(input, output, session) {
   #
@@ -123,59 +120,15 @@ server <- function(input, output, session) {
   #
   # load server parts
   #
-  source('parts/server/login.R',local=TRUE)
-  source('parts/server/nav.R',local=TRUE)
-  source('parts/server/country.R',local=TRUE)
-  source('parts/server/map.R',local=TRUE)
-  source('parts/server/admin.R',local=TRUE)
-  source('parts/server/analysis.R',local=TRUE)
+  source("parts/server/urlParsing.R",local=TRUE)
+  source("parts/server/login.R",local=TRUE)
+  source("parts/server/nav.R",local=TRUE)
+  source("parts/server/country.R",local=TRUE)
+  source("parts/server/map.R",local=TRUE)
+  source("parts/server/admin.R",local=TRUE)
+  source("parts/server/analysis.R",local=TRUE)
 
 
- 
-  #
-  # URL parsing and country selection
-  #
-
-  observe({
-    mxCatch(title="Query url",{
-      query <- parseQueryString(session$clientData$url_search,nested=TRUE)
-
-      #
-      # Country selection
-      #
-      if(isTRUE(
-          query$country %in% mxConfig$countryListChoices$pending ||
-          query$country %in% mxConfig$countryListChoices$potential
-          )){
-        sel = query$country
-      }else{
-        sel = "AFG"
-      }
-      updateSelectInput(session,'selectCountry',selected=sel,choices=mxConfig$countryListChoices)
-      updateSelectInput(session,'selectCountryNav',selected=sel,choices=mxConfig$countryListChoices)
-      #
-      # Language
-      #
-     if(isTRUE(query$language %in% c("eng","fre"))){
-       lang=query$language
-     }else{
-       lang="eng"
-     }
-     updateSelectInput(session,"selectLanguage",selected=lang)
-      #
-      # views selection
-      #
-      
-      if(!is.null(query$views)){
-        views <- unlist(strsplit(subPunct(query$views,";"),";"))
-        if(!noDataCheck(views)){
-          isolate({
-            mxReact$viewsFromUrl <- unique(views)
-          })
-        }
-      }
-    })
-  })
 
 
   observe({
@@ -194,10 +147,12 @@ server <- function(input, output, session) {
   })
 
 
-} # end of server object
+} # end of server part
 
 
 mxCatch(title="Main application",{
   shinyApp(ui, server)
-})
+  })
+
+
 

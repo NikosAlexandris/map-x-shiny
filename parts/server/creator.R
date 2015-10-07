@@ -58,7 +58,7 @@ observe({
       }
 
       output$newLayerNameValidation = renderUI(HTML(outTxt))
-      mxActionButtonToggle(id='fileNewLayer',disable=!valid) 
+      mxActionButtonState(id='fileNewLayer',disable=!valid) 
 
       mxReact$newLayerName <- ifelse(valid,newLayerName,"")
 
@@ -342,6 +342,7 @@ observe({
         # 
 
         observeEvent(input$btnMapCreatorSave,{
+          browser()
           mxCatch(title="Save style",{
             sty <- reactiveValuesToList(mxStyle)
             # save additional variables

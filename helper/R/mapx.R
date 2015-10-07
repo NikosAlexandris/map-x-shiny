@@ -1,17 +1,30 @@
+#' Map-x helper functions
+#'
+#' All the R fonctions defined in map-x-shiny are container in this package
+#'
+#'
+#' @docType package
+#' @name mapxhelper 
+NULL
 
-
-
+#' Create a chartRadar in a canvas element.
+#'
+#' Search the dom for an id a get drawing context, create a new chart object and config it with data.
+#'
+#' @param session Shiny reactive session
+#' @param main Main label
+#' @param compMain Comparative value label
+#' @param id Id of the canvas
+#' @param idLegend Id of the legend
+#' @param labels Labels for value and comparative values
+#' @param value Values
+#' @param compValues Comparative values
+#' @export
 mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,compMain,id,idLegend,labels,values,compValues){
-
-
   stopifnot(is.vector(values) || is.vector(label))
-
   ctx = sprintf("var ctx = document.getElementById('%s').getContext('2d');",id)
-
   createGraph = "var myRadarChart = new Chart(ctx).Radar(data)"
-
   labels = jsonlite::toJSON(labels)
-
   datasetMain = jsonlite::toJSON(auto_unbox=T,
     list(
       label = main,
@@ -22,7 +35,6 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
       data = values
       )
     )
-
   datasetComp = jsonlite::toJSON(auto_unbox=T,
     list(
       label = compMain,
@@ -33,8 +45,6 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
       data = compValues
       )
     )
-
-
   js = sprintf("
     /* create chart.js object*/
     var data = {
@@ -51,18 +61,16 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
       return chartLegend;
       });
     ",labels,datasetComp,datasetMain,ctx,createGraph,idLegend)
-
-
-
-
     session$sendCustomMessage(
       type="jsCode",
       list(code=js)
       )
-
 }
 
-#' Set map panel mode
+#' Set map panel mode.
+#'
+#' Map-x panel use multiple panel mode : config,creator,explorer,toolbox. This function set and save the panel mode.
+#'
 #' @param session Shiny session
 #' @param mode Map panel mode. In mapViewCreator, mapStoryCreator, mapExplorer
 #' @param title Optionnal title to be returned.
@@ -77,8 +85,10 @@ mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("
 }
 
 
-#' print debug message
-#' this function could propulate log file.
+#' Print debug message
+#'
+#' Print a defaut debug message with date as prefix. NOTE: this function should take a global parameter "debug" and a log file.
+#'
 #' @param m Message to be printed
 #' @return NULL
 #' @export
@@ -88,38 +98,47 @@ mxDebugMsg <- function(m=""){
 }
 
 
-mxTogglePanel <- function(session=shiny::getDefaultReactiveDomain(),id){
-  jsToggle <- paste0("$('#",paste(id,"content",sep="_"),"').toggle();")
-  session$sendCustomMessage(
-    type="jsCode",
-    list(code=jsToggle)
-    )
-}
+#
+#
+#
+#mxTogglePanel <- function(session=shiny::getDefaultReactiveDomain(),id){
+#  jsToggle <- paste0("$('#",paste(id,"content",sep="_"),"').toggle();")
+#  session$sendCustomMessage(
+#    type="jsCode",
+#    list(code=jsToggle)
+#    )
+#}
+#
 
 
+#' Create a modal panel
+#'
+#' Create a modal panel with some options as custom button, close button, html content. 
+#'
+#' @param id Panel id
+#' @param title Panel title
+#' @param subtitle Panel subtitle
+#' @param html HTML content of the panel, main text
+#' @param listActionButton If FALSE, hide buttons. If NULL, display default close panel button, with text given in defaultButtonText. If list of buttons, list of button.
+#' @param defaultButtonText Text of the default button if listActionButton is NULL and not FALSE
+#' @param style Additional CSS style for the panel 
+#' @param class Additional class for the panel
+#' @param hideCloseButton Boolean. Hide the close panel button
+#' @param draggable Boolean. Set the panel as draggable
+#' @export
 mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionButton=NULL,background=TRUE,defaultButtonText="OK",style=NULL,class=NULL,hideCloseButton=FALSE,draggable=TRUE){ 
-  #classVect <- c('panel-modal',sprintf("panel-%s",id))
-  #classModal <- paste(classVect,collapse=" ")
 
   classModal = "panel-modal"
   idBack = paste(id,"background",sep="_")
   idContent = paste(id,"content",sep="_")
-  # NOTE: .remove() breaks the shiny input binding. Using .hide() and no unique id.
-  #jsHide <- paste0("$('",paste0(".",classVect,collapse=" "),"').toggle()")
   jsHide <- paste0("$('#",idContent,"').toggle();$('#",idBack,"').toggle()")
-
   # If NULL Set default button action to "close" panel, with custom text
   if(is.null(listActionButton))listActionButton=list(
     tags$button(onclick=jsHide,defaultButtonText,class="btn btn-default")
     )
-
-
-
-
   # if explicit FALSE is given, remove modal button. 
   if(isTRUE(is.logical(listActionButton) && !isTRUE(listActionButton)))listActionButton=NULL
-
-
+# close button handling
   if(hideCloseButton){
     closeButton=NULL
   }else{
@@ -150,12 +169,29 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
     )
 }
 
-
-
+#' Update existing panel
+#'
+#' Use output object to output the panel in a known id. E.g. for updating uiOutput("panelTest"), use mxUpdatePanel with panelId "panelTest"
+#'
+#' @param panelId Id of the existing panel
+#' @param session Shiny reactive object of the session
+#' @param ... Other mxPanel options
+#' @export
 mxUpdatePanel <- function(panelId=NULL,session=shiny:::getDefaultReactiveDomain(),...){
   session$output[[panelId]] <- renderUI(mxPanel(id=panelId,...))
 }
 
+
+
+#' Alert panel
+#'
+#' Create an alert panel. This panel could be send to an output object from a reactive context. 
+#'
+#' @param title Title of the alert. Should be "error", "warning" or "message"
+#' @param subtitle Subtitle of the alert
+#' @param message html or text message for the alert
+#' @param listActionButtons List of action button for the panel
+#' @export
 mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,message=NULL,listActionButton=NULL){ 
   title = match.arg(title)
   switch(title,
@@ -167,9 +203,17 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
 }
 
 
+#' Catch errors
+#'
+#' Catch errors and return alert panel in an existing div id.
+#'
+#' @param title Title of the alert
+#' @param session Shiny session object
+#' @param debug Boolean. Return also message as alert.
+#' @param panelId Id of the output element
+#' @export
 mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),debug=TRUE,panelId="panelAlert"){
   tryCatch({
-    #print(paste("mxCatch: ",title))
     eval(expression)
   },error = function(e){
     session$output[[panelId]]<-renderUI({
@@ -189,36 +233,14 @@ mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),
 }
 
 
-##' Hide layer
-##' @param session Shiny session
-##' @param layer Leaflet.MapboxVectorTile layer group object name
-##' @export
-#setLayerVisibility <- function(session=shiny:::getDefaultReactiveDomain(),views="leafletvtId",status="leafletvtVisible",group=NULL,visible=TRUE){
-#   if(!noDataCheck(group)){
-#     val = ifelse(visible,1,0)
-#     cond = ifelse(visible,'true','false')
-#    setOpac = sprintf("if(typeof %s !== 'undefined'){%s.%s.setOpacity(%s)};",views,views,group,val)
-#    setVisible = sprintf("if(typeof %s !== 'undefined'){%s.%s = %s };",status,status,group,cond)
-#    feedback = " Shiny.onInputChange('leafletvtVisible',leafletvtVisible);"
-#
-#    jsCode = paste(setOpac,setVisible,feedback)
-#
-#    session$sendCustomMessage(
-#      type="jsCode",
-#      list(code=jsCode)
-#      )
-#  }
-#
-#}
-#
-#
-#
-#
-#
 
-#' Set given layer opacity
+#' Set opacity.
+#'
+#' Set given layer opacity.
+#' 
 #' @param session Shiny session
 #' @param layer Leaflet.MapboxVectorTile layer group object name
+#' @param group Group
 #' @param opacity Opacits
 #' @export
 setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="leafletvtId",group=NULL,opacity=1){
@@ -233,10 +255,10 @@ setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="le
 }
 
 
-
-
-
-#' Set zIndex
+#' Set zIndex.
+#' 
+#' Set zIndex on a leafletvt layer. NOTE: leaflet seems to reset this after layer changes.
+#'
 #' @param session Shiny session
 #' @param layer Leaflet.MapboxVectorTile layer group object name
 #' @param zIndex zIndex of the group
@@ -256,6 +278,8 @@ setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtId
 }
 
 #' Password input
+#'
+#' Create a password input.
 #' 
 #' @param inputId Input id
 #' @param label Label to display
@@ -269,6 +293,8 @@ pwdInput <- function(inputId, label) {
 
 #' User name input
 #' 
+#' Create a username input
+#' 
 #' @param inputId Input id
 #' @param label Label to display
 #' @export
@@ -281,7 +307,10 @@ usrInput <- function(inputId, label) {
 
 
 
-#' Toggle html element by class
+#' Toggle html element by class.
+#'
+#' Toggle html hide parameter by class.
+#' 
 #' @param session Shiny session
 #' @param class CSS class to hide
 #' @export 
@@ -293,12 +322,13 @@ toggleClass <- function(session=shiny:::getDefaultReactiveDomain(),class=''){
       )
   }
 }
-#' @export
-removeModal <- function(){
-  removeClass(class="panel-modal")
-}
+
+
 
 #' Random name generator
+#' 
+#' Create a random name with optional prefix and suffix.
+#' 
 #' @param prefix Prefix. Default = NULL
 #' @param suffix Suffix. Default = NULL
 #' @param n Number of character to include in the random string
@@ -313,15 +343,20 @@ randomName <- function(prefix=NULL,suffix=NULL,n=20,sep="_"){
 }
 
 
-#' Substitute ponctuation with given sep
+#' Substitute ponctiation and non-ascii character
+#'
+#' Take a string and convert to ascii string with optional transliteration ponctuation convertion. 
+#'
 #' @param str String to evaluate
 #' @param sep Replace separator
 #' @param rmTrailingSep Logical argument : no trailing separator returned
 #' @param rmLeadingSep Logical argument : no leading separator returned
 #' @param rmDuplicateSep Logical argument : no consecutive separator returned
 #' @export
-subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T){
-  str<-gsub("'",'',iconv(str, to='ASCII//TRANSLIT'))
+subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T,useTransliteration=T){
+  if(useTransliteration){
+    str<-gsub("'",'',iconv(str, to='ASCII//TRANSLIT'))
+  }
   res<-gsub("[[:punct:]]+|[[:blank:]]+",sep,str)#replace punctuation by sep
   res<-gsub("\n","",res)
   if(rmDuplicateSep){
@@ -343,25 +378,11 @@ subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T){
 }
 
 
-#' Test for 
-
-dbTestConnection <- function(dbInfo=NULL){
-  if(is.null(dbInfo)) stop('Missing arguments')
-  testOut = FALSE
-  d <- dbInfo
-
-  tryCatch({
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    con <- dbConnect(drv)
-
-  })
-
-}
-
-
 
 #' Get layer center
+#' 
+#' Compute the union of all geometry in a given layer and return the coordinate of the centroid.
+#' 
 #' @param dbInfo Named list with dbName,host,port,user and password
 #' @param table Table/layer from which extract extent
 #' @param geomColumn set geometry column
@@ -392,13 +413,16 @@ dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
 
 
 
-#' Get query extent
+#' Get query extent, based on a pattern matching (character)
+#' 
+#' Search for a value in a  column (character data type) and return the extent if something is found.
+#'
 #' @param dbInfo Named list with dbName,host,port,user and password
 #' @param table Table/layer from which extract extent
 #' @param geomColumn set geometry column
 #' @return extent
 #' @export
-dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomColumn='geom'){
+dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomColumn='geom',operator="="){
   if(is.null(dbInfo) || is.null(table)) print("missing arguments in dbGetFilterCenter")
   d <- dbInfo
   tryCatch({
@@ -408,9 +432,10 @@ dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomCo
       value <- gsub("'","''",value)
       q = sprintf("
       SELECT ST_Extent(%1$s) 
-      FROM (SELECT %1$s FROM %2$s WHERE %3$s = (E\'%4$s\') ) as tableFilter 
-      WHERE ST_isValid(%1$s)",geomColumn,table,column,value)
+      FROM (SELECT %1$s FROM %2$s WHERE %3$s %5$s (E\'%4$s\') ) as tableFilter 
+      WHERE ST_isValid(%1$s)",geomColumn,table,column,value,operator)
       ext <- dbGetQuery(con,q)[[1]]
+      if(noDataCheck(ext))return(NULL)
       res <- ext %>%
       strsplit(split=",")%>%
       unlist()%>%
@@ -428,9 +453,21 @@ dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomCo
 
 
 
-
-
-
+#' Create a bootstrap accordion 
+#'
+#' Create a bootstrap accordion element, based on a named list.
+#'
+#' @param id Accordion group ID
+#' @param style Additional style. 
+#' @param show Vector of item number. Collapse all item except those in this list. E.g. c(1,5) will open items 1 and 5 by default. 
+#' @param itemList Nested named list of items, containing title and content items. E.g. list("foo"=list("title"="foo","content"="bar"))
+#' @examples 
+#' amAccordionGroup(id='superTest',
+#'  itemList=list(
+#'    'a'=list('title'='superTitle',content='acontent'),
+#'    'b'=list('title'='bTitle',content='bContent'))
+#'  )
+#' @export
 mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
   if(is.null(style)) style <- ""
   cnt=0
@@ -456,31 +493,29 @@ mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
       contentList
       ))
 }
-# example:
-#amAccordionGroup(id='superTest',
-#  itemList=list(
-#    'a'=list('title'='superTitle',content='acontent'),
-#    'b'=list('title'='bTitle',content='bContent'))
-#  )
-#
 
-
-# load external ui file
+#' Load external ui file value in shiny app
+#'
+#' Shortcut to load external shiny ui file
+#'
+#' @param path Path to the file
+#' @export
 loadUi<-function(path){
   source(path,local=TRUE)$value
 }
 
 
 #' Retrieve map views table 
+#'
+#' Get a list of available map-x views in given table, e.g. mx_views 
+#'
 #' @param dbInfo Named list with dbName,host,port, user and password
 #' @param table Table name containing views info
 #' @param validated Boolean filter validated dataset. Default = TRUE
 #' @param archived Boolean filter to get archived data. Default =FALSE
 #' @param country ISO 3 code to filter country. 
-
-
-
-mxGetViewsList <- function(dbInfo=NULL, table=NULL,validated=TRUE,archived=FALSE,country="AFG"){
+#' @export
+mxGetViewsTable <- function(dbInfo=NULL, table="mx_views",validated=TRUE,archived=FALSE,country="AFG"){
   tryCatch({
     d <- dbInfo
     drv <- dbDriver("PostgreSQL") 
@@ -498,6 +533,15 @@ mxGetViewsList <- function(dbInfo=NULL, table=NULL,validated=TRUE,archived=FALSE
 }
 
 
+#' Custom file input 
+#'
+#' Default shiny fileInput has no option for customisation. This function allows to fully customize file input using the label tag.
+#'
+#' @param inputId id of the file input
+#' @param label Label for the input
+#' @param fileAccept List of accepted file type. Could be extension.
+#' @param multiple  Boolean. Allow multiple file to be choosen. Doesn't work on all browser.
+#' @export
 mxFileInput<-function (inputId, label, fileAccept=NULL, multiple=FALSE){
   inputTag<-tags$input(
     type='file',
@@ -506,8 +550,8 @@ mxFileInput<-function (inputId, label, fileAccept=NULL, multiple=FALSE){
     id=inputId,
     name=inputId)
   if(multiple) inputTag$attribs$multiple='multiple'
-  spanTag<-tags$span(label)
-  inputClass<-tags$label(
+  spanTag <- tags$span(label)
+  inputClass <- tags$label(
     class=c('btn-browse btn btn-default'),
     id=inputId,
     spanTag,
@@ -519,11 +563,21 @@ mxFileInput<-function (inputId, label, fileAccept=NULL, multiple=FALSE){
       tags$div(class = "progress-bar"), tags$label()))
 }
 
-mxActionButtonToggle <- function(id,session=shiny:::getDefaultReactiveDomain(),disable=TRUE) {
+#' Toggle disabling of given button, based on its id.
+#'
+#' Action or other button can be disabled using the attribute "disabled". This function can update a button state using this method.
+#'
+#' @param id Id of the button. 
+#' @param session Shiny session object.
+#' @param disable State of the button
+#' @export
+mxActionButtonState <- function(id,session=shiny:::getDefaultReactiveDomain(),disable=TRUE) {
+  # set Jquery
   addDefault<-paste0("$('#",id,"').addClass('btn-default').removeClass('btn-danger').attr('disabled',false);")
   addDanger<-paste0("$('#",id,"').addClass('btn-danger').removeClass('btn-default').attr('disabled',true);")
-
+  # toggle based on disable parameter
   val<-ifelse(disable,addDanger,addDefault)
+  # send js code
   session$sendCustomMessage(
     type="jsCode",
     list(code=val)
@@ -531,7 +585,17 @@ mxActionButtonToggle <- function(id,session=shiny:::getDefaultReactiveDomain(),d
 }
 
 
-remoteCmd <- function(host=NULL,user=NULL,port=NULLL,cmd=NULL,vagrant=TRUE,sshConfig="settings/sshConfig"){
+#' Send command on remote server through ssh
+#'
+#' Allow sending command on a remote server, e.g. Vagrant machine, using ssh. 
+#'
+#' @param host Host
+#' @param user User
+#' @param port Port
+#' @param cmd Command to send
+#' @param vagrant Boolean. If TRUE, use ssh config file. E.g. vagrant ssh-config > sshConfig
+#' @export
+remoteCmd <- function(host=NULL,user=NULL,port=NULL,cmd=NULL,vagrant=TRUE,sshConfig="settings/sshConfig"){
   res=NULL
   if(!is.null(cmd)){
     if(vagrant){
@@ -545,13 +609,10 @@ remoteCmd <- function(host=NULL,user=NULL,port=NULLL,cmd=NULL,vagrant=TRUE,sshCo
   return(res)
 }
 
-
-
-
-
-
 #' Write spatial data frame to postgis
-#' Taken from https://philipphunziker.wordpress.com/2014/07/20/transferring-vector-data-between-postgis-and-r/
+#'
+#' Convert spatial data.frame to postgis table. Taken from https://philipphunziker.wordpress.com/2014/07/20/transferring-vector-data-between-postgis-and-r/
+#'
 #' @param con PostgreSQL connection
 #' @param spatial.df  Spatial  data frame object
 #' @param schemaname Target schema table
@@ -605,10 +666,13 @@ dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, over
 }
 
 
-#' Add palette function
-#' sty leafletvt style
-#' pal name of palette to use
-#'@export
+#' Add palette to map-x style list
+#'
+#' Update a style list with a palette, using the defined scale type : continuous or discrete. 
+#'
+#' @param sty map-x style
+#' @param pal name of palette to use
+#' @export
 addPaletteFun <- function(sty,pal){
   if(sty$scaleType=="continuous") { 
     sty$paletteFun <- colorNumeric(
@@ -625,6 +689,13 @@ addPaletteFun <- function(sty,pal){
 
 }
 
+#' Apply map-x style to existing vector tiles
+#'
+#' When leafletvt handle a vector tile source, a lealflet object is stored in leafletvtId, but no style is applied. Default is transparent. We add a style function after that the layer is fully loaded using this function. The style function is also stored alongside the leaflet object in leafletId under the name "vtStyle".
+#'
+#' @param session Shiny session object
+#' @param style map-x style
+#' @export 
 mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
   tit <- style$title
   col <- style$colors
@@ -640,19 +711,20 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
   mxd <- style$mxDateMax
   mnd <- style$mxDateMin
   
-  #
+  # handle min and max date if exists.
   if(is.null(mnd))mnd=as.POSIXlt(mxConfig$minDate)
   if(is.null(mxd))mxd=as.POSIXlt(mxConfig$maxDate)
 
-  #
+  # debug messages
   mxDebugMsg("Begin style")
   start = Sys.time()
   
-  #
+  # set id of legends based on style group id.
   legendId = sprintf("%s_legends",grp)
   proxyMap <- leafletProxy("mapxMap")
   
-  if(is.null(tit))tit=lay
+  # If no title, take the layer name.
+  if(noDataCheck(tit))tit=lay
 
   if(!leg){
     mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
@@ -696,10 +768,14 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
 
 
 
-
-
-
-
+#' Custom select input
+#'
+#' Custom select input without label.
+#'
+#' @param inputId Element id
+#' @param choices List of options
+#' @param select Value selected by default
+#' @export
 mxSelectInput<-function(inputId,choices=NULL,selected=NULL){
   opt <- NULL
   if(!noDataCheck(choices)){
@@ -715,6 +791,9 @@ mxSelectInput<-function(inputId,choices=NULL,selected=NULL){
 
 
 #' Control ui access
+#'  
+#' UI  manager based on login info
+#'
 #' @param logged Boolean. Is the user logged in ?
 #' @param roleNum Numeric. Role in numeric format
 #' @param roleLowerLimit Numeric. Minumum role requirement
@@ -732,10 +811,31 @@ mxUiAccess <- function(logged,roleNum,roleLowerLimit,uiDefault,uiRestricted){
   return(uiOut)
 }
 
-
+#' Control visbility of elements
+#' 
+#' Display or hide element by id, without removing element AND without having element's space empty in UI. This function add or remove mxHide class to the element.
+#'
+#' @param session Shiny session
+#' @param id Id of element to enable/disable 
+#' @param enable Boolean. Enable or not.
+#' @export
+mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,enable=TRUE){
+  if(!enable){
+    js <- sprintf("$('#%s').addClass('mxHide')",id)
+  }else{
+    js <- sprintf("$('#%s').removeClass('mxHide')",id)
+  }
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=js)
+      )
+}
 #' Control ui access
+#' 
+#' Use mxConfig$roleVal list to check if the curent user's role name can access to the given numeric role.
+#' 
 #' @param logged Boolean. Is the user logged in ?
-#' @param roleNum Numeric. Role in numeric format
+#' @param roleName Character. Role in numeric format
 #' @param roleLowerLimit Numeric. Minumum role requirement
 #' @export
 mxAllow <- function(logged,roleName,roleLowerLimit){
@@ -752,105 +852,100 @@ mxAllow <- function(logged,roleName,roleLowerLimit){
   return(allow)
 }
 
-mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,enable=TRUE){
-  if(!enable){
-    js <- sprintf("$('#%s').addClass('mxHide')",id)
-  }else{
-    js <- sprintf("$('#%s').removeClass('mxHide')",id)
-  }
-    session$sendCustomMessage(
-      type="jsCode",
-      list(code=js)
+#' Set a checkbox button with custom icon.
+#' 
+#' Create a checkbox input with a select icon.
+#'
+#' @param id Id of the element
+#' @param icon Name of the fontawesome icon. E.g. cog, times, wrench
+#' @export
+mxCheckboxIcon <- function(id,icon){
+  tagList(
+    div(class="checkbox",style="display:inline-block",
+      tags$label(
+        tags$input(type="checkbox",class="vis-hidden",id=id),
+        tags$span(icon(icon))
+        )
       )
+    )
 }
 
 
-
-
-
-
-    mxCheckboxIcon <- function(id,icon){
-      tagList(
-          div(class="checkbox",style="display:inline-block",
-            tags$label(
-              tags$input(type="checkbox",class="vis-hidden",id=id),
-              tags$span(icon(icon))
-              )
-            )
+#' Set ioRange slider for opacity
+#' 
+#' @param id Id of the slider
+#' @param opacity Default opacity
+#' @export
+mxSliderOpacity <- function(id,opacity){
+  tagList(
+    tags$div(class="slider-date-container",
+      tags$input(type="text",id=sprintf("slider-opacity-for-%s",id)),
+      tags$script(sprintf(
+          "
+          $slider = $('#slider-opacity-for-%1$s');
+          $slider.ionRangeSlider({
+            min: 0,
+            max: 1,
+            from: %2$s,
+            step:0.1,
+            onChange: function (data) {
+              setOpacityForId('%1$s',data.from)
+            }
+          });",
+          id,
+          opacity
+          )
         )
-    }
-
-
-    mxSliderOpacity <- function(id,opacity){
-      tagList(
-        tags$div(class="slider-date-container",
-          tags$input(type="text",id=sprintf("slider-opacity-for-%s",id)),
-          tags$script(sprintf(
-              "
-              $slider = $('#slider-opacity-for-%1$s');
-              $slider.ionRangeSlider({
-                min: 0,
-                max: 1,
-                from: %2$s,
-                step:0.1,
-                onChange: function (data) {
-                  setOpacityForId('%1$s',data.from)
-                }
-              });",
-              id,
-              opacity
-              )
-            )
+      )
+    ) 
+}
+#' Set ioRange slider for time slider
+#' 
+#' @param id Id of the slider
+#' @param min Minimum js unix date in milisecond 
+#' @param max Maxmimum js unix date in milisecond 
+#' @export 
+mxTimeSlider <-function(id,min,max){
+  tagList(
+    tags$div(class="slider-date-container",
+      tags$input(type="text",id=sprintf("slider-for-%s",id)),
+      tags$script(sprintf(
+          "
+          $slider = $('#slider-for-%3$s');
+          $slider.ionRangeSlider({
+            type: 'double',
+            min: %1$s,
+            max: %2$s,
+            from: %1$s,
+            to: %2$s,
+            step:1000*60*60*24 ,
+            prettify: function (num) {
+              var m = moment(num)
+              return m.format('YYYY-MM-DD');
+            },
+            onChange: function (data) {
+              setRange('%3$s',data.from/1000,data.to/1000)
+            }
+          });",
+          min,
+          max,
+          id
           )
-        ) 
-    }
-
-
-    mxTimeSlider <-function(id,min,max){
-      tagList(
-        tags$div(class="slider-date-container",
-          tags$input(type="text",id=sprintf("slider-for-%s",id)),
-          tags$script(sprintf(
-              "
-              $slider = $('#slider-for-%3$s');
-              $slider.ionRangeSlider({
-                type: 'double',
-                min: %1$s,
-                max: %2$s,
-                from: %1$s,
-                to: %2$s,
-                step:1000*60*60*24 ,
-                prettify: function (num) {
-                  var m = moment(num)
-                  return m.format('YYYY-MM-DD');
-                },
-                onChange: function (data) {
-                  setRange('%3$s',data.from/1000,data.to/1000)
-                }
-              });",
-              min,
-              max,
-              id
-              )
-            )
-          )
-        ) 
-    }
+        )
+      )
+    ) 
+}
 
    
-#
-    # Language selector by id
-    #
 
-l <- function(id=NULL){
-  mxConfig$languageTooltip[[id]][[mxConfig$languageChoice]]
-}
-
-#
-#  tooltip configuration
-#
-
-# update text by id
+#' Update text by id
+#'
+#' Search for given id and update content. 
+#' 
+#' @param session Shiny session
+#' @param id Id of the element
+#' @param text New text
+#' @export
 mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text){
   if(is.null(text) || text==""){
     return(NULL)
@@ -864,7 +959,13 @@ mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text){
 }
 
 
-
+#' Get query result from postgresql
+#'
+#' Shortcut to create a connection, get the result of a query and close the connection, using a dbInfo list. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param SQL query
+#' @export
 mxDbGetQuery <- function(dbInfo,query){
   tryCatch({
     d <- dbInfo
@@ -876,7 +977,15 @@ mxDbGetQuery <- function(dbInfo,query){
   )
 }
 
-mxDbListTable<- function(dbInfo,query){
+
+
+#' List existing table from postgresql
+#'
+#' Shortcut to create a connection, get the list of table and close the connection, using a dbInfo list. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @export
+mxDbListTable<- function(dbInfo){
   tryCatch({
     d <- dbInfo
     drv <- dbDriver("PostgreSQL")
@@ -888,5 +997,124 @@ mxDbListTable<- function(dbInfo,query){
 }
 
 
+#' Create random secret
+#'
+#' Get a random string of letters and hash it.
+#'
+#' @param n Number of input letter for the MD5 hash
+#' @export
+mxCreateSecret =  function(n=20){
+  stopifnot(require(digest))
+  digest::digest(paste(letters[round(runif(n)*24)],collapse=""))
+}
+
+
+#' Save named list of value into cookie
+#'
+#' Note : don't use this for storing sensitive data, unless you have a trusted network.
+#'
+#' @param session Shiny session object. By default: default reactive domain.
+#' @param cookie Named list holding paired cookie value. e.g. (list(whoAteTheCat="Alf"))
+#' @param nDaysExpires Integer of days for the cookie expiration
+#' @return NULL
+#' @export
+mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpires=NULL,deleteAll=FALSE){
+
+  cmd=character(0)
+  if(deleteAll){
+    cmd = "clearListCookies()"
+  }else{
+    stopifnot(!is.null(cookie) | is.list(cookie))
+    if(is.numeric(nDaysExpires) ){
+      exp <- as.numeric(as.POSIXlt(Sys.time()+nDaysExpires*3600*24,tz="gmt"))
+      cmd <- sprintf("document.cookie='expires='+(new Date(%s*1000)).toUTCString();",exp)
+    }
+
+    for(i in 1:length(cookie)){
+      val <- cookie[i]
+      if(names(val)=="d")stop('mxSetCookie:d is a reserved name')
+      if(!is.na(val) && !is.null(val)){
+        str <- sprintf("document.cookie='%s=%s';",names(val),val)
+        cmd <- paste0(cmd,str,collapse="")
+      }
+    }
+    }
+  if(length(cmd)>0){
+
+    #Add date
+    addDate <- ";if(document.cookie.indexOf('d=')==-1){document.cookie='d='+new Date();}"
+    cmd <- paste(cmd,addDate)
+
+    session$sendCustomMessage(
+      type="mxSetCookie",
+      list(code=cmd)
+      )
+  }
+}
+
+
+
+##' Hide layer
+##' @param session Shiny session
+##' @param layer Leaflet.MapboxVectorTile layer group object name
+##' @export
+#setLayerVisibility <- function(session=shiny:::getDefaultReactiveDomain(),views="leafletvtId",status="leafletvtVisible",group=NULL,visible=TRUE){
+#   if(!noDataCheck(group)){
+#     val = ifelse(visible,1,0)
+#     cond = ifelse(visible,'true','false')
+#    setOpac = sprintf("if(typeof %s !== 'undefined'){%s.%s.setOpacity(%s)};",views,views,group,val)
+#    setVisible = sprintf("if(typeof %s !== 'undefined'){%s.%s = %s };",status,status,group,cond)
+#    feedback = " Shiny.onInputChange('leafletvtVisible',leafletvtVisible);"
+#
+#    jsCode = paste(setOpac,setVisible,feedback)
+#
+#    session$sendCustomMessage(
+#      type="jsCode",
+#      list(code=jsCode)
+#      )
+#  }
+#
+#}
+#
+#
+#
+#
+###' 
+##' @export
+#removeModal <- function(){
+#  removeClass(class="panel-modal")
+#}
+#' Test for 
+#
+#dbTestConnection <- function(dbInfo=NULL){
+#  if(is.null(dbInfo)) stop('Missing arguments')
+#  testOut = FALSE
+#  d <- dbInfo
+#
+#  tryCatch({
+#    drv <- dbDriver("PostgreSQL")
+#    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+#    con <- dbConnect(drv)
+#
+#  })
+#
+#}
+#
+
+#
+    # Language selector by id
+    #
+
+##' Set language 
+##' @param 
+#l <- function(id=NULL){
+#  mxConfig$languageTooltip[[id]][[mxConfig$languageChoice]]
+#}
+
+#
+#  tooltip configuration
+#
+
+# update text by id
 
 
