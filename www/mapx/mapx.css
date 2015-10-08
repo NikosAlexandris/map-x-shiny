@@ -282,8 +282,9 @@ box-sizing: border-box;
   color:white;
   width:100%;
   padding:4px;
-  margin:1px;
+  margin:3px;
   border: 1px solid rgba(255,255,255,0.0);
+  overflow:hidden;
 }
 
 /*
@@ -300,11 +301,16 @@ box-sizing: border-box;
 
 
 input:checked + .map-views-item {
-  transition: background 1s ease;
+  /*transition: background 1s ease;*/
   background: rgba(255,255,255,0.8);
   color: black;
 }
 
+
+.checkbox, .radio {
+   margin-top: 0px; 
+   margin-bottom: 0px; 
+}
 
 .map-views-class {
   padding-top: 12px;
@@ -987,99 +993,6 @@ padding:10px;
 color:black;
 }
 
-/*input range style*/
-
-input[type=range] {
-    /*removes default webkit styles*/
-    -webkit-appearance: none;
-    background: transparent; 
-    /*fix for FF unable to apply focus style bug */
-    border: 1px solid white;
-    
-    /*required for proper track sizing in FF*/
-    width: 100%;
-}
-input[type=range]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 5px;
-    background:rgba(0,0,0,0);
-    border: none;
-    border-radius: 3px;
-}
-input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    border: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: #FFF;
-    margin-top: -4px;
-}
-input[type=range]:focus {
-    outline: none;
-}
-input[type=range]:focus::-webkit-slider-runnable-track {
-    background: rgba(0,0,0,0);
-}
-
-input[type=range]::-moz-range-track {
-    width: 100%;
-    height: 5px;
-    background: rgba(0,0,0,0);
-    border: none;
-    border-radius: 3px;
-}
-input[type=range]::-moz-range-thumb {
-    border: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: #FFF;
-}
-
-/*hide the outline behind the border*/
-input[type=range]:-moz-focusring{
-    outline: 1px solid white;
-    outline-offset: -1px;
-}
-
-input[type=range]::-ms-track {
-    width: 100%;
-    height: 5px;
-    
-    /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
-    background: transparent;
-    
-    /*leave room for the larger thumb to overflow with a transparent border */
-    border-color: transparent;
-    border-width: 6px 0;
-
-    /*remove default tick marks*/
-    color: transparent;
-}
-input[type=range]::-ms-fill-lower {
-    background: #777;
-    border-radius: 10px;
-}
-input[type=range]::-ms-fill-upper {
-    background: rgba(0,0,0,0);
-    border-radius: 10px;
-}
-input[type=range]::-ms-thumb {
-    border: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: #FFF;
-}
-input[type=range]:focus::-ms-fill-lower {
-    background: #888;
-}
-input[type=range]:focus::-ms-fill-upper {
-    background: #ccc;
-}
-
-
 .slider-date-container {
   width: 100%;
   margin-left: 20px;
@@ -1112,10 +1025,10 @@ input[type=range]:focus::-ms-fill-upper {
 
 /* map views options */
 .map-views-item-options {
-  border-radius: 4px;
+  border-radius: 3px;
   background: rgba(74, 74, 74, 0.52);
   padding: 10px;
   padding-left: 0px;
-  margin-left: 20px;
+  margin-left: 25px;
 }
 

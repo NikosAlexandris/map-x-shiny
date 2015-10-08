@@ -139,7 +139,8 @@ uiMapAnalysis <- tagList(
               selectInput("selectAnalysis","Select an analysis",
                 choices=list("Overlaps"="overlaps")
                 ),
-              uiOutput("uiAnalysis")
+              uiOutput("uiAnalysis"),
+              actionButton("btnAnalysisRemoveLayer",icon("times"))
               )
             )
           )
