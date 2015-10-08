@@ -99,6 +99,11 @@ observe({
     roleName = mxReact$userRole,
     roleLowerLimit = 1000
     )
+  mxReact$allowAnalysis <- mxAllow(
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
+    roleLowerLimit = 100
+    )
   mxReact$allowMap <- mxAllow(
     logged = mxReact$userLogged,
     roleName = mxReact$userRole,
@@ -117,3 +122,25 @@ observe({
 
 })
 
+observe({
+  enable = FALSE
+  if(
+    mxReact$allowViewsCreator &&
+    isTRUE(mxReact$mapPanelMode == "mapViewsCreator")
+    ){
+    enable <- TRUE
+  }
+  mxReact$enableViewsCreator <- enable
+})
+
+
+observe({
+  enable = FALSE
+  if(
+    mxReact$allowViewsCreator &&
+    isTRUE(mxReact$mapPanelMode == "mapViewsToolbox")
+    ){
+    enable <- TRUE
+  }
+  mxReact$enableToolbox <- enable
+})

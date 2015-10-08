@@ -55,14 +55,23 @@ observe({
       items <- viewsList[[i]]
       checkList <- tagList(checkList,tags$span(class="map-views-class",i))
       for(j in names(items)){
+        #
+        # set item id
+        #
         it <- items[j]
         itId <- as.character(it)
-        hasDate <- isTRUE(v[[itId]]$style$hasDateColumns)
-        hasCompany <- isTRUE(v[[itId]]$style$hasCompanyColumn)
         itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
+        itIdCheckOptionLabel <- sprintf('checkbox_opt_label_%s',itId)
         itIdCheckOptionPanel <- sprintf('checkbox_opt_panel_%s',itId)
         itIdFilterCompany <- sprintf('selectCompanyFilterFor_%s',itId)
-
+        #
+        # check if time slider or filter should be shown
+        #
+        hasDate <- isTRUE(v[[itId]]$style$hasDateColumns)
+        hasCompany <- isTRUE(v[[itId]]$style$hasCompanyColumn)
+        #
+        # create time slider
+        #
         if(hasDate){
           timeSlider <- mxTimeSlider(
             id=itId,
@@ -72,13 +81,11 @@ observe({
         }else{
           timeSlider <- tags$div()
         }
-
-
+        # create slider input
         if(hasCompany){
           q <- sprintf("SELECT DISTINCT(parties) FROM %s",v[[itId]]$layer)
           companies<- mxDbGetQuery(dbInfo,q)$parties
-          companies <- companies[!is.na(companies)]
-          companies <- companies[order(companies)]
+          companies <- companies[order(companies)][!is.na(companies)]
           companies <- c("[ NO FILTER ]",companies)
           filterSelect <- tagList(
             selectInput(
@@ -103,13 +110,13 @@ observe({
         val <- div(class="checkbox",
           tags$label(
             tags$input(type="checkbox",class="vis-hidden",name=id,value=itId,
-              onChange=sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOption,itIdCheckOptionPanel)),
+              onChange=sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)),
             div(class="map-views-item",
-                mxCheckboxIcon(itIdCheckOption,"cog"), 
-              tags$span(class='map-views-selector',names(it))
+              tags$span(class='map-views-selector',names(it)),
+                mxCheckboxIcon(itIdCheckOption,itIdCheckOptionLabel,"cog",display=FALSE)
               ) 
             ),
-          conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption,id),
+          conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
             tags$div(class="map-views-item-options",id=itIdCheckOptionPanel,
               mxSliderOpacity(itId,v[[itId]]$style$opacity),
               timeSlider,
@@ -146,10 +153,10 @@ observe({
               proxyMap <- leafletProxy("mapxMap")
 
               proxyMap %>% fitBounds(
-                lng1=min(ext[c('lng1','lng2')]),
-                lat1=min(ext[c('lat1','lat2')]),
-                lng2=max(ext[c('lng1','lng2')]),
-                lat2=max(ext[c('lat1','lat2')])
+                lng1=min(ext[c('lng1','lng2')])-0.5,
+                lat1=min(ext[c('lat1','lat2')])-0.5,
+                lng2=max(ext[c('lng1','lng2')])+0.5,
+                lat2=max(ext[c('lat1','lat2')])+0.5
                 )   
 
 

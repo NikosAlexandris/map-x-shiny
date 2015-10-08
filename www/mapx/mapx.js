@@ -1,6 +1,6 @@
 /* temporary object to hold ui and style state*/
 var leafletvtId = {};
-var leafletvtSty = {};
+//var leafletvtSty = {};
 var mxPanelMode = {};
 
 
@@ -135,7 +135,7 @@ function isCheckedValue(id){
 //
 function toggleOptions(id,idOption,idOptionPanel) {
   if($('input[value='+id+']').prop("checked")){
-    $('#'+idOption).css("display","block");
+    $('#'+idOption).css("display","inline-block");
     $('#'+idOptionPanel).css("display","block");
   }else{ 
     $('#'+idOption).css("display","none");
@@ -157,7 +157,7 @@ function setOpacityForId(id,opacity){
 // copy the original style of the layer, set min and max date and update style 
 //
 function setRange(id,min,max){
-  leafletvtSty = leafletvtId[id].vtStyle;
+  var leafletvtSty = leafletvtId[id].vtStyle;
   leafletvtSty.mxDateMin[0] = min;
   leafletvtSty.mxDateMax[0] = max;
   leafletvtId[id].setStyle(updateStyle);
@@ -171,15 +171,15 @@ function setFilter(layer,id,column,value){
   if(typeof(leafletvtId[id]) == "undefined")return;
   if(value !="[ NO FILTER ]"){
     var d = {};
+    var leafletvtSty = leafletvtId[id].vtStyle;
     d.id=id;
     d.column=column;
     d.value=value;
     d.layer=layer;
     Shiny.onInputChange("filterLayer",d);
-    leafletvtSty = leafletvtId[id].vtStyle;
+    // update style
     leafletvtSty.mxFilterColumn = column;
     leafletvtSty.mxFilterValue = value;
-
     leafletvtId[id].setStyle(updateStyleFilter);
 
   }else{ 
@@ -215,8 +215,7 @@ function updateStyleFilter(feature){
     return;
   }else{
     if( typeof(val) != 'undefined'){ 
-      //dataCol = hex2rgb(leafletvtSty.colorsPalette[val][0],leafletvtSty.opacity[0]);
-      dataCol = 'rgba(255,0,0,1)';
+      dataCol = 'rgba(255,0,0,0.8)';
       if(typeof(dataCol) == 'undefined'){
         dataCol = defaultColor;
       }

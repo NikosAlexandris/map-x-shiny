@@ -859,9 +859,11 @@ mxAllow <- function(logged,roleName,roleLowerLimit){
 #' @param id Id of the element
 #' @param icon Name of the fontawesome icon. E.g. cog, times, wrench
 #' @export
-mxCheckboxIcon <- function(id,icon){
+mxCheckboxIcon <- function(id,idLabel,icon,display=TRUE){
+  visible <- "display:inline-block"
+  if(!display)visible <- "display:none"
   tagList(
-    div(class="checkbox",style="display:inline-block",
+    div(id=idLabel,class="checkbox",style=visible,
       tags$label(
         tags$input(type="checkbox",class="vis-hidden",id=id),
         tags$span(icon(icon))
@@ -1053,6 +1055,46 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
 }
 
 
+
+#' Overlaps analysis 
+#' 
+#' Use a mask to get overlaps over a layer
+#'
+
+
+
+
+
+mxAnalysisOverlaps <- function(dbInfo,inputBaseLayer,inputMaskLayer,outName,dataOwner="mapxw",sridOut=4326,varToKeep="gid"){
+
+  msg=character(0)
+  if(!outName %in% mxDbListTable(dbInfo)){
+
+    varToKeep <- paste0(sprintf("%s.%s",inputBaseLayer,varToKeep),collapse=",")
+    createTable = sprintf("
+      create table %1$s as SELECT %4$s, 
+      ST_Multi(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0)) As geom
+      FROM %3$s
+      INNER JOIN %2$s
+      ON ST_Intersects(%3$s.geom, %2$s.geom)
+      WHERE Not ST_IsEmpty(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0));
+      ALTER TABLE %1$s
+      ALTER COLUMN geom TYPE geometry(MultiPolygon, %5$i) 
+      USING ST_SetSRID(geom,%5$i);
+      ALTER TABLE %1$s OWNER TO %6$s;
+      ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
+      ",
+      outName,
+      inputBaseLayer,
+      inputMaskLayer,
+      varToKeep,
+      sridOut,
+      dataOwner
+      )
+
+    mxDbGetQuery(dbInfo,createTable) 
+  }
+  }
 
 ##' Hide layer
 ##' @param session Shiny session
