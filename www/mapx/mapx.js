@@ -26,7 +26,7 @@ var mxConfig = {
         $(this.id).animate({height:this.height},500);
       }else{ 
         $(this.id).animate({height:this.defaultHeightCollapsed},500);
-      };
+      }
       console.log("mxConfig info box changes: height="+this.height+" enabled="+this.enabled);
       this.enabled =! this.enabled;
     }
@@ -267,7 +267,7 @@ function mxSetFilter(layer,id,column,value){
     };
   leafletvtId[id].setStyle(sty,layer+"_geom");
   }else{
-    mxSetStyle(id,vtStyle,layer,true)
+    mxSetStyle(id,vtStyle,layer,true);
   }
 }
 
@@ -276,7 +276,7 @@ function mxSetFilter(layer,id,column,value){
 //
 function mxSetRange(id,min,max,lay){
   // copy style
-  vtStyle = leafletvtId[id].vtStyle
+  vtStyle = leafletvtId[id].vtStyle;
   // create function to apply
   var sty = function(feature) {
     var style = {};
@@ -352,9 +352,9 @@ function mxSetRange(id,min,max,lay){
         break;
     }
     return style;
-  }
+  };
 
-  console.log("Set time slider style for "+id)
+  console.log("Set time slider style for "+id);
   leafletvtId[id].setStyle(sty,lay+"_geom");
 }
 
@@ -367,9 +367,8 @@ function mxSetStyle(id,vtStyle,lay,overwrite){
   if(!overwrite){
     if(vtStyle == leafletvtId[id].vtStyle){
       if(vtStyle.dataColumn[0] == leafletvtId[id].vtStyle.dataColumn[0]){
-      debugger
       }
-      console.log("Identical style already exists for id="+id)
+      console.log("Identical style already exists for id="+id);
         return;
     }
   }
@@ -416,9 +415,9 @@ function mxSetStyle(id,vtStyle,lay,overwrite){
         break;
     }
     return style;
-  }
+  };
 
-  console.log("Apply style function for "+id)
+  console.log("Apply style function for "+id);
   leafletvtId[id].setStyle(sty,lay+"_geom");
 }
 
@@ -506,43 +505,44 @@ function mxSetStyle(id,vtStyle,lay,overwrite){
 //  return style;
 //}
 //
-//function defaultStyle(feature) {
-//  var style = {};
-//  var selected = style.selected = {};
-//  var type = feature.type;
-//  var dataCol = 'rgba(255,0,0,0.8)';
-//  var size = 1;
-//
-//  switch (type) {
-//    case 1: //'Point'
-//      //style.color = 'rgba(49,79,79,1)';
-//      style.color = dataCol;
-//      style.radius = size;
-//      selected.color = 'rgba(255,255,0,0.5)';
-//      selected.radius = 6;
-//      break;
-//    case 2: //'LineString'
-//      //style.color = 'rgba(161,217,155,0.8)';
-//      style.color = dataCol;
-//      style.size = size;
-//      selected.color = 'rgba(255,25,0,0.5)';
-//      selected.size = size;
-//      break;
-//    case 3: //'Polygon'
-//      style.color = dataCol;
-//      style.outline = {
-//        color: 'rgba(0,0,0,1)',
-//        size: 1
-//      };
-//      selected.color = 'rgba(255,0,0,0.3)';
-//      selected.outline = {
-//        color: 'rgba(255,0,0,1)',
-//        size: size
-//      };
-//      break;
-//  }
-//  return style;
-//}
+// still used bx server/analysis
+function defaultStyle(feature) {
+  var style = {};
+  var selected = style.selected = {};
+  var type = feature.type;
+  var dataCol = 'rgba(255,0,0,0.8)';
+  var size = 1;
+
+  switch (type) {
+    case 1: //'Point'
+      //style.color = 'rgba(49,79,79,1)';
+      style.color = dataCol;
+      style.radius = size;
+      selected.color = 'rgba(255,255,0,0.5)';
+      selected.radius = 6;
+      break;
+    case 2: //'LineString'
+      //style.color = 'rgba(161,217,155,0.8)';
+      style.color = dataCol;
+      style.size = size;
+      selected.color = 'rgba(255,25,0,0.5)';
+      selected.size = size;
+      break;
+    case 3: //'Polygon'
+      style.color = dataCol;
+      style.outline = {
+        color: 'rgba(0,0,0,1)',
+        size: 1
+      };
+      selected.color = 'rgba(255,0,0,0.3)';
+      selected.outline = {
+        color: 'rgba(255,0,0,1)',
+        size: size
+      };
+      break;
+  }
+  return style;
+}
 //
 //
 ///

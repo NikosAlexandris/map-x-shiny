@@ -25,7 +25,7 @@ ui <- tagList(
     #
     #STYLE SHEET
     #
-    tags$link(href="jquerry-gridly/stylesheets/jquery.gridly.css"),
+#    tags$link(href="jquerry-gridly.css"),
     tags$link(href="font-awesome-4.4.0/css/font-awesome.min.css",rel="stylesheet",type="text/css"),
     tags$link(href="theme/grayscale/bootstrap.min.css",rel="stylesheet",type="text/css"),
     tags$link(rel="stylesheet",type="text/css",href='handsontable/handsontable.full.min.css'),
@@ -57,7 +57,7 @@ ui <- tagList(
   tags$head(
     # TODO: uglify and concat js files OR load with singleton when needed.
 
-    tags$script(src="jquery.gridly/javascripts/jquery.gridly.js"),
+#    tags$script(src="jquery.gridly/javascripts/jquery.gridly.js"),
     tags$script(src="chartjs/Chart.min.js"),
     tags$script(src="mapx/mapxChartJsConf.js"),
     tags$script(src="theme/grayscale/grayscale.js"),
