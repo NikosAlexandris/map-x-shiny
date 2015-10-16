@@ -11,14 +11,14 @@ First we need to include the Chart.js library on the page. The library occupies 
 <script src="Chart.js"></script>
 ```
 
-Alternatively, if you're using an AMD loader for JavaScript modules, that is also supported in the Chart.js core. Please note: the library will still occupy a global variable of `Chart`, even if it detects `define` and `define.amd`. If this is a problem, you can call `noConflict` to restore the global Chart variable to it's previous owner.
+Alternatively, if you're using an AMD loader for JavaScript modules, that is also supported in the Chart.js core. Please note: the library will still occupy a global variable of `Chart`, even if it detects `define` and `define.amd`. If this is a problem, you can call `noConflict` to restore the global Chart variable to its previous owner.
 
 ```javascript
 // Using requirejs
 require(['path/to/Chartjs'], function(Chart){
 	// Use Chart.js as normal here.
 
-	// Chart.noConflict restores the Chart global variable to it's previous owner
+	// Chart.noConflict restores the Chart global variable to its previous owner
 	// The function returns what was previously Chart, allowing you to reassign.
 	var Chartjs = Chart.noConflict();
 
@@ -71,6 +71,10 @@ We call a method of the name of the chart we want to create. We pass in the data
 ###Global chart configuration
 
 This concept was introduced in Chart.js 1.0 to keep configuration DRY, and allow for changing options globally across chart types, avoiding the need to specify options for each instance, or the default for a particular chart type.
+
+Templates are based on micro templating by John Resig:
+
+http://ejohn.org/blog/javascript-micro-templating/
 
 ```javascript
 Chart.defaults.global = {
@@ -176,6 +180,9 @@ Chart.defaults.global = {
 
 	// String - Tooltip title font colour
 	tooltipTitleFontColor: "#fff",
+
+	// String - Tooltip title template
+	tooltipTitleTemplate: "<%= label%>",
 
 	// Number - pixel width of padding around tooltip text
 	tooltipYPadding: 6,

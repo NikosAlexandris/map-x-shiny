@@ -63,7 +63,7 @@ observe({
         itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
         itIdCheckOptionLabel <- sprintf('checkbox_opt_label_%s',itId)
         itIdCheckOptionPanel <- sprintf('checkbox_opt_panel_%s',itId)
-        itIdFilterCompany <- sprintf('selectCompanyFilterFor_%s',itId)
+        itIdFilterCompany <- sprintf('select_filter_for_%s',itId)
         #
         # check if time slider or filter should be shown
         #
@@ -76,36 +76,57 @@ observe({
           timeSlider <- mxTimeSlider(
             id=itId,
             min=as.numeric(as.POSIXct(v[[itId]]$dateVariableMin))*1000,
-            max=as.numeric(as.POSIXct(v[[itId]]$dateVariableMax))*1000
+            max=as.numeric(as.POSIXct(v[[itId]]$dateVariableMax))*1000,
+            lay=v[[itId]]$layer
             )
         }else{
           timeSlider <- tags$div()
         }
         # create slider input
         if(hasCompany){
-          q <- sprintf("SELECT DISTINCT(parties) FROM %s",v[[itId]]$layer)
-          companies<- mxDbGetQuery(dbInfo,q)$parties
-          companies <- companies[order(companies)][!is.na(companies)]
-          companies <- c("[ NO FILTER ]",companies)
+          fieldSelected <- "parties"
+          q <- sprintf("SELECT array_to_json(array_agg(row_to_json(t))) FROM ( SELECT DISTINCT(%1$s) FROM  %2$s ORDER BY %1$s) t",
+            fieldSelected,
+            v[[itId]]$layer
+            )
+          companies<- as.character(mxDbGetQuery(dbInfo,q))
+
+          #noFilter <- mxConfig$noFilter
+          #companies <- companies[order(companies)][!is.na(companies)]
+          #companies <- c(noFilter,companies)
+          #browser()
           filterSelect <- tagList(
-            selectInput(
-              itIdFilterCompany,
-              label="Filter by company",
-              choices=companies,
-              selected="[ NO FILTER ]",
-              selectize=FALSE
-              ),
+           # selectInput(
+           #   itIdFilterCompany,
+           #   label="Filter by company",
+           #   choices=companies,
+           #   selected=NULL,
+           #   selectize=FALSE
+           #   ),
+            tags$div(id=itIdFilterCompany,placeholder=sprintf("Search for '%s' ...",fieldSelected)),
             tags$script(
-              sprintf("
-                $( '#%1$s' ).change(function () {
-                  $( '#%1$s option:selected' ).each(function() {
-                    setFilter('%2$s','%3$s','%4$s',$( this ).text());});}).change();
-                ",itIdFilterCompany,v[[itId]]$layer,itId,"parties")
-                )
+              sprintf(" $('#%1$s').selectize({
+                maxItems:null,
+                onChange: function(value){
+                  mxSetFilter('%2$s','%3$s','%4$s',value)
+                },
+                 valueField: '%4$s',
+                 labelField: '%4$s',
+                searchField: '%4$s',
+                options:%5$s,
+                plugins: ['remove_button']
+        })",
+              itIdFilterCompany,#1
+              v[[itId]]$layer,#2
+              itId,#3
+              fieldSelected,#4
+              companies#5
               )
-        }else{
-          filterSelect <- tags$div()
-        }
+            )
+          )
+      }else{
+        filterSelect <- tags$div()
+      }
 
         val <- div(class="checkbox",
           tags$label(
@@ -142,7 +163,7 @@ observe({
 
           observe({
             f<-input$filterLayer
-            if(!noDataCheck(f)){
+            if(!noDataCheck(f) && ! isTRUE(f == mxConfig$noFilter)){
               ext <- dbGetFilterCenter(
                 dbInfo=dbInfo,
                 table=f$layer,
@@ -153,13 +174,11 @@ observe({
               proxyMap <- leafletProxy("mapxMap")
 
               proxyMap %>% fitBounds(
-                lng1=min(ext[c('lng1','lng2')])-0.5,
-                lat1=min(ext[c('lat1','lat2')])-0.5,
-                lng2=max(ext[c('lng1','lng2')])+0.5,
-                lat2=max(ext[c('lat1','lat2')])+0.5
+                lng1=min(ext[c('lng1','lng2')])-0.3,
+                lat1=min(ext[c('lat1','lat2')])-0.3,
+                lng2=max(ext[c('lng1','lng2')])+0.3,
+                lat2=max(ext[c('lat1','lat2')])+0.3
                 )   
-
-
             }
 
           })
@@ -296,5 +315,4 @@ observeEvent(mxReact$viewsToDisplay,{
     cat(paste(paste0(rep("-",80),collapse=""),"\n"))
       })
 })
-
 

@@ -1,0 +1,323 @@
+<div id="info-box-content" class="shiny-html-output shiny-bound-output"><div class="row" style="
+                                                                                         height: 10%;
+                                                                                         ">
+    <div class="col-sm-12">
+      <h1>Tenke fungurume mining</h1>
+    </div>
+  </div>
+  <div class="tabbable tabs-above" style="
+  height: 90%;
+  ">
+    <ul class="nav nav-pills">
+      <li class="active">
+        <a href="#tab-8879-1" data-toggle="tab" data-value="Company summary">Company summary</a>
+      </li>
+      <li>
+        <a href="#tab-8879-2" data-toggle="tab" data-value="Selected concession">Selected concession</a>
+      </li>
+      <li>
+        <a href="#tab-8879-3" data-toggle="tab" data-value="Sources">Sources</a>
+      </li>
+
+    </ul>
+    <div class="tab-content" style="
+    height: 90%;
+    ">
+      <div class="tab-pane active" data-value="Company summary" id="tab-8879-1" style="
+      height: 90%;
+      ">
+        <div class="hide-scroll">
+          <div class="viewport">
+
+            <div class="gridly">
+              <!--  
+
+                COMPANY SHARES
+
+              -->
+
+
+
+              <div class="mx-box-item col-lg-3 col-md-12 col-xs-12">
+
+                <h4>Company shares</h4>
+                <canvas id="chart-tenke-shares" width="100" style="width:100%;height:150px;margin:auto"></canvas>
+<ul>
+                  <li>Unité : [%]</li>
+                  </ul>
+                  <div id="chart-tenke-share-label"class="chart-label"></div>
+                <script>
+var ctx = document.getElementById('chart-tenke-shares').getContext('2d');
+var data = [
+{
+  value: 20,
+  color:"rgba(5,230,56,0.4)",
+  highlight: "rgb(5,230,56)",
+  label: "Entreprise Publique (100% détenue par l'Etat Congolais)"
+},
+{
+  value: 80,
+  color: "rgba(255,255,255,0.5)",
+  highlight: "rgb(255,255,255)",
+  label: "TF Holding Ltd a comme propriétaires réels Freeport-McMoRan Inc et Lundin Mining Corporation. Freeport-McMoRan Inc est une société américaine cotée sur la bourse de New York NYSE sous le symbole FCX. Lundin Mining Corporation est une société canadienne cotée sur la bourse de Toronto TSX sous le symbole LUN, et sur la bourse de Stockholm OMX sous le symbole LUMI."
+}
+];
+var mxChartSharesTenke = new Chart(ctx).Doughnut(data,{
+  animateScale: false,
+  animationEasing : "linear",
+  animateRotate :true,
+  segmentStrokeColor : "rgba(0,0,0,0)"
+});
+var lab = mxChartSharesTenke.generateLegend();
+document.getElementById("chart-tenke-share-label").innerHTML = lab;
+                </script>
+
+
+              </div>
+
+
+              <!--  
+
+                EXTRACTIVES 
+
+              -->
+
+
+              <div class="mx-box-item col-lg-4 col-md-12 col-xs-12">
+
+                <h4>Extractives</h4> 
+                <canvas id="chart-tenke-extractives" width="100" style="width:100%;height:300px;margin:auto"></canvas>
+<ul>
+                  <li>Unité : [kMT]</li>
+                  </ul>
+                  <div id="chart-tenke-extractives-label" class="chart-label"></div>
+
+                <script>
+var ctx = document.getElementById('chart-tenke-extractives').getContext('2d');
+var data = {
+  labels: ["2009", "2010", "2011", "2012", "2013", "2014", "1H 2015"],
+  datasets: [
+  {
+    label: "Cathode de Cuivre (Cath.Cu (99%))",
+    fillColor: "rgba(5,230,56,0.4)",
+    strokeColor:  "rgb(5,230,56)",
+    highlightFill:  "rgb(5,230,56)",
+    highlightStroke: "rgb(5,230,56)",
+    data: [70.0,120.3,127.4,157.7,209.8,202.6,105.0]
+  },
+  {
+    label: "Hydroxide de Cobalt (Hydro.Co (±29%))",
+    fillColor: "rgba(255,255,255,0.5)",
+    strokeColor: "rgb(255,255,255)",
+    highlightFill: "#fff",
+    highlightStroke: "#fff",
+    data: [2.6,9.2,11.2,11.7,12.8,13.3,7.5]
+  }
+  ]
+};
+
+//var mxChartExtractivesTenke = new Chart(ctx).Line(data);
+var mxChartExtractivesTenke = new Chart(ctx).Bar(data);
+var lab = mxChartExtractivesTenke.generateLegend();
+document.getElementById("chart-tenke-extractives-label").innerHTML = lab;
+                </script>
+
+              </div>
+
+
+              <!-- 
+
+                WORKFORCE 
+
+              -->
+
+              <div class="mx-box-item col-lg-3 col-md-12 col-xs-12">
+
+                <h4>Workforce</h4>
+                <canvas id="chart-tenke-workforce" width="100" style="width:100%;height:150px;margin:auto"></canvas>
+                <ul class="chart-label">
+                  <li>Unité : [%]</li>
+                  <li>Effectif total : 7200 </li>
+                  </ul>
+                <div id="chart-tenke-workforce-label" class="chart-label"></div>
+                <script>
+var ctx = document.getElementById('chart-tenke-workforce').getContext('2d');
+
+var data = [
+{
+  value: 46.15,
+  color:"rgba(5,230,56,0.4)",
+  highlight: "rgb(5,230,56)",
+  label: "Effectif des Nationaux (entreprise)"
+},
+{
+  value: 1,
+  color: "rgba(255, 85, 0, 0.8)",
+  highlight: "rgb(255, 85, 0)",
+  label: "Effectif des Non Nationaux (entreprise)"
+},
+{
+  value: 48.30,
+  color: "rgba(0, 115, 255, 0.8)",
+  highlight: "rgb(0, 115, 255)",
+  label: "Effectif des Nationaux (sous-traitant)"
+},
+{
+  value: 4.6,
+  color: "rgba(255, 0, 85, 0.8)",
+  highlight: "rgb(255, 0, 85)",
+  label: "Effectif des Non Nationaux (sous-traitant)"
+},
+
+
+  ];
+  var mxChartWorkForceTenke = new Chart(ctx).Doughnut(data,{
+    animateScale: false,
+    animationEasing : "linear",
+    animateRotate :true,
+    segmentStrokeColor : "rgba(0,0,0,0)"
+  });
+var lab = mxChartWorkForceTenke.generateLegend();
+document.getElementById("chart-tenke-workforce-label").innerHTML = lab;
+                </script>
+              </div>
+
+
+              <!-- 
+
+                COMPANY DATA 
+
+              -->
+              <div class="col-lg-12 col-md-12 col-xs-12">
+                
+              <div class="mx-box-item col-lg-5 col-md-8 col-xs-12">
+                <h4>Company data</h4>
+                <ul class="list-group">
+                  <li class="list-group-item">    
+                    <span class=.mx-title-data">Dénomination officielle complète de l'entreprise</span><br> TENKE FUNGURUME MINING SA
+                  </li>
+                  <li class="list-group-item">    
+                    <span class=.mx-title-data">Contact</span><br> Batiment TFM, Route Aeroport, Commune Annexe/ Lubumbashi
+                  </li>
+                  <li class="list-group-item">
+                    <span class=.mx-title-data">Identifiant fiscal</span><br> A0810758D
+                  </li>
+                  <li class="list-group-item">
+                    <span class=.mx-title-data">Montant du Capital Social</span><br> 65 050 000 USD
+                  </li> 
+                  <li class="list-group-item">
+                    <span class="mx-title-data">Date de création</span><br> 30 novembre 1996
+                  </li>
+               </ul>
+              </div>
+              <!-- 
+
+                SOURCES
+
+              -->
+              <div class="mx-box-item col-lg-5 col-md-8 col-xs-12">
+                <h4>Data sources</h4>
+                <ul class="list-group">
+                  <li class="list-group-item">    
+                    <span class="badge" >ITIE 2013</span>
+                    Source des données
+                  </li>
+                  <li class="list-group-item">                      
+                    <span class="mx-title-data">Lien vers la convention 2005</span><br>
+<a href="http://congomines.org/system/attachments/assets/000/000/288/original/A1-TFM-2005-ConventionPublicationSECENGLundinTFHolding-RDC-Gecamines.pdf?1430928346
+                      ">congomines.org</a>
+                  </li>
+                  <li class="list-group-item">
+                    <span class="mx-title-data">
+                    Lien vers l'amendement à cette convention
+                    </span><br>
+<a href="http://congomines.org/reports/288-avenant-n-1-convention-miniere-tfm-rdc-gecamines-lundin-holdings-tfm-sarl-2010
+                    ">congomines.org</a>
+                  </li> 
+                  <li class="list-group-item">
+
+                    <span class="mx-title-data">
+                    Lien vers l'annexe du rapport 2013
+                    </span><br>
+                    <a href="http://129.194.205.12/ITIE/Annexes_2013.xlsx">ITIE</a>
+                  </li>
+                </ul>
+
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div> <!-- end grid-->
+
+      <!-- 
+
+        CONCESSION TAB 
+
+      -->
+
+      <div class="tab-pane" data-value="Selected concession" id="tab-8879-2">
+<div class="mx-box-item col-lg-6 col-md-8 col-xs-12">
+        <h4>Concession data</h4>
+        <ul class="list-group">
+          <li class="list-group-item">    
+            <span class="badge" >9999.99 km2</span>
+            Area
+          </li>
+          <li class="list-group-item">
+            <span class="badge"> 0.0 km2</span>
+            Area over protected area
+          </li>
+          <li class="list-group-item">
+            <span class="badge">Active</span>
+            Activity status
+          </li> 
+          <li class="list-group-item">
+            <span class="badge" > 20 january 2034 </span>
+            Start of contract
+          </li>
+          <li class="list-group-item">
+            <span class="badge"> 23 december 2120 </span>
+            End of contract
+          </li>
+        </ul>
+      </div>
+      </div>
+
+     <!-- 
+
+        SOURCE TABS 
+
+      -->
+      <div class="tab-pane" data-value="Sources" id="tab-8879-3">
+<div class="mx-box-item col-lg-6 col-md-8 col-xs-12">
+        <h4>Data sources</h4>
+        <ul class="list-group">
+          <li class="list-group-item">    
+            <span class="badge" >ITIE 2013</span>
+            Source des données
+          </li>
+          <li class="list-group-item">
+            <span class="badge">
+              <a href="http://congomines.org/system/attachments/assets/000/000/288/original/A1-TFM-2005-ConventionPublicationSECENGLundinTFHolding-RDC-Gecamines.pdf?1430928346
+              ">congomines.org</a>
+            </span>
+            Lien vers la convention 2005
+          </li>
+          <li class="list-group-item">
+            <span class="badge"><a href="http://congomines.org/reports/288-avenant-n-1-convention-miniere-tfm-rdc-gecamines-lundin-holdings-tfm-sarl-2010
+            ">congomines.org</a></span>
+            Lien vers l'amendement à cette convention
+          </li> 
+          <li class="list-group-item">
+            <span class="badge" ><a href="http://129.194.205.12/ITIE/Annexes_2013.xlsx">ITIE</a></span>
+            Lien vers l'annexe du rapport 2013
+          </li>
+        </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

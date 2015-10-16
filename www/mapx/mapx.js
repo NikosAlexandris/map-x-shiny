@@ -1,8 +1,37 @@
 /* temporary object to hold ui and style state*/
 var leafletvtId = {};
-//var leafletvtSty = {};
 var mxPanelMode = {};
+var mxConfig = {
+  mapPanelMode : null,
+  mapInfoBox : {
+    id : "#info-box",
+    enabled : true,
+    height : "0px",
+    defaultHeightCollapsed : "0px",
+    defaultHeightEnabled : "200px",
+    toggle : function(height,enabled){
+      if(enabled === false){
+        this.enabled = false; 
+      }
+      if(enabled === true){
+        this.enabled = true;
+      }
+      if(this.enabled){
+        if(typeof height !== "undefined"){
+          this.height = height;
+        }else{
 
+          this.height = this.defaultHeightEnabled;
+        }
+        $(this.id).animate({height:this.height},500);
+      }else{ 
+        $(this.id).animate({height:this.defaultHeightCollapsed},500);
+      };
+      console.log("mxConfig info box changes: height="+this.height+" enabled="+this.enabled);
+      this.enabled =! this.enabled;
+    }
+  }
+};
 
 //
 // Shiny binding 
@@ -15,7 +44,6 @@ Shiny.addCustomMessageHandler("jsCode",
 
 Shiny.addCustomMessageHandler("mapUiUpdate",
     function(message){
-      console.log("UPDATE MAP SECTION"); 
       updateMapElement();
     }
     );
@@ -36,7 +64,7 @@ function updateMapElement(){
   //
   $("#btnStopMapScroll").click(function(){
     var idSection = "#sectionMap";
-    idScroll = "#map-left";
+    idScroll = "#map-left,#info-box-container,#mapxMap";
     idBtn = "#btnStopMapScroll";
 
     var $document = $(document),
@@ -47,6 +75,7 @@ function updateMapElement(){
       $('html, body').stop().animate({
         scrollTop: $(idSection).offset().top - $(".navbar-header").height() 
       }, 100, 'easeOutQuad');
+    
       $body.addClass('noscroll');
       $scrolable.on({
         'mouseenter': function () {
@@ -100,13 +129,8 @@ function updateMapElement(){
 
   // add a click function to btn info panel
   $(idBtnInfo).click(function(){
-    if(toggleCollapseInfoClick){
-      $(idInfo).animate({height:"200px"},500);
-    }else{ 
-      $(idInfo).animate({height:"0px"},500);
-    }
-    toggleCollapseInfoClick = !toggleCollapseInfoClick;
-  });
+    mxConfig.mapInfoBox.toggle();
+   });
 }
 
 //
@@ -153,228 +177,478 @@ function setOpacityForId(id,opacity){
   }
 }
 
-//
-// copy the original style of the layer, set min and max date and update style 
-//
-function setRange(id,min,max){
-  var leafletvtSty = leafletvtId[id].vtStyle;
-  leafletvtSty.mxDateMin[0] = min;
-  leafletvtSty.mxDateMax[0] = max;
-  leafletvtId[id].setStyle(updateStyle);
-}
 
 
 //
-// If a filter column and value is given, set style options and update style with filter function 
+// handle style when filter by column and value is requested 
 //
-function setFilter(layer,id,column,value){
+
+function mxSetFilter(layer,id,column,value){
+
   if(typeof(leafletvtId[id]) == "undefined")return;
-  if(value !="[ NO FILTER ]"){
+
+  var vtStyle = leafletvtId[id].vtStyle;
+
+  if(value.length>0){
+    value = value.split(",");
     var d = {};
-    var leafletvtSty = leafletvtId[id].vtStyle;
     d.id=id;
     d.column=column;
     d.value=value;
     d.layer=layer;
     Shiny.onInputChange("filterLayer",d);
     // update style
-    leafletvtSty.mxFilterColumn = column;
-    leafletvtSty.mxFilterValue = value;
-    leafletvtId[id].setStyle(updateStyleFilter);
+    vtStyle.mxFilterColumn = column;
+    vtStyle.mxFilterValue = value;
 
-  }else{ 
-    leafletvtId[id].setStyle(updateStyle);
+    var sty = function(feature){
+      var style = {};
+      var selected = style.selected = {};
+      var  type = feature.type,
+      defaultColor = 'rgba(0,0,0,0)',
+      dataCol = defaultColor,
+      val = feature.properties[vtStyle.dataColum[0]], 
+      filterColumn = vtStyle.mxFilterColumn,
+      filterValue = vtStyle.mxFilterValue,
+      value = feature.properties[filterColumn],
+      skip = false;
+
+      if( typeof(value)=="undefined"){
+        return;
+      }
+
+      if( 
+          typeof(filterColumn) != "undefined" && 
+          typeof(filterValue) != "undefined" && 
+          typeof(value) != "undefined" 
+        ){
+        if(filterValue.indexOf(value)==-1){
+          skip = true;
+        }
+      }
+      if(skip){
+        return;
+      }else{
+        if( typeof(val) != 'undefined'){ 
+          dataCol = 'rgba(255,0,0,0.8)';
+          if(typeof(dataCol) == 'undefined'){
+            dataCol = defaultColor;
+          }
+        }
+      }
+
+      switch (type) {
+        case 1: //'Point'
+          style.color = dataCol;
+          style.radius = vtStyle$size[0];
+          selected.color = 'rgba(255,255,0,0.5)';
+          selected.radius = 6;
+          break;
+        case 2: //'LineString'
+          style.color = dataCol;
+          style.size = vtStyle$size[0];
+          selected.color = 'rgba(255,25,0,0.5)';
+          selected.size = vtStyle.size[0];
+          break;
+        case 3: //'Polygon'
+          style.color = dataCol;
+          style.outline = {
+            color: 'rgba(0,0,0,1)',
+            size: 1
+          };
+          selected.color = 'rgba(255,0,0,0)';
+          selected.outline = {
+            color: 'rgba(255,0,0,0.9)',
+            size: 1
+          };
+          break;
+      }
+      return style;
+    };
+  leafletvtId[id].setStyle(sty,layer+"_geom");
+  }else{
+    mxSetStyle(id,vtStyle,layer,true)
   }
 }
 
 //
-// handle style when filter by column and value is requested 
+// Set time sldider filter
 //
-function updateStyleFilter(feature){
-  var style = {};
-  var selected = style.selected = {};
-  var  type = feature.type,
-  defaultColor = 'rgba(0,0,0,0)',
-  dataCol = defaultColor,
-  val = feature.properties[leafletvtSty.dataColum[0]], 
-  filterColumn = leafletvtSty.mxFilterColumn,
-  filterValue = leafletvtSty.mxFilterValue,
-  value = feature.properties[filterColumn],
-  skip = false;
+function mxSetRange(id,min,max,lay){
+  // copy style
+  vtStyle = leafletvtId[id].vtStyle
+  // create function to apply
+  var sty = function(feature) {
+    var style = {};
+    var selected = style.selected = {};
+    var  type = feature.type,
+    defaultColor = 'rgba(0,0,0,0)',
+    dataCol = defaultColor,
+    val = feature.properties[vtStyle.dataColum[0]],
+    dateStyleMin = min,
+    dateStyleMax = max,
+    dateFeatStart = feature.properties.mx_date_start,
+    dateFeatEnd = feature.properties.mx_date_end,
+    d = []; 
+    // skip = set feature style to default(transparent)
+    var skip = false ;
+    // if 
+    var hasDate = false ;
 
-  if( typeof(value)=="undefined"){
-    return;
+    if( typeof(dateFeatEnd) != "undefined" && typeof(dateFeatStart) != "undefined" ){
+      hasDate = true;
+      d.push(
+          dateStyleMin,
+          dateStyleMax,
+          dateFeatStart,
+          dateFeatEnd
+          );
+      for(var i = 0; i<4; i++){
+        if ( typeof(d[i]) == 'undefined' || d[i] === null){
+          hasDate = false ;
+        }
+      }
+      if(hasDate){
+        if(d[2] < d[0] || d[3] > d[1]){
+          skip = true ;
+        }
+      }
+    }
+    if(skip){
+      return;
+    }else{
+      if( typeof(val) != 'undefined'){ 
+        dataCol = hex2rgb(vtStyle.colorsPalette[val][0],vtStyle.opacity[0]);
+        if(typeof(dataCol) == 'undefined'){
+          dataCol = defaultColor;
+        }
+      }
+    }
+
+    switch (type) {
+      case 1: //'Point'
+        style.color = dataCol;
+        style.radius = vtStyle.size[0];
+        selected.color = 'rgba(255,255,0,0.5)';
+        selected.radius = 6;
+        break;
+      case 2: //'LineString'
+        style.color = dataCol;
+        style.size = vtStyle.size[0];
+        selected.color = 'rgba(255,25,0,0.5)';
+        selected.size = vtStyle.size[0];
+        break;
+      case 3: //'Polygon'
+        style.color = dataCol;
+        style.outline = {
+          color: dataCol,
+          size: 1
+        };
+        selected.color = 'rgba(255,0,0,0)';
+        selected.outline = {
+          color: 'rgba(255,0,0,0.9)',
+          size: 1
+        };
+        break;
+    }
+    return style;
   }
 
-  if( typeof(filterColumn) != "undefined" && typeof(filterValue) != "undefined" && typeof(value) != "undefined" ){
-    if(filterValue!=value){
-      skip = true;
+  console.log("Set time slider style for "+id)
+  leafletvtId[id].setStyle(sty,lay+"_geom");
+}
+
+
+// 
+// mx set style
+//
+
+function mxSetStyle(id,vtStyle,lay,overwrite){
+  if(!overwrite){
+    if(vtStyle == leafletvtId[id].vtStyle){
+      if(vtStyle.dataColumn[0] == leafletvtId[id].vtStyle.dataColumn[0]){
+      debugger
+      }
+      console.log("Identical style already exists for id="+id)
+        return;
     }
   }
-  if(skip){
-    return;
-  }else{
+  // shortcut to applied style
+  leafletvtId[id].vtStyle = vtStyle;
+  // create function to apply
+  var sty = function(feature) {
+    var style = {};
+    var selected = style.selected = {};
+    var  type = feature.type,
+    defaultColor = 'rgba(0,0,0,0)',
+    dataCol = defaultColor,
+    val = feature.properties[vtStyle.dataColum[0]];
     if( typeof(val) != 'undefined'){ 
-      dataCol = 'rgba(255,0,0,0.8)';
+      dataCol = hex2rgb(vtStyle.colorsPalette[val][0],vtStyle.opacity[0]);
       if(typeof(dataCol) == 'undefined'){
         dataCol = defaultColor;
       }
     }
+    switch (type) {
+      case 1: //'Point'
+        style.color = dataCol;
+        style.radius = vtStyle.size[0];
+        selected.color = 'rgba(255,255,0,0.5)';
+        selected.radius = 6;
+        break;
+      case 2: //'LineString'
+        style.color = dataCol;
+        style.size = vtStyle.size[0];
+        selected.color = 'rgba(255,25,0,0.5)';
+        selected.size = vtStyle.size[0];
+        break;
+      case 3: //'Polygon'
+        style.color = dataCol;
+        style.outline = {
+          color: dataCol,
+          size: 1
+        };
+        selected.color = 'rgba(255,0,0,0)';
+        selected.outline = {
+          color: 'rgba(255,0,0,0.9)',
+          size: 1
+        };
+        break;
+    }
+    return style;
   }
 
-
-  switch (type) {
-    case 1: //'Point'
-      style.color = dataCol;
-      style.radius = leafletvtSty$size[0];
-      selected.color = 'rgba(255,255,0,0.5)';
-      selected.radius = 6;
-      break;
-    case 2: //'LineString'
-      style.color = dataCol;
-      style.size = leafletvtSty$size[0];
-      selected.color = 'rgba(255,25,0,0.5)';
-      selected.size = leafletvtSty.size[0];
-      break;
-    case 3: //'Polygon'
-      style.color = dataCol;
-      style.outline = {
-        color: 'rgba(0,0,0,1)',
-        size: 1
-      };
-      selected.color = 'rgba(255,0,0,0)';
-      selected.outline = {
-        color: 'rgba(255,0,0,0.9)',
-        size: 1
-      };
-      break;
-  }
-  return style;
-}
-
-//
-// Default style if no colors are needed. e.g. if we need to show a filtered views.
-//
-function defaultStyle(feature) {
-  var style = {};
-  var selected = style.selected = {};
-  var type = feature.type;
-  var dataCol = 'rgba(255,0,0,0.8)';
-  var size = 1;
-
-  switch (type) {
-    case 1: //'Point'
-      //style.color = 'rgba(49,79,79,1)';
-      style.color = dataCol;
-      style.radius = size;
-      selected.color = 'rgba(255,255,0,0.5)';
-      selected.radius = 6;
-      break;
-    case 2: //'LineString'
-      //style.color = 'rgba(161,217,155,0.8)';
-      style.color = dataCol;
-      style.size = size;
-      selected.color = 'rgba(255,25,0,0.5)';
-      selected.size = size;
-      break;
-    case 3: //'Polygon'
-      style.color = dataCol;
-      style.outline = {
-        color: 'rgba(0,0,0,1)',
-        size: 1
-      };
-      selected.color = 'rgba(255,0,0,0.3)';
-      selected.outline = {
-        color: 'rgba(255,0,0,1)',
-        size: size
-      };
-      break;
-  }
-  return style;
+  console.log("Apply style function for "+id)
+  leafletvtId[id].setStyle(sty,lay+"_geom");
 }
 
 
 //
 // Update style and apply time slider filtering if data has date columns.
 //
-function updateStyle(feature) {
-  var style = {};
-  var selected = style.selected = {};
-  var  type = feature.type,
-  defaultColor = 'rgba(0,0,0,0)',
-  dataCol = defaultColor,
-  val = feature.properties[leafletvtSty.dataColum[0]],
-  dateStyleMin = leafletvtSty.mxDateMin[0],
-  dateStyleMax = leafletvtSty.mxDateMax[0],
-  dateFeatStart = feature.properties.mx_date_start,
-  dateFeatEnd = feature.properties.mx_date_end,
-  d = []; 
-
-  // skip = set feature style to default(transparent)
-  var skip = false ;
-  // if 
-  var hasDate = false ;
-
-  if( typeof(dateFeatEnd) != "undefined" && typeof(dateFeatStart) != "undefined" ){
-    hasDate = true;
-    d.push(
-        dateStyleMin,
-        dateStyleMax,
-        dateFeatStart,
-        dateFeatEnd
-        );
-    for(var i = 0; i<4; i++){
-      if ( typeof(d[i]) == 'undefined' || d[i] === null){
-        hasDate = false ;
-      }
-    }
-    if(hasDate){
-      if(d[2] < d[0] || d[3] > d[1]){
-        skip = true ;
-      }
-    }
-  }
-
-
-
-  if(skip){
-    return;
-  }else{
-    if( typeof(val) != 'undefined'){ 
-      dataCol = hex2rgb(leafletvtSty.colorsPalette[val][0],leafletvtSty.opacity[0]);
-      if(typeof(dataCol) == 'undefined'){
-        dataCol = defaultColor;
-      }
-    }
-  }
-
-
-  switch (type) {
-    case 1: //'Point'
-      style.color = dataCol;
-      style.radius = leafletvtSty.size[0];
-      selected.color = 'rgba(255,255,0,0.5)';
-      selected.radius = 6;
-      break;
-    case 2: //'LineString'
-      style.color = dataCol;
-      style.size = leafletvtSty.size[0];
-      selected.color = 'rgba(255,25,0,0.5)';
-      selected.size = leafletvtSty.size[0];
-      break;
-    case 3: //'Polygon'
-      style.color = dataCol;
-      style.outline = {
-        color: dataCol,
-        size: 1
-      };
-      selected.color = 'rgba(255,0,0,0)';
-      selected.outline = {
-        color: 'rgba(255,0,0,0.9)',
-        size: 1
-      };
-      break;
-  }
-  return style;
-}
-
+//function updateStyle(feature) {
+//  var style = {};
+//  var selected = style.selected = {};
+//  var  type = feature.type,
+//  defaultColor = 'rgba(0,0,0,0)',
+//  dataCol = defaultColor,
+//  val = feature.properties[leafletvtSty.dataColum[0]],
+//  dateStyleMin = leafletvtSty.mxDateMin[0],
+//  dateStyleMax = leafletvtSty.mxDateMax[0],
+//  dateFeatStart = feature.properties.mx_date_start,
+//  dateFeatEnd = feature.properties.mx_date_end,
+//  d = []; 
+//  // skip = set feature style to default(transparent)
+//  var skip = false ;
+//  // if 
+//  var hasDate = false ;
+//
+//  if( typeof(dateFeatEnd) != "undefined" && typeof(dateFeatStart) != "undefined" ){
+//    hasDate = true;
+//    d.push(
+//        dateStyleMin,
+//        dateStyleMax,
+//        dateFeatStart,
+//        dateFeatEnd
+//        );
+//    for(var i = 0; i<4; i++){
+//      if ( typeof(d[i]) == 'undefined' || d[i] === null){
+//        hasDate = false ;
+//      }
+//    }
+//    if(hasDate){
+//      if(d[2] < d[0] || d[3] > d[1]){
+//        skip = true ;
+//      }
+//    }
+//  }
+//
+//
+//
+//  if(skip){
+//    return;
+//  }else{
+//    if( typeof(val) != 'undefined'){ 
+//      dataCol = hex2rgb(leafletvtSty.colorsPalette[val][0],leafletvtSty.opacity[0]);
+//      if(typeof(dataCol) == 'undefined'){
+//        dataCol = defaultColor;
+//      }
+//    }
+//  }
+//
+//
+//  switch (type) {
+//    case 1: //'Point'
+//      style.color = dataCol;
+//      style.radius = leafletvtSty.size[0];
+//      selected.color = 'rgba(255,255,0,0.5)';
+//      selected.radius = 6;
+//      break;
+//    case 2: //'LineString'
+//      style.color = dataCol;
+//      style.size = leafletvtSty.size[0];
+//      selected.color = 'rgba(255,25,0,0.5)';
+//      selected.size = leafletvtSty.size[0];
+//      break;
+//    case 3: //'Polygon'
+//      style.color = dataCol;
+//      style.outline = {
+//        color: dataCol,
+//        size: 1
+//      };
+//      selected.color = 'rgba(255,0,0,0)';
+//      selected.outline = {
+//        color: 'rgba(255,0,0,0.9)',
+//        size: 1
+//      };
+//      break;
+//  }
+//  return style;
+//}
+//
+//function defaultStyle(feature) {
+//  var style = {};
+//  var selected = style.selected = {};
+//  var type = feature.type;
+//  var dataCol = 'rgba(255,0,0,0.8)';
+//  var size = 1;
+//
+//  switch (type) {
+//    case 1: //'Point'
+//      //style.color = 'rgba(49,79,79,1)';
+//      style.color = dataCol;
+//      style.radius = size;
+//      selected.color = 'rgba(255,255,0,0.5)';
+//      selected.radius = 6;
+//      break;
+//    case 2: //'LineString'
+//      //style.color = 'rgba(161,217,155,0.8)';
+//      style.color = dataCol;
+//      style.size = size;
+//      selected.color = 'rgba(255,25,0,0.5)';
+//      selected.size = size;
+//      break;
+//    case 3: //'Polygon'
+//      style.color = dataCol;
+//      style.outline = {
+//        color: 'rgba(0,0,0,1)',
+//        size: 1
+//      };
+//      selected.color = 'rgba(255,0,0,0.3)';
+//      selected.outline = {
+//        color: 'rgba(255,0,0,1)',
+//        size: size
+//      };
+//      break;
+//  }
+//  return style;
+//}
+//
+//
+///
+//// Default style if no colors are needed. e.g. if we need to show a filtered views.
+////
+//
+//function applyStyleFilter(id,vtStyle,lay){
+//  console.log("Apply style")
+//  // shortcut to applied style
+//  leafletvtId[id].vtStyle = vtStyle;
+//  // create function to apply
+//  var sty = function(feature) {
+//    var style = {};
+//    var selected = style.selected = {};
+//    var  type = feature.type,
+//    defaultColor = 'rgba(0,0,0,0)',
+//    dataCol = defaultColor,
+//    val = feature.properties[vtStyle.dataColum[0]],
+//    dateStyleMin = vtStyle.mxDateMin[0],
+//    dateStyleMax = vtStyle.mxDateMax[0],
+//    dateFeatStart = feature.properties.mx_date_start,
+//    dateFeatEnd = feature.properties.mx_date_end,
+//    d = []; 
+//    // skip = set feature style to default(transparent)
+//    var skip = false ;
+//    // if 
+//    var hasDate = false ;
+//
+//    if( typeof(dateFeatEnd) != "undefined" && typeof(dateFeatStart) != "undefined" ){
+//      hasDate = true;
+//      d.push(
+//          dateStyleMin,
+//          dateStyleMax,
+//          dateFeatStart,
+//          dateFeatEnd
+//          );
+//      for(var i = 0; i<4; i++){
+//        if ( typeof(d[i]) == 'undefined' || d[i] === null){
+//          hasDate = false ;
+//        }
+//      }
+//      if(hasDate){
+//        if(d[2] < d[0] || d[3] > d[1]){
+//          skip = true ;
+//        }
+//      }
+//    }
+//
+//
+//
+//    if(skip){
+//      return;
+//    }else{
+//      if( typeof(val) != 'undefined'){ 
+//        dataCol = hex2rgb(vtStyle.colorsPalette[val][0],vtStyle.opacity[0]);
+//        if(typeof(dataCol) == 'undefined'){
+//          dataCol = defaultColor;
+//        }
+//      }
+//    }
+//
+//
+//    switch (type) {
+//      case 1: //'Point'
+//        style.color = dataCol;
+//        style.radius = vtStyle.size[0];
+//        selected.color = 'rgba(255,255,0,0.5)';
+//        selected.radius = 6;
+//        break;
+//      case 2: //'LineString'
+//        style.color = dataCol;
+//        style.size = vtStyle.size[0];
+//        selected.color = 'rgba(255,25,0,0.5)';
+//        selected.size = vtStyle.size[0];
+//        break;
+//      case 3: //'Polygon'
+//        style.color = dataCol;
+//        style.outline = {
+//          color: dataCol,
+//          size: 1
+//        };
+//        selected.color = 'rgba(255,0,0,0)';
+//        selected.outline = {
+//          color: 'rgba(255,0,0,0.9)',
+//          size: 1
+//        };
+//        break;
+//    }
+//    return style;
+//  }
+//
+//
+//  leafletvtId[id].setStyle(sty,lay+"_geom");
+//}
+//
+//
+////
+//// copy the original style of the layer, set min and max date and update style 
+////
+//function setRange(id,min,max){
+//  var leafletvtSty = leafletvtId[id].vtStyle;
+//  leafletvtSty.mxDateMin[0] = min;
+//  leafletvtSty.mxDateMax[0] = max;
+//  leafletvtId[id].setStyle(updateStyle);
+//}
+//
+//
+//
+//

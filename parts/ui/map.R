@@ -156,27 +156,25 @@ uiMapAnalysis <- tagList(
 
   tags$section(id="sectionMap",
 #    conditionalPanel(condition="output.uiDisplayMap==true",
-      div(class="map-wrapper col-xs-12",
-        #
-        # ERROR PANNEL
-        #
-        uiOutput('panelAlert'),
+      div(class="map-wrapper col-xs-12", 
         #
         # LEAFLET PART
         #
         leafletOutput("mapxMap",width="100%",height="100%"),
         div(id="info-box",
           div(id="info-box-container",
-            h4("Object information"),
-            div(id="info-box-content")
+              uiOutput("info-box-content")
             )
           ),
         #
         # MAP LEFT
         #
-        div(id="map-left",class="scrollable",
-          div(class="map-text scrollable",
-            h2(textOutput("titlePanelMode")),
+        div(id="map-left",
+            h2(style="text-align:center",textOutput("titlePanelMode")),
+            div(class="hide-scroll",
+              div(class="viewport",
+          div(class="map-text",
+            
             div(class="row",
               div(class="map-text-left",
                 conditionalPanel(condition="mxPanelMode.mode == 'mapViewsExplorer'",
@@ -247,6 +245,8 @@ uiMapAnalysis <- tagList(
                       )
                   )
                 )
+                )
+              )
               )
             ) 
           )

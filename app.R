@@ -8,7 +8,6 @@ source("config.R")
 
 # NOTE : mvt exemple in Documents/unep_grid/map-x/test/Leaflet.MapboxVectorTile-master/examples/
 
-
 #
 # UI
 #
@@ -26,6 +25,7 @@ ui <- tagList(
     #
     #STYLE SHEET
     #
+    tags$link(href="jquerry-gridly/stylesheets/jquery.gridly.css"),
     tags$link(href="font-awesome-4.4.0/css/font-awesome.min.css",rel="stylesheet",type="text/css"),
     tags$link(href="theme/grayscale/bootstrap.min.css",rel="stylesheet",type="text/css"),
     tags$link(rel="stylesheet",type="text/css",href='handsontable/handsontable.full.min.css'),
@@ -34,6 +34,11 @@ ui <- tagList(
     tags$link(href="mapx/mapx.css",rel="stylesheet",type="text/css")
     ),
   tags$body(id="page-top",`data-spy`="scroll",`data-target`=".navbar-fixed-top", `data-offset`="0",
+    #
+    # ERROR PANEL
+    #
+    uiOutput('panelAlert'),
+    uiOutput('panelAlertCountry'),
     # 
     # SECTIONS
     #
@@ -50,16 +55,20 @@ ui <- tagList(
   # Scripts 
   #
   tags$head(
-    # TODO: uglify and concat js files  OR load with singleton when needed.
+    # TODO: uglify and concat js files OR load with singleton when needed.
+
+    tags$script(src="jquery.gridly/javascripts/jquery.gridly.js"),
     tags$script(src="chartjs/Chart.min.js"),
     tags$script(src="mapx/mapxChartJsConf.js"),
     tags$script(src="theme/grayscale/grayscale.js"),
     tags$script(src="theme/grayscale/jquery.easing.min.js"),
+    # Use last version of bootstrap, dependencies of grayscale js!
     tags$script(src="bootstrap/js/bootstrap.min.js"),
     tags$script(src="pwd/pwd.js"),
     tags$script(src="pwd/md5.js"),
     tags$script(src="handsontable/handsontable.full.min.js"),
     tags$script(src="handsontable/shinyskyHandsonTable.js"),
+    # ioRangeSlider is already present in shiny dependencies!
     tags$script(src="ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js"),
     tags$script(src="mapx/mapx.js"),
     tags$script(src="language/ui.js")
@@ -127,6 +136,7 @@ server <- function(input, output, session) {
   source("parts/server/map.R",local=TRUE)
   source("parts/server/admin.R",local=TRUE)
   source("parts/server/analysis.R",local=TRUE)
+  source("parts/server/tenke.R",local=TRUE)
 
 
 

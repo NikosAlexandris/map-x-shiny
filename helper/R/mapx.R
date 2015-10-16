@@ -7,6 +7,33 @@
 #' @name mapxhelper 
 NULL
 
+
+
+
+
+
+#' Check for no null, NA's, nchar of 0, lenght of 0  or "[NO DATA]" string in a vector.
+#' @param val  Vector to test for no data.
+#' @return TRUE if no data (nchar == 0 OR is.na OR is.null) found or if input is not a vector
+#' @export
+noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
+  #if(!is.vector(val)) stop(paste("val should be a vector. Provided value=",typeof(val)))
+  if(!is.vector(val)){
+    return(TRUE)
+  }
+  if(useNoData){
+  noData <- all(noDataVal %in% val)
+  }else{
+  noData <- FALSE
+  }
+  any(c(isTRUE(is.null(val)),isTRUE(is.na(val)),isTRUE(nchar(val)==0),isTRUE(length(val)==0),noData))
+}
+
+
+
+
+
+
 #' Create a chartRadar in a canvas element.
 #'
 #' Search the dom for an id a get drawing context, create a new chart object and config it with data.
@@ -23,7 +50,7 @@ NULL
 mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,compMain,id,idLegend,labels,values,compValues){
   stopifnot(is.vector(values) || is.vector(label))
   ctx = sprintf("var ctx = document.getElementById('%s').getContext('2d');",id)
-  createGraph = "var myRadarChart = new Chart(ctx).Radar(data)"
+  createGraph = "var mxChart = new Chart(ctx).Radar(data)"
   labels = jsonlite::toJSON(labels)
   datasetMain = jsonlite::toJSON(auto_unbox=T,
     list(
@@ -56,11 +83,9 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
     /*create graph */
     %s
     /* Generate legend */
-    var chartLegend = myRadarChart.generateLegend();
-    $('#'+'%s').html(function(){
-      return chartLegend;
-      });
-    ",labels,datasetComp,datasetMain,ctx,createGraph,idLegend)
+    var chartLegend = mxChart.generateLegend();
+    $('#'+'%s').html(function(){return chartLegend;});",
+    labels,datasetComp,datasetMain,ctx,createGraph,idLegend)
     session$sendCustomMessage(
       type="jsCode",
       list(code=js)
@@ -128,13 +153,15 @@ mxDebugMsg <- function(m=""){
 #' @export
 mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionButton=NULL,background=TRUE,defaultButtonText="OK",style=NULL,class=NULL,hideCloseButton=FALSE,draggable=TRUE){ 
 
-  classModal = "panel-modal"
-  idBack = paste(id,"background",sep="_")
-  idContent = paste(id,"content",sep="_")
+  classModal <- "panel-modal"
+  rand <- randomName()
+
+  idBack <- paste(id,rand,"background",sep="_")
+  idContent <- paste(id,rand,"content",sep="_")
   jsHide <- paste0("$('#",idContent,"').toggle();$('#",idBack,"').toggle()")
   # If NULL Set default button action to "close" panel, with custom text
   if(is.null(listActionButton))listActionButton=list(
-    tags$button(onclick=jsHide,defaultButtonText,class="btn btn-default")
+    tags$button(onclick=jsHide,defaultButtonText,class="btn btn-info")
     )
   # if explicit FALSE is given, remove modal button. 
   if(isTRUE(is.logical(listActionButton) && !isTRUE(listActionButton)))listActionButton=NULL
@@ -192,14 +219,14 @@ mxUpdatePanel <- function(panelId=NULL,session=shiny:::getDefaultReactiveDomain(
 #' @param message html or text message for the alert
 #' @param listActionButtons List of action button for the panel
 #' @export
-mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,message=NULL,listActionButton=NULL){ 
+mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,message=NULL,listActionButton=NULL,...){ 
   title = match.arg(title)
   switch(title,
     'error'={title=h2(icon("exclamation-circle"),toupper(title))},
     'warning'={title=h2(icon("exclamation-triangle"),toupper(title))},
     'message'={title=h2(icon("info-circle"),toupper(title))} 
     )
-  mxPanel(class="panel-overall",title=title,subtitle=subtitle,html=message,listActionButton=listActionButton)
+  mxPanel(class="panel-overall panel-fixed",title=title,subtitle=subtitle,html=message,listActionButton=listActionButton,style="position:fixed;top:100px",...)
 }
 
 
@@ -212,21 +239,45 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
 #' @param debug Boolean. Return also message as alert.
 #' @param panelId Id of the output element
 #' @export
-mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),debug=TRUE,panelId="panelAlert"){
+mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),debug=TRUE,panelId="panelAlert",...){
   tryCatch({
     eval(expression)
   },error = function(e){
     session$output[[panelId]]<-renderUI({
-      mxPanelAlert("error",title,message=tagList(p(e$message),p(style="",paste("(",paste(e$call,collapse=" "),")"))))
+      mxPanelAlert(
+        "error",
+        title,
+        message=tagList(
+          p(e$message),
+          p(style="", paste("(",paste(e$call,collapse=" "),")"))
+          ),
+        ...
+        )
     })
   },warning = function(w){
     session$output[[panelId]]<-renderUI({
-      mxPanelAlert("warning",title,message=tagList(p(w$message),p(style="",paste("(",paste(w$call,collapse=" "),")"))))
+      mxPanelAlert(
+        "warning",
+        title,
+        message=tagList(
+          p(w$message),
+          p(style="",paste("(",paste(w$call,collapse=" "),")"))
+          ),
+        ...
+        )
     })
   },message = function(m){
     if(debug){
       session$output[[panelId]]<-renderUI({
-        mxPanelAlert("warning",title,message=tagList(p(m$message),p(style="",paste("(",paste(m$call,collapse=" "),")"))))
+        mxPanelAlert(
+          "warning",
+          title,
+          message=tagList(
+            p(m$message),
+            p(style="",paste("(",paste(m$call,collapse=" "),")"))
+            ),
+          ...
+          )
       })
     }
   })   
@@ -429,11 +480,22 @@ dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomCo
     drv <- dbDriver("PostgreSQL")
     con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
     if(table %in% dbListTables(con)){
-      value <- gsub("'","''",value)
+      valueOrig <- gsub("'","''",value)
+      valueEscape <- paste0("(E",paste0("\'",valueOrig,"\'",collapse=","),")")
+      if(length(value)>1){
+        operator <- "in"
+      }
       q = sprintf("
       SELECT ST_Extent(%1$s) 
-      FROM (SELECT %1$s FROM %2$s WHERE %3$s %5$s (E\'%4$s\') ) as tableFilter 
-      WHERE ST_isValid(%1$s)",geomColumn,table,column,value,operator)
+      FROM (SELECT %1$s FROM %2$s WHERE %3$s %5$s %4$s ) t
+      WHERE ST_isValid(%1$s)",
+      geomColumn,#1
+      table,#2
+      column,#3
+      valueEscape,#4
+      operator#5
+      )
+
       ext <- dbGetQuery(con,q)[[1]]
       if(noDataCheck(ext))return(NULL)
       res <- ext %>%
@@ -745,20 +807,9 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
     mxDateMax = as.numeric(as.POSIXlt(mxd))
     ))
 
-  # send js
-  jsTmpStyle <-sprintf("leafletvtSty=%s;",sList)
-  jsUpdate <- sprintf("leafletvtId.%s.setStyle(updateStyle,'%s');",grp,paste0(lay,"_geom"))
-  jsSaveStyle <-sprintf("leafletvtId.%s.vtStyle = leafletvtSty;",grp)
-
-
-  jsCode <- paste(
-    jsTmpStyle,
-    jsUpdate,
-    jsSaveStyle,
-    collapse=""
-    )
-
-  session$sendCustomMessage(type="jsCode",list(code=jsCode))
+  # Apply style
+  jsSty <- sprintf("mxSetStyle('%1$s',%2$s,'%3$s',false)",grp,sList,lay)
+  session$sendCustomMessage(type="jsCode",list(code=jsSty))
  
   # print timing
   stop <- Sys.time() - start
@@ -906,8 +957,9 @@ mxSliderOpacity <- function(id,opacity){
 #' @param id Id of the slider
 #' @param min Minimum js unix date in milisecond 
 #' @param max Maxmimum js unix date in milisecond 
+#' @param lay Layer name
 #' @export 
-mxTimeSlider <-function(id,min,max){
+mxTimeSlider <-function(id,min,max,lay){
   tagList(
     tags$div(class="slider-date-container",
       tags$input(type="text",id=sprintf("slider-for-%s",id)),
@@ -926,12 +978,14 @@ mxTimeSlider <-function(id,min,max){
               return m.format('YYYY-MM-DD');
             },
             onChange: function (data) {
-              setRange('%3$s',data.from/1000,data.to/1000)
+              //setRange('%3$s',data.from/1000,data.to/1000)
+              mxSetRange('%3$s',data.from/1000,data.to/1000,'%4$s')
             }
           });",
-          min,
-          max,
-          id
+          min,#1
+          max,#2
+          id,#3
+          lay#4
           )
         )
       )

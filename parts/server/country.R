@@ -91,17 +91,22 @@ observe({
 
 
     observe({
-        mxCatch("Plot WDI data",{
+        mxCatch("Plot WDI data",panelId="panelAlertCountry",draggable=TRUE,{
           idx = input$selectIndicator
           cnt = mxReact$selectCountry
 
           if(!noDataCheck(idx) && !noDataCheck(cnt)){
+            tryCatch({
             dat <- WDI(
               indicator = idx, 
               country = countrycode(cnt,'iso3c','iso2c'), 
               start = 1980, 
               end = 2015
               )
+            },error=function(cond){
+              browser()
+            }
+            )
 
             dat = na.omit(dat)
             if(exists('dat') && nrow(dat)>0){
