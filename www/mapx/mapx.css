@@ -52,7 +52,6 @@ a {
   min-height: 100vh;
   height: 100vh;
   color: #fff;
-  /*background-color: #1E88E5;*/
   background-color : rgb(47,47,47);
 }
 #sectionAdmin {
@@ -63,11 +62,7 @@ a {
 }
 #sectionCountry {
   padding-top:40px;
-  /*max-height: 100%;*/
-  /*max-height: 100vh;*/
   color: black;
-  /*overflow:scroll;*/
-  /*background-color: #673ab7;*/
   background-color:#FFF;
 }
 #sectionAbout {
@@ -76,7 +71,6 @@ a {
   color: #fff;
   background-color: #FCA900;
 }
-/*#sectionMap {padding-top:50px;height:800px;color: #fff; background-color: #00bcd4;}*/
 #sectionMap { 
   min-height:100%;
   height:100%;
@@ -117,20 +111,15 @@ a {
   background: rgba(255,255,255,0.8);
   color: black;
   border: 1px solid #fff;
-  /* border-radius : 0px;*/
 }
 
 .nav-pills>li>a:hover {
   border: 1px solid rgba(255,255,255,0.6);
   color: #fff;
   background:none;
-  /* border-radius : 0px;*/
 }
 /*
-
-
 Map
-
  */
 
 #mapxMap {
@@ -143,7 +132,6 @@ Map
 .map-wrapper {
   position: absolute;
   min-height: 100%;
-  /*overflow-y: scroll;*/
   overflow: hidden;
 
 }
@@ -157,7 +145,6 @@ Map
   left: 0;
   height:100%;
   width:450px;
- /* overflow-y: scroll;*/
   transition: background 0.5s ease;
   background: rgba(47, 47, 47, 0.6);
 }
@@ -186,7 +173,9 @@ Map
 
 
 
-/* leaflet modification */
+/*
+leaflet modification
+ */
 .legend svg text {
   fill: #FFF;
 }
@@ -217,7 +206,9 @@ Map
 }
 
 
-/* info box */
+/*
+info box
+ */
 
 
 #info-box{
@@ -243,11 +234,11 @@ Map
 
 #info-box-content {
   height:100%;
- /*  overflow-y:scroll;
-   overflow-x:hidden;*/
 }
 
-/* map view explorer*/
+/* 
+map view explorer
+ */
 .checkbox label {
   width:100%;
 }
@@ -278,7 +269,6 @@ Map
 
 
 input:checked + .map-views-item {
-  /*transition: background 1s ease;*/
   background: rgba(255,255,255,0.8);
   color: black;
 }
@@ -430,7 +420,9 @@ input:checked + .map-views-item {
 
 
 
-/* THEME MODIFICATION */
+/* 
+theme modification
+ */
 .btn-circle {
   width: 45px;
   height: 45px;
@@ -513,7 +505,9 @@ ul.banner-social-buttons {
 }
 
 
-/* btn upload*/
+/* 
+btn upload
+ */
 
 .btn-browse {
   position: relative;
@@ -554,7 +548,6 @@ label.btn input[type="file"] {
 }
 
 
-/* GRAYSCALE MODIFICATION */
 .intro {
   display: table;
   width: 100%;
@@ -626,7 +619,6 @@ label.btn input[type="file"] {
 .navbar-custom .nav li a:hover {
   outline: 2;
   font-weight: 800;
-  /*color: rgba(0,0,0,.8);*/
   background-color: transparent;
 }
 
@@ -652,7 +644,6 @@ label.btn input[type="file"] {
 
 
 
-/*@media(min-width:768px) {*/
 @media(min-width:992px) {
   .navbar-custom {
     padding: 20px 0;
@@ -666,7 +657,6 @@ label.btn input[type="file"] {
 
   .navbar-custom.top-nav-collapse {
     padding: 0;
-    /*border-bottom: 1px solid rgba(255,255,255,.3);*/
     background: rgba(0,0,0,0.88);
   }
 }
@@ -674,25 +664,6 @@ label.btn input[type="file"] {
 .list-group-item {
   background:rgba(255,255,255,0);
 }
-
-/*
-
-#controls {
-  background-color: white;
-  padding: 0 20px 20px 20px;
-  cursor: move;
-  opacity: 0.65;
-  zoom: 0.9;
-  transition: opacity 500ms 1s;
-}
-
-
-#controls:hover {
-  opacity: 0.95;
-  transition-delay: 0;
-}
-
- */
 
 /* Position and style citation */
 #cite {
@@ -790,18 +761,6 @@ font-weight:100;
 letter-spacing:0.1em;
 }
 
-/* If not using map tiles, show a white background */
-/*
-.leaflet-container {
-  background-color: white !important;
-}
-
-
-.leaflet-control {
-  border-radius : 0px;
-}
-
- */
 /* login */
 
 
@@ -1215,23 +1174,8 @@ select:focus, select:active{
 }
 
 
-/* GRIDLY*/
-
-.gridly {
-  position: relative;
-  width: 100%;
-  height:100%;
-}
-.brick.small {
-  width: 140px;
-  height: 140px;
-}
-.brick.large {
-  width: 50%;
-  border: 1px solid white;
-  border-radius: 4px;
-  padding: 10px;
-}
+/* No scrollbar*/
+/*http://stackoverflow.com/questions/3296644/hiding-the-scrollbar-on-an-html-page*/
 
 
 .viewport {
@@ -1261,25 +1205,8 @@ padding-right: 100px;
   border-top: 1px solid white;
   height: 100%;
   margin:10px;
-  /* padding: 0 5px; */
   position: relative;
 }
-/*
-.hide-scroll:after {
-  content: '';
-  height: 2em;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: -webkit-gradient(linear, 0 0, 0 100%, from(rgba(219,219,219,0)), to(rgba(211,211,211,1)));
-  background: -webkit-linear-gradient(rgba(219,219,219,0) 0%, rgba(211,211,211,1) 100%);
-  background: -moz-linear-gradient(rgba(219,219,219,0) 0%, rgba(211,211,211,1) 100%);
-  background: -o-linear-gradient(rgba(219,219,219,0) 0%, rgba(211,211,211,1) 100%);
-  background: linear-gradient(rgba(219,219,219,0) 0%, rgba(211,211,211,1) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00dbdbdb', endColorstr='#d3d3d3',GradientType=0 );
-}
- */
 .viewport p:last-child {
   margin-bottom: 2em;
 }

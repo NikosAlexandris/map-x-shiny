@@ -11,10 +11,9 @@ tags$section(id="sectionTop",class="intro container-fluid",
       ),
     hr(),
     tags$div(class="map-x-logos",
-      tags$img(src="img/logo_grid_white_en.svg",class="map-x-logo"),
-      tags$img(src="img/world-bank-optimized.svg",class="map-x-logo"),
-      tags$img(src="img/g7-vect-optimized.svg",class="map-x-logo")
-      #tags$img(src="img/g7plus.png",class="map-x-logo")
+      tags$img(src="img/logo_grid_white_en.svg",class="map-x-logo",height="50px"),
+      tags$img(src="img/world-bank-optimized.svg",class="map-x-logo",height="50px"),
+      tags$img(src="img/g7-vect-optimized.svg",class="map-x-logo",height="50px")
       ),
     hr()
     )
