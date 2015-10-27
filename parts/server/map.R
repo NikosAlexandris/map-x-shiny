@@ -58,7 +58,6 @@ observe({
 
     output$mapxMap <- renderLeaflet({
         if(noDataCheck(mxReact$selectCountry))return()
-        mxDebugMsg("DISPLAY MAIN MAP")
         group = "main"
         iso3 <- mxReact$selectCountry
         if(!noDataCheck(iso3)){

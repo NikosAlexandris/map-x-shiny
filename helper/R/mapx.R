@@ -932,7 +932,7 @@ mxCheckboxIcon <- function(id,idLabel,icon,display=TRUE){
 mxSliderOpacity <- function(id,opacity){
   tagList(
     tags$div(class="slider-date-container",
-      tags$input(type="text",id=sprintf("slider-opacity-for-%s",id)),
+      tags$div(type="text",id=sprintf("slider-opacity-for-%s",id)),
       tags$script(sprintf(
           "
           $slider = $('#slider-opacity-for-%1$s');
