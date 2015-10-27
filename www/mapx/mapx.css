@@ -167,7 +167,7 @@ Map
   float: left;
 }
 .map-text-nav {
-  min-width: 75px;
+  width: 52px;
   float:right;
 }
 
@@ -546,6 +546,7 @@ label.btn input[type="file"] {
   height: 50px;
   margin: 10px;
 }
+
 
 
 .intro {
