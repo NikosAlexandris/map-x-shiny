@@ -34,7 +34,8 @@ observe({
           idColumn="gid", # should be auto resolved by PGRrestAPI
           table=lay,
           dataColumn=vars,
-          group = grp
+          group = grp,
+          onLoadFeedback="once"
           )  
         mxDebugMsg(paste("Start downloading",lay,"from host",mxConfig$hostVt,"on port:",mxConfig$portVt))
       }
@@ -48,11 +49,11 @@ observe({
 # MESSAGE FROM CLIENT : TILES ARE LOADED, DO SOMETHING
 #
 
-observeEvent(input$leafletvtStatus,{
+observeEvent(input$leafletvtIsLoaded,{
   mxCatch(title="Set style object after tiles loaded",{
 
-    lay <- input$leafletvtStatus$lay
-    grp <- input$leafletvtStatus$grp
+    lay <- input$leafletvtIsLoaded$lay
+    grp <- input$leafletvtIsLoaded$grp
     vData <- mxReact$views
 
     if(isTRUE(!noDataCheck(grp) && !noDataCheck(lay))){
@@ -270,8 +271,8 @@ layerStyle <- reactive({
 
     grpLocal <- mxStyle$group
     layLocal <- mxStyle$layer
-    grpClient <- input$leafletvtStatus$grp
-    layClient <- input$leafletvtStatus$lay
+    grpClient <- input$leafletvtIsLoaded$grp
+    layClient <- input$leafletvtIsLoaded$lay
     if(
       !noDataCheck(grpLocal) && 
       !noDataCheck(grpClient) && 

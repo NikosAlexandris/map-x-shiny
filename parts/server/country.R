@@ -16,23 +16,52 @@ observe({
     observe({
         cSelect <- mxReact$selectCountry
         if(!noDataCheck(cSelect)){
-          if(cSelect %in% names(mxData$countryInfo)){
-            cInfo  <- mxData$countryInfo[[cSelect]]
+          if(cSelect %in% names(mxData$countryStory)){
+            cInfo  <- mxData$countryStory[[cSelect]]
             # extract country metrics
             countryMetrics <-  tags$ul(class="list-group",
-              tags$li(class="list-group-item",tags$b("GDP :"),tags$span(class="badge",cInfo[['gdp']])),
-              tags$li(class="list-group-item",tags$b("HDI :"),tags$span(class="badge",cInfo[['hdi']])),
-              tags$li(class="list-group-item",tags$b("Status EITI:"),tags$span(class="badge",cInfo[['eiti_status']])),
-              tags$li(class="list-group-item",tags$b("Gvt. revenues:"),tags$span(class="badge",cInfo[['gvt_revenues']])),
-              tags$li(class="list-group-item",tags$b("Comp. payments"),tags$span(class="badge",cInfo[['comp_payment']]))
+              tags$li(
+                class="list-group-item",
+                tags$b("GDP :"),
+                tags$span(class="badge",
+                  cInfo[['gdp']])
+                ),
+              tags$li(
+                class="list-group-item",
+                tags$b("HDI :"),
+                tags$span(class="badge",
+                  cInfo[['hdi']]
+                  )
+                ),
+              tags$li(
+                class="list-group-item",
+                tags$b("Status EITI:"),
+                tags$span(class="badge",
+                  cInfo[['eiti_status']]
+                  )
+                ),
+              tags$li(
+                class="list-group-item",
+                tags$b("Gvt. revenues:"),
+                tags$span(class="badge",
+                  cInfo[['gvt_revenues']]
+                  )
+                ),
+              tags$li(
+                class="list-group-item",
+                tags$b("Comp. payments"),
+                tags$span(class="badge",
+                  cInfo[['comp_payment']]
+                  )
+                )
               )
             countryNarrative <-
               div(class="narratives-background",
                 HTML(cInfo[['story']])
                 )
           }else{
-            countryMetrics <- tags$b("[ No metrics available yet ]")
-            countryNarrative <- tags$b("[ No narratives yet ]")
+            countryMetrics <- tags$ul(class="list-group",tags$li(" No metrics available yet ... "))
+            countryNarrative <- tags$ul(class="list-group",tags$li(" No narratives available yet ... "))
           }
 
 

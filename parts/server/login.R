@@ -49,6 +49,7 @@ observeEvent(input$readCookie,{
   mxReact$userName <- NULL
   mxReact$userLastLogin <- NULL
   mxReact$userEmail <- NULL
+  pwd <- mxData$pwd
 
   if(isTRUE("l" %in% nVal && "k" %in% nVal)){
     if(val$s==mxReact$mxSecret){

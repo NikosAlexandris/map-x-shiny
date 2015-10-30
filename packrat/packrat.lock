@@ -220,12 +220,12 @@ GithubSha1: d25611ac13a8bdf967a173e6afa73f1fdee9b6fe
 Package: leafletvt
 Source: github
 Version: 0.0.1
-Hash: a1b27674ffcf7d82e345eb09495321c1
+Hash: 7b36418fc5ceb106129d60bdc1c812a3
 Requires: RPostgreSQL, curl, jsonlite, leaflet
 GithubRepo: leafletvt
 GithubUsername: fxi
 GithubRef: master
-GithubSha1: 9857f5ba57fd6b04094149effe06fd89c6c7053a
+GithubSha1: 0c9120bc983f50155be3c6bda24c237823f29331
 
 Package: longurl
 Source: CRAN
@@ -314,13 +314,13 @@ Requires: Rcpp, plyr, stringr
 Package: rgdal
 Source: CRAN
 Version: 0.9-3
-Hash: bfac0d013a8fa9447110dd07436988fa
+Hash: 528fe30bb976212955dd497d6aafa561
 Requires: sp
 
 Package: rgeos
 Source: CRAN
 Version: 0.3-11
-Hash: 97c01caafad398b235beff6322d992c7
+Hash: 528c94f4aa36e08cf73f11e3b38ae436
 Requires: sp
 
 Package: rio
@@ -362,8 +362,8 @@ GithubSha1: ba38a4d2dd56f3cf7161a5802d4659df13d74473
 
 Package: sp
 Source: CRAN
-Version: 1.2-0
-Hash: 2285048074fc240e22c7dcf470fb759b
+Version: 1.2-1
+Hash: ecc445b1785d42c5cb3f4d687a121bea
 
 Package: stringi
 Source: CRAN

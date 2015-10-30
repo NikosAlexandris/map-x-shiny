@@ -1,16 +1,11 @@
 #' Map-x helper functions
 #'
-#' All the R fonctions defined in map-x-shiny are container in this package
+#' Map-x core functions
 #'
 #'
 #' @docType package
 #' @name mapxhelper 
 NULL
-
-
-
-
-
 
 #' Check for no null, NA's, nchar of 0, lenght of 0  or "[NO DATA]" string in a vector.
 #' @param val  Vector to test for no data.
@@ -28,11 +23,6 @@ noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
   }
   any(c(isTRUE(is.null(val)),isTRUE(is.na(val)),isTRUE(nchar(val)==0),isTRUE(length(val)==0),noData))
 }
-
-
-
-
-
 
 #' Create a chartRadar in a canvas element.
 #'
@@ -109,7 +99,6 @@ mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("
   return(list(title=title,mode=mode))
 }
 
-
 #' Print debug message
 #'
 #' Print a defaut debug message with date as prefix. NOTE: this function should take a global parameter "debug" and a log file.
@@ -121,20 +110,6 @@ mxDebugMsg <- function(m=""){
   options(digits.secs=6)
   cat(paste0("[",Sys.time(),"]",m,'\n'))
 }
-
-
-#
-#
-#
-#mxTogglePanel <- function(session=shiny::getDefaultReactiveDomain(),id){
-#  jsToggle <- paste0("$('#",paste(id,"content",sep="_"),"').toggle();")
-#  session$sendCustomMessage(
-#    type="jsCode",
-#    list(code=jsToggle)
-#    )
-#}
-#
-
 
 #' Create a modal panel
 #'
@@ -172,11 +147,14 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
     closeButton=a(href="#", onclick=jsHide,style="float:right;color:black",icon('times'))
   }
 
-  tagList( 
-    if(background){
-      div(id=idBack,class=paste("panel-modal-background"))
-    },
+  if(background){
+    backg <- div(id=idBack,class=paste("panel-modal-background"))
+  }else{
+    backg <- character(0)
+  }
 
+  tagList( 
+    backg,
     absolutePanel(draggable=draggable,
       id=idContent,
       class=paste(class,classModal,"panel-modal-content"),
@@ -208,8 +186,6 @@ mxUpdatePanel <- function(panelId=NULL,session=shiny:::getDefaultReactiveDomain(
   session$output[[panelId]] <- renderUI(mxPanel(id=panelId,...))
 }
 
-
-
 #' Alert panel
 #'
 #' Create an alert panel. This panel could be send to an output object from a reactive context. 
@@ -228,7 +204,6 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
     )
   mxPanel(class="panel-overall panel-fixed",title=title,subtitle=subtitle,html=message,listActionButton=listActionButton,style="position:fixed;top:100px",...)
 }
-
 
 #' Catch errors
 #'
@@ -283,8 +258,6 @@ mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),
   })   
 }
 
-
-
 #' Set opacity.
 #'
 #' Set given layer opacity.
@@ -304,7 +277,6 @@ setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="le
       )
   }
 }
-
 
 #' Set zIndex.
 #' 
@@ -356,8 +328,6 @@ usrInput <- function(inputId, label) {
     )
 }
 
-
-
 #' Toggle html element by class.
 #'
 #' Toggle html hide parameter by class.
@@ -373,8 +343,6 @@ toggleClass <- function(session=shiny:::getDefaultReactiveDomain(),class=''){
       )
   }
 }
-
-
 
 #' Random name generator
 #' 
@@ -392,7 +360,6 @@ randomName <- function(prefix=NULL,suffix=NULL,n=20,sep="_"){
   str = c(prefix,rStr,suffix)
   paste(str,collapse=sep)
 }
-
 
 #' Substitute ponctiation and non-ascii character
 #'
@@ -428,8 +395,6 @@ subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T,u
   res
 }
 
-
-
 #' Get layer center
 #' 
 #' Compute the union of all geometry in a given layer and return the coordinate of the centroid.
@@ -462,8 +427,6 @@ dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
   })
 }
 
-
-
 #' Get query extent, based on a pattern matching (character)
 #' 
 #' Search for a value in a  column (character data type) and return the extent if something is found.
@@ -489,11 +452,11 @@ dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomCo
       SELECT ST_Extent(%1$s) 
       FROM (SELECT %1$s FROM %2$s WHERE %3$s %5$s %4$s ) t
       WHERE ST_isValid(%1$s)",
-      geomColumn,#1
-      table,#2
-      column,#3
-      valueEscape,#4
-      operator#5
+      geomColumn,
+      table,
+      column,
+      valueEscape,
+      operator
       )
 
       ext <- dbGetQuery(con,q)[[1]]
@@ -982,10 +945,10 @@ mxTimeSlider <-function(id,min,max,lay){
               mxSetRange('%3$s',data.from/1000,data.to/1000,'%4$s')
             }
           });",
-          min,#1
-          max,#2
-          id,#3
-          lay#4
+          min,
+          max,
+          id,
+          lay
           )
         )
       )
@@ -1113,12 +1076,7 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
 #' Overlaps analysis 
 #' 
 #' Use a mask to get overlaps over a layer
-#'
-
-
-
-
-
+#' @export
 mxAnalysisOverlaps <- function(dbInfo,inputBaseLayer,inputMaskLayer,outName,dataOwner="mapxw",sridOut=4326,varToKeep="gid"){
 
   msg=character(0)
@@ -1150,67 +1108,72 @@ mxAnalysisOverlaps <- function(dbInfo,inputBaseLayer,inputMaskLayer,outName,data
   }
   }
 
-##' Hide layer
-##' @param session Shiny session
-##' @param layer Leaflet.MapboxVectorTile layer group object name
-##' @export
-#setLayerVisibility <- function(session=shiny:::getDefaultReactiveDomain(),views="leafletvtId",status="leafletvtVisible",group=NULL,visible=TRUE){
-#   if(!noDataCheck(group)){
-#     val = ifelse(visible,1,0)
-#     cond = ifelse(visible,'true','false')
-#    setOpac = sprintf("if(typeof %s !== 'undefined'){%s.%s.setOpacity(%s)};",views,views,group,val)
-#    setVisible = sprintf("if(typeof %s !== 'undefined'){%s.%s = %s };",status,status,group,cond)
-#    feedback = " Shiny.onInputChange('leafletvtVisible',leafletvtVisible);"
-#
-#    jsCode = paste(setOpac,setVisible,feedback)
-#
-#    session$sendCustomMessage(
-#      type="jsCode",
-#      list(code=jsCode)
-#      )
-#  }
-#
-#}
-#
-#
-#
-#
-###' 
-##' @export
-#removeModal <- function(){
-#  removeClass(class="panel-modal")
-#}
-#' Test for 
-#
-#dbTestConnection <- function(dbInfo=NULL){
-#  if(is.null(dbInfo)) stop('Missing arguments')
-#  testOut = FALSE
-#  d <- dbInfo
-#
-#  tryCatch({
-#    drv <- dbDriver("PostgreSQL")
-#    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-#    con <- dbConnect(drv)
-#
-#  })
-#
-#}
-#
 
-#
-    # Language selector by id
-    #
+#' Create a formated list of available palettes
+#' @export
+mxCreatePaletteList <- function(palettes){
+  pals <- palettes
+  # Get palettes names
+  colsPals <- row.names(pals)
+  # create UI visible names 
+  palsName <- paste(
+    colsPals,
+    " (n=",pals$maxcolors,
+    "; cat=",pals$category,
+    "; ", ifelse(pals$colorblind,"cb=ok","cb=warning"),
+    ")",sep="")
+  # put then together
+  names(colsPals) <- palsName
+  # return
+  return(colsPals)
 
-##' Set language 
-##' @param 
-#l <- function(id=NULL){
-#  mxConfig$languageTooltip[[id]][[mxConfig$languageChoice]]
-#}
+}
 
-#
-#  tooltip configuration
-#
 
-# update text by id
+#' Create a formated list of country center from eiti countries table
+#' @export
+mxEitiGetCountryCenter <- function(eitiCountryTable){
+  # Country default coordinates and zoom
+  iso3codes <- eitiCountryTable$code_iso_3
+  # Extract country center
+  countryCenter <- lapply(
+    iso3codes,function(x){
+      res=eitiCountryTable[iso3codes==x,c('lat','lng','zoom')]
+      res
+    }
+    )
+  # set names
+  names(countryCenter) <- iso3codes
+  # return
+  return(countryCenter)
+}
+
+
+#' Create a formated list for selectize input from eiti countries table
+#' @export
+mxEitiGetCountrySelectizeList <- function(eitiCountryTable){
+  eitiCountryTable$map_x_pending <- as.logical(eitiCountryTable$map_x_pending)
+  eitiCountryTable$name_ui <- paste(eitiCountryTable$name_un,'(',eitiCountryTable$name_official,')')
+  countryList <- list(
+    "completed" = NULL,
+    "pending"= as.list(eitiCountryTable[eitiCountryTable$map_x_pending,"code_iso_3"])  ,
+    "potential"= as.list(eitiCountryTable[!eitiCountryTable$map_x_pending,"code_iso_3"])
+    )
+  names(countryList$pending) = eitiCountryTable[eitiCountryTable$map_x_pending,"name_ui"]
+  names(countryList$potential) = eitiCountryTable[!eitiCountryTable$map_x_pending,"name_ui"]
+
+  return(countryList)
+}
+
+#' Create WDI indicators list
+#' @export
+mxGetWdiIndicators <- function(){
+  require(WDI)
+  wdiIndicators <- WDIsearch()[,'indicator']
+  names(wdiIndicators) <- WDIsearch()[,'name']
+  wdiIndicators
+}
+
+
 
 
