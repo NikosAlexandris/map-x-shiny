@@ -9,14 +9,15 @@ observe({
 
 observe({
   if(mxReact$allowAdmin){
-    mxReact$pwd <- pwd
+    #mxReact$pwd <- mxData$pwd
     #
     # USERS
     # 
     mxCatch(title='Populate admin tables',{
       # send data to table
       output$tableUsers <- renderHotable({
-        pwdIn <- mxReact$pwd
+        #pwdIn <- mxReact$pwd
+        pwdIn <- mxData$pwd
         nPwd <- names(pwdIn) 
         newId <- max(as.numeric(pwdIn$id))+1
         newEntry <- rep(NA,8)
@@ -29,7 +30,8 @@ observe({
       # handle btn
       observeEvent(input$btnAdmRmUser,{
         tbl <- na.omit(hot.to.df(input$userTable))
-        mxReact$pwd <- tbl[!tbl$select,names(pwd)]
+        #mxReact$pwd <- tbl[!tbl$select,names(pwd)]
+        mxData$pwd <- tbl[!tbl$select,names(pwd)]
       })
 })
 

@@ -133,7 +133,8 @@ observeEvent(input$btnAnalysisOverlaps,{
           idColumn="gid", # should be auto resolved by PGRrestAPI
           table=outName,
           dataColumn=idAVar,
-          group = idLayer
+          group = idLayer,
+          onLoadFeedback="always"
           ) 
       }else{
         mxUpdateText(id="txtAnalysisOverlaps",text="Requested layer not available")
@@ -148,9 +149,8 @@ observe({
   #
   # Style layer when loaded
   #
-  grpClient <- input$leafletvtStatus$grp
-  layClient <- input$leafletvtStatus$lay
-  time <- input$leafletvtTime
+  grpClient <- input$leafletvtIsLoaded$grp
+  layClient <- input$leafletvtIsLoaded$lay
   
   if(!noDataCheck(grpClient) && grpClient=="analysis"){
     mxUpdateText(id="txtAnalysisOverlaps",text="Layer rendered, add default style.")

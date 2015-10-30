@@ -1,14 +1,21 @@
+# those library can be 
+
+# essentials
 library(shiny)
 library(leaflet)
 library(leafletvt)
-library(RPostgreSQL)
-library(rio)
-library(rgdal)
 library(jsonlite)
 library(WDI)
 library(countrycode)
-library(ggplot2)
+
+# upload and manage spatial data 
+library(RPostgreSQL)
+library(rio)
+library(gdalUtils) 
+library(rgdal)
+library(shinyAce)
+
+
+# Graphs 
 library(dygraphs)
 library(xts)
-library(shinyAce)
-library(gdalUtils)

@@ -14,7 +14,7 @@
           )){
         sel = query$country
       }else{
-        sel = "AFG"
+        sel = mxConfig$defaultCountry
       }
       updateSelectInput(session,"selectCountry",selected=sel,choices=mxConfig$countryListChoices)
       updateSelectInput(session,"selectCountryNav",selected=sel,choices=mxConfig$countryListChoices)

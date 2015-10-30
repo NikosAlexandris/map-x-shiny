@@ -58,7 +58,6 @@ tags$section(id="sectionCountry",class="container-fluid",
               p(class="cite","Data source:", tags$a(href="http://databank.worldbank.org/","WDI"))
               )
             )
-
           )
         )
       )
