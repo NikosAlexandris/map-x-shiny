@@ -293,7 +293,7 @@ observe({
                 legendId <- sprintf("info legend %s_legends",vToShow)
                 proxyMap <- leafletProxy("mapxMap")
                 sty <- vData[[vToShow]]$style
-                hasLegend <- !sty$hideLegends
+                hasLegend <- isTRUE(!sty$hideLegends)
 
                 # compute legend if necessary
                 if(hasLegend){
