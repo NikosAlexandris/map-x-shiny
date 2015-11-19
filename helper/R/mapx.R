@@ -1054,6 +1054,17 @@ mxCreateSecret =  function(n=20){
 #' @export
 mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpires=NULL,deleteAll=FALSE){
 
+  log = toJSON(cookie)
+
+  log = paste0("console.log(",log,")")
+
+ session$sendCustomMessage(
+      type="jsCode",
+      list(code=log)
+      )
+
+
+
   cmd=character(0)
   if(deleteAll){
     cmd = "clearListCookies()"

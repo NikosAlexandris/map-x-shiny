@@ -83,7 +83,7 @@ observeEvent(input$readCookie,{
 
 
 observeEvent(input$btnLogout,{
-  mxSetCookie(cookie=res,deleteAll=TRUE)
+  mxSetCookie(cookie=list(s="",l="",k=""),deleteAll=TRUE)
       })
 
 #
