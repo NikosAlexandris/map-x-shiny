@@ -4,12 +4,6 @@
   mxStyle <- reactiveValues()
 
 
-
-
-observe({
-  mxDebugMsg(paste("Tiles loaded for",input$leafletvtIsLoaded$grp))
-})
-
   # show debugger
 observeEvent(input$btnDebug,{
   browser()

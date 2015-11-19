@@ -54,7 +54,7 @@ observe({
     }
 
     output$newLayerNameValidation = renderUI(HTML(outTxt))
-    mxActionButtonState(id='fileNewLayer',disable=!valid) 
+    mxActionButtonState(id="fileNewLayer",disable=!valid) 
 
     mxReact$newLayerName <- ifelse(valid,newLayerName,"")
   }
@@ -122,8 +122,8 @@ observeEvent(input$fileNewLayer,{
 
           cols <- dbListFields(con,nam)
 
-          if(! 'mx_date_end' %in% cols && ! 'mx_date_start' %in% cols ){
-            if('octroyé' %in% cols && 'expire' %in% cols){
+          if(! "mx_date_end" %in% cols && ! "mx_date_start" %in% cols ){
+            if("octroyé" %in% cols && "expire" %in% cols){
               # TODO: drop old column, validate date formating.
               # add columns
               qAdd = sprintf("ALTER TABLE %s ADD mx_date_start bigint, ADD mx_date_end bigint;",nam)
@@ -137,12 +137,12 @@ observeEvent(input$fileNewLayer,{
             }
 
           }
-        },finally={if(exists('con')){dbDisconnect(con)}}
+        },finally={if(exists("con")){dbDisconnect(con)}}
           )
 
 
         if(mxConfig$os=="Darwin"){
-          if(!exists('remoteInfo'))stop("No remoteInfo found in /settings/settings.R")
+          if(!exists("remoteInfo"))stop("No remoteInfo found in /settings/settings.R")
           r <- remoteInfo 
           mxDebugMsg("Command remote server to restart app")
           remoteCmd(host=r$host,port=r$port,user=r$user,cmd=mxConfig$restartPgRestApi)
@@ -162,9 +162,7 @@ observeEvent(input$fileNewLayer,{
         if(mxReact$allowViewsCreator){
           if(mxConfig$os=="Darwin"){
             print("update pgrestapi from darwin")
-            # note: use ssh-copy-id and accept known host. Use the browser the first time...
-            # TODO: create a method to avoid this !
-            if(!exists('remoteInfo'))stop("No remoteInfo found in /settings/settings.R")
+            if(!exists("remoteInfo"))stop("No remoteInfo found in /settings/settings.R")
             r <- remoteInfo 
             mxDebugMsg("Command remote server to restart app")
             remoteCmd("map-x-full",cmd=mxConfig$restartPgRestApi)
@@ -208,93 +206,100 @@ observeEvent(input$fileNewLayer,{
       # Populate column selection
       # 
 
-      observe({
+      observeEvent(input$selLayer,{
         if(mxReact$allowViewsCreator){
-          mxCatch("Update input: layer columns",{
-            # take reactivity on layer selection
-            lay = input$selLayer
-            # Default variables
-            vars = mxConfig$noData
-            if(!noDataCheck(lay)){
-              mxDebugMsg(paste(" creator: download available variable for ",lay))
+          # take reactivity on layer selection
+          lay = input$selLayer
+          # Default variables
+          vars = mxConfig$noData
+          # check if it has date cols
+          hasDate = FALSE
+          # if layer is not empty:
+          # - get available variables
+          # - check for map x dates variables
+          # - save in mxStyle
+          # - update select input with available variable
+
+          if(!noDataCheck(lay)){
+            mxCatch("Update input: layer columns",{
               variables <- vtGetColumns(table=lay,port=mxConfig$portVt,exclude=c("geom","gid"))$column_name
+              mxDebugMsg(sprintf("Creator. variable available for %1$s : %2$s",lay,paste(variables,collapse=",")))
               if(!noDataCheck(variables)){
                 vars = variables
               } 
-            }
-            if("mx_date_start" %in% vars && "mx_date_end" %in% vars){
-              tryCatch({
-                d <- dbInfo
-                drv <- dbDriver("PostgreSQL")
-                con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-                q <- sprintf("SELECT min(mx_date_start),max(mx_date_end) FROM %s;",lay)
-                mxDate <- dbGetQuery(con,q)
-                mx <- as.Date(as.POSIXct(max(mxDate), origin="1970-01-01"))
-                mn <- as.Date(as.POSIXct(min(mxDate), origin="1970-01-01"))
-                updateDateRangeInput(session,"mapViewDateRange",start=mn,end=mx)
-              },finally={if(exists('con'))dbDisconnect(con)}
-                )
-              mxStyle$hasDateColumns = TRUE
-            }else{ 
-              updateDateRangeInput(session,"mapViewDateRange",start=mxConfig$minDate,end=mxConfig$maxDate)
-              mxStyle$hasDateColumns = FALSE
-            }
+              # Date handling 
+              if("mx_date_start" %in% vars && "mx_date_end" %in% vars){
+                tryCatch({
+                  d <- dbInfo
+                  drv <- dbDriver("PostgreSQL")
+                  con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+                  q <- sprintf("SELECT min(mx_date_start),max(mx_date_end) FROM %s;",lay)
+                  mxDate <- dbGetQuery(con,q)
+                  mx <- as.Date(as.POSIXct(max(mxDate), origin="1970-01-01"))
+                  mn <- as.Date(as.POSIXct(min(mxDate), origin="1970-01-01"))
+                  updateDateRangeInput(session,"mapViewDateRange",start=mn,end=mx)
+                },finally={if(exists("con"))dbDisconnect(con)}
+                  )
+                hasDate <- TRUE
+              }else{ 
+                updateDateRangeInput(session,"mapViewDateRange",start=mxConfig$minDate,end=mxConfig$maxDate)
+                hasDate <- FALSE
+              }
 
-            updateSelectInput(session, "selColumnVar", choices=vars)
-            updateSelectInput(session, "selColumnVarToKeep", choices=c(vars,mxConfig$noVariable),selected=vars[1])
           })
+            # Set mxStyle
+            mxStyle$layer <- lay
+            mxStyle$group <- mxConfig$defaultGroup
+            mxStyle$hasDateColumns <- hasDate
+          }
+
+          # NOTE: bug with code and parties. After code, no variable can be set on extractive mineral layer 
+          varsLess <- vars[!vars %in% c("code","parties")]
+          updateSelectInput(session, "selColumnVar", choices=varsLess)
+          updateSelectInput(session, "selColumnVarToKeep", choices=c(vars,mxConfig$noVariable),selected=vars[1])
         }
       })
 
 
       #
-      # get selected variable summary and populate palette input
+      # get selected variable summary, set mxStyle accordingly and update palette choice.
       #
 
-      observe({
-
+      observeEvent(input$selColumnVar,{
         if(mxReact$allowViewsCreator){
           lay = input$selLayer
           var = input$selColumnVar
           isolate({
             if(!noDataCheck(lay) && !noDataCheck(var)){
+              # extract layer summary from postgres
               layerSummary <- dbGetColumnInfo(dbInfo,lay,var)
               if(noDataCheck(layerSummary)){
                 return(NULL)
               }
-              type <- layerSummary$scaleType
-    
-              paletteChoice <- mxConfig$colorPalettes
-              mxStyle$scaleType <- layerSummary$scaleType
-              mxStyle$values <- layerSummary$dValues
-              mxStyle$nDistinct <- layerSummary$nDistinct
-              mxStyle$nMissing <- layerSummary$nNa
-              mxStyle$paletteChoice <- paletteChoice
-
+              # set palette choice
+              paletteChoice         <- mxConfig$colorPalettes
               updateSelectInput(session,"selPalette",choices=paletteChoice)
-            }
+              # From now, we have enough info to begin mxStyle setting.
+              mxStyle$variable      <- var
+              mxStyle$scaleType     <- layerSummary$scaleType
+              mxStyle$values        <- layerSummary$dValues
+              mxStyle$nDistinct     <- layerSummary$nDistinct
+              mxStyle$nMissing      <- layerSummary$nNa
+              mxStyle$paletteChoice <- paletteChoice
+                          }
           })
         }
       })
 
 
       #
-      # Set layer options based on inputs
+      # Set other layer options based on inputs
       #
 
 
       observe({
         mxStyle$title <- if(!noDataCheck(input$mapViewTitle)) input$mapViewTitle 
       })
-
-      observe({
-        mxStyle$layer <-if(!noDataCheck(input$selLayer))input$selLayer
-      })
-
-      observe({
-        mxStyle$variable <- if(!noDataCheck(input$selColumnVar))input$selColumnVar
-      })
-
 
       observe({
         mxStyle$palette  <- if(!noDataCheck(input$selPalette))input$selPalette
@@ -330,12 +335,7 @@ observeEvent(input$fileNewLayer,{
       })
 
 
-      #
-      # Set current group.
-      #
-      observe({
-        mxStyle$group = mxConfig$defaultGroup
-      })
+ 
 
       #
       # SAVE STYLE
@@ -356,7 +356,7 @@ observeEvent(input$fileNewLayer,{
             # save has date state
             sty$hasDateColumns <- hasDate
 
-            sty$hasCompanyColumn <- isTRUE('parties' %in% vToKeep)
+            sty$hasCompanyColumn <- isTRUE("parties" %in% vToKeep)
 
             tableName <- mxConfig$viewsListTableName
 

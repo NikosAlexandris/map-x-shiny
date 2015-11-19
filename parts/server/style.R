@@ -2,40 +2,52 @@
 # Add vector tiles with selected variables
 #
 
+
 observe({ 
-  mxCatch(title="Add vector tiles",{
+ mxCatch(title="Add vector tiles",{
     grp <- mxStyle$group
     lay <- mxStyle$layer
 
+    feedBack <- "once"
     mapViewMode <- isolate(mxReact$mapPanelMode) 
-    if(is.null(mapViewMode))mapViewMode="mapViewsExplorer" # TODO: set default for mxReact$mapPanelMode 
+
+    if(is.null(mapViewMode)){
+      mapViewMode="mapViewsExplorer"
+    }
+
     if(!noDataCheck(lay)){
       mxDebugMsg(paste("Ready to add vector tiles",lay," in group",grp))
       isolate({
         var <- mxStyle$variable 
         if(mapViewMode == "mapViewsCreator"){
+         # In creator mode, get all the variables 
           vars <- vtGetColumns(table=lay,port=mxConfig$portVt)$column_name
+          feedBack <- "always"
+          #feedBack <- "once" # input$leafletvtLoaded will not be triggered more than once 
         }else{
+          # Other mode, only get variables kept
           vToKeep <- mxStyle$variableToKeep
           vToKeep <- vToKeep[!vToKeep %in% mxConfig$noVariable]
           vars <- unique(c(var,vToKeep))
+          feedBack <- "once"
         }
       })
       if(!noDataCheck(vars)){
         proxyMap <- leafletProxy("mapxMap")
+
         proxyMap %>%
         clearGroup(mxConfig$defaultGroup)
 
         proxyMap %>%
         addVectorTiles(
-          url=mxConfig$hostVt,
-          port=mxConfig$portVtPublic,
-          geomColumn="geom", # should be auto resolved by PGRestAPI
-          idColumn="gid", # should be auto resolved by PGRrestAPI
-          table=lay,
-          dataColumn=vars,
-          group = grp,
-          onLoadFeedback="once"
+          url            = mxConfig$hostVt,
+          port           = mxConfig$portVtPublic,
+          geomColumn     = "geom",
+          idColumn       = "gid",
+          table          = lay,
+          dataColumn     = vars,
+          group          = grp,
+          onLoadFeedback = feedBack
           )  
         mxDebugMsg(paste("Start downloading",lay,"from host",mxConfig$hostVt,"on port:",mxConfig$portVt))
       }
@@ -46,44 +58,48 @@ observe({
 
 
 #
-# MESSAGE FROM CLIENT : TILES ARE LOADED, DO SOMETHING
+# Message from client : tiles are loaded. 
 #
 
 observeEvent(input$leafletvtIsLoaded,{
   mxCatch(title="Set style object after tiles loaded",{
-
+    # Check wich layer and wich group/id is loaded
     lay <- input$leafletvtIsLoaded$lay
     grp <- input$leafletvtIsLoaded$grp
+    # get the all stored views info
     vData <- mxReact$views
-
+    # don't do anything if id and layer are empty
     if(isTRUE(!noDataCheck(grp) && !noDataCheck(lay))){
+      # Message about the feedback
+      mxDebugMsg(sprintf("Tiles feedback grp='%1$s',lay='%2$s'",grp,lay))
+      # get the style for the given group
       sty <- vData[[grp]]$style
+      # handle other varables. As it's new feature, old views don't have this.
+      vToKeep <- sty$variableToKeep
+      if(is.null(vToKeep))vToKeep <- mxConfig$noVariable
+      if(mxReact$mapPanelMode=="mapViewsStory"){
+        baseMap <- sty$basemap
+      }else{
+        baseMap <- mxConfig$noLayer
+      }
+
+      # after validation
       if(!noDataCheck(sty)){
-
-        mxStyle$scaleType <- sty$scaleType
-        mxStyle$title <- sty$title
-        mxStyle$variable <- sty$variable
-        # handle other varables. As it's new feature, old views don't have this.
-        vToKeep <- sty$variableToKeep 
-        if(is.null(vToKeep))vToKeep=mxConfig$noVariable
-        #as we check for null in layerStyle(),add "noData/noVariable" values..
-        mxStyle$variableToKeep = vToKeep
-
-        mxStyle$values <- sty$values
-        mxStyle$palette <- sty$palette
-        mxStyle$paletteChoice <-  mxConfig$colorPalettes
-        mxStyle$opacity <- sty$opacity
-        if(mxReact$mapPanelMode=="mapViewsStory"){
-          mxStyle$basemap <- sty$basemap
-        }else{
-          mxStyle$basemap <- mxConfig$noLayer
-        }
-        mxStyle$size <- sty$size
-        mxStyle$hideLabels <- sty$hideLabels
-        mxStyle$hideLegends <- sty$hideLegends
+        mxStyle$scaleType      <- sty$scaleType
+        mxStyle$title          <- sty$title
+        mxStyle$variable       <- sty$variable
+        mxStyle$variableToKeep <- vToKeep
+        mxStyle$values         <- sty$values
+        mxStyle$palette        <- sty$palette
+        mxStyle$paletteChoice  <- mxConfig$colorPalettes
+        mxStyle$opacity        <- sty$opacity
+        mxStyle$basemap        <- baseMap
+        mxStyle$size           <- sty$size
+        mxStyle$hideLabels     <- sty$hideLabels
+        mxStyle$hideLegends    <- sty$hideLegends
       }
     }
-})
+          })
 })
 
 #
@@ -117,7 +133,6 @@ observe({
     layId = "basemap"
     selBaseMap <- mxStyle$basemap 
     selBaseMapGlobal <- input$selectConfigBaseMap
-
     if(isTRUE(!selBaseMapGlobal == mxConfig$noLayer)) selBaseMap = selBaseMapGlobal
     if(noDataCheck(selBaseMap)) return()
     proxyMap <- leafletProxy("mapxMap")
@@ -265,14 +280,15 @@ observe({
 #  Set layer colors
 #
 layerStyle <- reactive({
-  mxCatch(title="Set layerStyle()",{
     # check if vector tiles are loaded 
     # and if they correspond to mxStyle
-
     grpLocal <- mxStyle$group
     layLocal <- mxStyle$layer
     grpClient <- input$leafletvtIsLoaded$grp
     layClient <- input$leafletvtIsLoaded$lay
+
+
+  mxCatch(title="Set layerStyle()",{
     if(
       !noDataCheck(grpLocal) && 
       !noDataCheck(grpClient) && 
@@ -305,6 +321,7 @@ layerStyle <- reactive({
 
 observe({
   sty = layerStyle() # NOTE: Why this reactiv function invalidate the observer ?
+
   if(!noDataCheck(sty)){
     mxDebugMsg(paste("layerStyle() received for",sty$group))
     mxSetStyle(style=sty)

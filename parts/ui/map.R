@@ -102,6 +102,8 @@ uiMapConfig <- tagList(
         mxAccordionGroup(id="mapConfig",show=1,
           itemList=list(
             "baseMap"=list("title"="Additional maps",content=tagList(
+                h4('Add tools'),
+                actionButton("btnAddMeasure","Add measure tools"),
                 h4('Set base map'),
                 selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
                 tags$ul(class="list-inline banner-social-buttons",
@@ -110,6 +112,7 @@ uiMapConfig <- tagList(
                 h4('Add wms'),
                 actionLink("linkSetWmsExampleColumbia","http://sedac.ciesin.columbia.edu/geoserver/wms"),
                 actionLink("linkSetWmsExampleGrid","http://preview.grid.unep.ch:8080/geoserver/wms"),
+                actionLink("linkSetWmsExampleEsri","http://preview.grid.unep.ch:8080/geoserver/wms"),
                 textInput("txtWmsServer","Add wms server"),
                 textOutput("msgWmsServer"),
                 selectInput("selectWmsLayer","Select available layer",choices=""),

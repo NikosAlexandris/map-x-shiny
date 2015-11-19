@@ -165,8 +165,32 @@ function toggleOptions(id,idOption,idOptionPanel) {
     $('#'+idOption).css("display","none");
     $('#'+idOptionPanel).css("display","none");
   }
+}
+
+function vtPreview(id){
+    Shiny.onInputChange("viewsFromPreview",id);
+}
+
+
+function vtPreviewHandler(id,view,timeOut){
+  timeOut = parseInt(timeOut);
+  var timer;
+
+  $('#'+id).on({
+    'mouseover': function () {
+      timer = setTimeout(function () {
+        Shiny.onInputChange("viewsFromPreview",view);
+      }, timeOut);
+    },
+    'mouseout' : function () {
+      Shiny.onInputChange("viewsFromPreview","");
+      clearTimeout(timer);
+    }
+  });
 
 }
+
+
 
 //
 // change opacity for given layer id
@@ -364,6 +388,7 @@ function mxSetRange(id,min,max,lay){
 //
 
 function mxSetStyle(id,vtStyle,lay,overwrite){
+// check if the provided style is the same as this already applied  
   if(!overwrite){
     if(vtStyle == leafletvtId[id].vtStyle){
       if(vtStyle.dataColumn[0] == leafletvtId[id].vtStyle.dataColumn[0]){
@@ -372,7 +397,7 @@ function mxSetStyle(id,vtStyle,lay,overwrite){
         return;
     }
   }
-  // shortcut to applied style
+  // save style to leafletvtId object
   leafletvtId[id].vtStyle = vtStyle;
   // create function to apply
   var sty = function(feature) {
@@ -383,8 +408,14 @@ function mxSetStyle(id,vtStyle,lay,overwrite){
     dataCol = defaultColor,
     val = feature.properties[vtStyle.dataColum[0]];
     if( typeof(val) != 'undefined'){ 
-      dataCol = hex2rgb(vtStyle.colorsPalette[val][0],vtStyle.opacity[0]);
+      // extract color by val
+      col = vtStyle.colorsPalette[val];
+      if(typeof(col) == "undefined"){
+        console.log("Error. No color found for "+val);
+      }
+      dataCol = hex2rgb(col[0],vtStyle.opacity[0]);
       if(typeof(dataCol) == 'undefined'){
+        console.log("Error. dataCol undefined for "+val+"set default color");
         dataCol = defaultColor;
       }
     }
