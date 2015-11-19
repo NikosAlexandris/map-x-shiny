@@ -232,12 +232,12 @@ observe({
               # render only available ones for the user.
               vDisplayed <- vDisplayed[vDisplayed %in% vAll]
               # views to hide
-              mxReact$vToHide <- vDisplayed[! vDisplayed %in% vToDisplay]
+              mxReact$vToHide <- unique(vDisplayed[! vDisplayed %in% vToDisplay])
               # views to reactivate
               vToShow <- vToDisplay[vToDisplay %in% vProcessed]
-              mxReact$vToShow <- vToShow[!vToShow %in% vDisplayed]
+              mxReact$vToShow <- unique(vToShow[!vToShow %in% vDisplayed])
               # views to download and display
-              mxReact$vToCalc <-  vToDisplay[!vToDisplay %in% vProcessed][1]
+              mxReact$vToCalc <-  unique(vToDisplay[!vToDisplay %in% vProcessed][1])
                 })
           })
 
@@ -300,6 +300,7 @@ observe({
                   tit <- sty$title
                   pal <- sty$palette
                   val <- sty$values
+
                   sty <- addPaletteFun(sty,pal)
                   palFun <- sty$paletteFun
                   proxyMap %>%
