@@ -26,11 +26,9 @@ ui <- tagList(
     ),
   # body
   tags$body(id="page-top",`data-spy`="scroll",`data-target`=".navbar-fixed-top", `data-offset`="0",
-    
     # error panels
     uiOutput('panelAlert'),
     uiOutput('panelAlertCountry'),
-    
     # sections
     loadUi("parts/ui/nav.R"),
     loadUi("parts/ui/intro.R"), 
@@ -40,8 +38,7 @@ ui <- tagList(
     loadUi("parts/ui/about.R"),
     loadUi("parts/ui/admin.R"),
     loadUi("parts/ui/footer.R")
-    ),
-  
+    ), 
   # Scripts loaded after ui parts
   tags$footer(
     # TODO: uglify and concat js files OR load with singleton when needed.
@@ -63,9 +60,6 @@ ui <- tagList(
     tags$script(src="language/ui.js")
     )
   )
-
-
-
 
 
 #

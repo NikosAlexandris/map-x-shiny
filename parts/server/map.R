@@ -126,38 +126,67 @@ observe({
     source("parts/server/style.R",local=TRUE)
     source('parts/server/panelMode.R',local=TRUE)
     source("parts/server/views.R",local=TRUE)
-
-    # Clear layer after exlorer mode enter
-    observeEvent(input$btnViewsExplorer,{
-      mxCatch(title="Clean creator layers",{
-        mxStyle <- reactiveValues()
-        dGroup <- mxConfig$defaultGroup
-        legendId <- paste0(dGroup,"_legends")
-        proxyMap <- leafletProxy("mapxMap")
-        proxyMap %>%
-        clearGroup(dGroup) %>% 
-        removeControl(legendId) 
-          })
-        })
-
-    # Clear layer after creator enter
-    observeEvent(input$btnViewsCreator,{
-      source("parts/server/creator.R",local=TRUE)
-      mxCatch(title="Clean explorer layers",{
-        mxStyle <- reactiveValues()
-        mxReact$viewsToDisplay = ""
-          })
-        })
-
-    # Main map
-    output$mapxMap <- renderLeaflet({
-      if(noDataCheck(mxReact$selectCountry))return()
-      group = "main"
-      iso3 <- mxReact$selectCountry
-      if(!noDataCheck(iso3)){
-        center <- mxConfig$countryCenter[[iso3]] 
-        mxConfig$baseLayerByCountry(iso3,group,center)
-      }
-    })
+    source("parts/server/creator.R",local=TRUE)
   }
 })
+
+
+
+# Clear layer after exlorer mode enter
+observeEvent(input$btnViewsExplorer,{
+  if(mxReact$allowMap){
+    mxCatch(title="Clean creator layers",{
+      mxStyle <- reactiveValues()
+      dGroup <- mxConfig$defaultGroup
+      legendId <- paste0(dGroup,"_legends")
+      proxyMap <- leafletProxy("mapxMap")
+      proxyMap %>%
+      clearGroup(dGroup)
+      mxRemoveEl(class=legendId)
+        })
+  }
+})
+
+# Clear layer after creator enter
+observeEvent(input$btnViewsCreator,{
+  if(mxReact$allowMap){
+    mxCatch(title="Clean explorer layers",{
+      mxStyle <- reactiveValues()
+      mxReact$viewsToDisplay = ""
+        })
+  }
+})
+
+# Main map
+output$mapxMap <- renderLeaflet({
+  if(mxReact$allowMap){
+    if(noDataCheck(mxReact$selectCountry))return()
+    group = "main"
+    iso3 <- mxReact$selectCountry
+    if(!noDataCheck(iso3)){
+      center <- mxConfig$countryCenter[[iso3]] 
+      mxConfig$baseLayerByCountry(iso3,group,center)
+    }
+  }
+})
+
+#
+#
+### additionan thingy
+#toggleToolMeasure <- TRUE
+#observeEvent(input$btnAddMeasure,{
+#  mapxMap <- leafletProxy("mapxMap")
+#  if(toggleToolMeasure){
+#    mapxMap %>% addMeasure(
+#      primaryLengthUnit = "kilometers",
+#      primaryAreaUnit = "hectares",
+#      activeColor = "#3D535D",
+#      completedColor = "#7D4479"
+#
+#      )
+#  }else{
+#    mapxMap %>% removeMeasure()
+#  }
+#  toggleToolMeasure <- !toggleToolMeasure
+#})
+#

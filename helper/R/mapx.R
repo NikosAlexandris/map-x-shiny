@@ -176,7 +176,7 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
 
 #' Update existing panel
 #'
-#' Use output object to output the panel in a known id. E.g. for updating uiOutput("panelTest"), use mxUpdatePanel with panelId "panelTest"
+#' Use output object to update the panel with a known id. E.g. for updating uiOutput("panelTest"), use mxUpdatePanel with panelId "panelTest"
 #'
 #' @param panelId Id of the existing panel
 #' @param session Shiny reactive object of the session
@@ -721,7 +721,7 @@ addPaletteFun <- function(sty,pal){
 #' @param session Shiny session object
 #' @param style map-x style
 #' @export 
-mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
+mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="mapxMap"){
   tit <- style$title
   col <- style$colors
   pal <- style$paletteFun
@@ -737,29 +737,29 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
   mnd <- style$mxDateMin
   
   # handle min and max date if exists.
-  if(is.null(mnd))mnd=as.POSIXlt(mxConfig$minDate)
-  if(is.null(mxd))mxd=as.POSIXlt(mxConfig$maxDate)
+  if(is.null(mnd))mnd<-as.POSIXlt(mxConfig$minDate)
+  if(is.null(mxd))mxd<-as.POSIXlt(mxConfig$maxDate)
 
   # debug messages
   mxDebugMsg("Begin style")
-  start = Sys.time()
+  start <- Sys.time()
   
   # set id of legends based on style group id.
-  legendId = sprintf("%s_legends",grp)
-  proxyMap <- leafletProxy("mapxMap")
+  legendId <- sprintf("%s_legends",grp)
+  legendClass <- sprintf("info legend %s",legendId)
+  proxyMap <- leafletProxy(mapId)
   
   # If no title, take the layer name.
-  if(noDataCheck(tit))tit=lay
+  if(noDataCheck(tit))tit<-lay
 
+  # delete old legend
+   mxRemoveEl(class=legendId) 
+  
   if(!leg){
-    mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
     proxyMap %>%
-    addLegend(position="topright",pal=pal,values=val,title=tit,layerId = legendId)
-  }else{
-    mxDebugMsg(sprintf("Remove legend layer id %s", legendId))
-    proxyMap %>%
-    removeControl(legendId)
+    addLegend(position="topright",pal=pal,values=val,class=legendClass,title=tit)
   }
+
   names(col) <- val
   sList = jsonlite::toJSON(list(
     colorsPalette = as.list(col),
@@ -773,10 +773,10 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style){
   # Apply style
   jsSty <- sprintf("mxSetStyle('%1$s',%2$s,'%3$s',false)",grp,sList,lay)
   session$sendCustomMessage(type="jsCode",list(code=jsSty))
- 
   # print timing
   stop <- Sys.time() - start
   mxDebugMsg(paste("End style. Timing=",stop))
+  cat(paste(paste0(rep("-",80),collapse=""),"\n"))
 }
 
 
@@ -886,6 +886,20 @@ mxCheckboxIcon <- function(id,idLabel,icon,display=TRUE){
     )
 }
 
+#' remove element by class or id
+#' @param session default shiny session
+#' @param class class name to remove
+#' @param id id to remove
+#' @export
+mxRemoveEl <- function(session=getDefaultReactiveDomain(),class=NULL,id=NULL){
+ if(is.null(class) && is.null(id))return()
+sel <-ifelse(is.null(class),paste0('#',id),paste0('.',class))
+cod <- sprintf("$('%1$s').remove()",sel)
+session$sendCustomMessage(
+      type="jsCode",
+      list(code=cod)
+      )
+}
 
 #' Set ioRange slider for opacity
 #' 
@@ -966,16 +980,17 @@ mxTimeSlider <-function(id,min,max,lay){
 #' @param text New text
 #' @export
 mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text){
-  if(is.null(text) || text==""){
+  if(is.null(text) || nchar(text)==0){
     return(NULL)
   }else{
-    val<-paste0("$('#",id,"').html(\"",gsub("\"","\'",text),"\");")
+    val <- sprintf("el = document.getElementById('%1$s');el.innerHTML='%2$s;'",id,text)
     session$sendCustomMessage(
       type="jsCode",
       list(code=val)
       )
   }
 }
+
 
 
 #' Get query result from postgresql

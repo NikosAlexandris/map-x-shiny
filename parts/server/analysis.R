@@ -85,6 +85,7 @@ observe({
 # OVERLAPS ANALYSIS  REQUEST
 #
 observeEvent(input$btnAnalysisOverlaps,{
+  mxCatch(title="Overlaps analysis",{
   if(mxReact$allowAnalysis){
     output$txtAnalysisOverlaps <- renderText("Launch analysis..")
     idLayer = "analysis"
@@ -142,6 +143,7 @@ observeEvent(input$btnAnalysisOverlaps,{
 
     }
   }
+      })
 })
 
 

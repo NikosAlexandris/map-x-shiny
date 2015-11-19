@@ -6,6 +6,12 @@ mxConfig <- list()
 mxData <- list()
 
 
+# set debugger
+options(
+ shiny.reactlog=FALSE,
+ shiny.trace=FALSE
+ )
+
 #
 # Config
 #

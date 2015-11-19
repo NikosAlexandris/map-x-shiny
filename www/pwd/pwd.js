@@ -111,7 +111,7 @@ function clearListCookies()
     document.cookie = name + "=" + value + expires + "; path=/";                    
   }
   //readCookie();
-  window.location = ""; 
+  document.location.reload(true)
 }
 
 

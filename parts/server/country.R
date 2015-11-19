@@ -120,39 +120,36 @@ observe({
 
 
     observe({
-        mxCatch("Plot WDI data",panelId="panelAlertCountry",draggable=TRUE,{
-          idx = input$selectIndicator
-          cnt = mxReact$selectCountry
+      idx <- input$selectIndicator
+      cnt <- mxReact$selectCountry
 
-          if(!noDataCheck(idx) && !noDataCheck(cnt)){
-            tryCatch({
-            dat <- WDI(
-              indicator = idx, 
-              country = countrycode(cnt,'iso3c','iso2c'), 
-              start = 1980, 
-              end = 2015
-              )
-            },error=function(cond){
-              browser()
-            }
+      if(!noDataCheck(idx) && !noDataCheck(cnt)){
+
+        mxCatch("Plot WDI data",panelId="panelAlertCountry",draggable=TRUE,{
+          dat <- WDI(
+            indicator = idx, 
+            country = countrycode(cnt,'iso3c','iso2c'), 
+            start = 1980, 
+            end = 2015
             )
 
-            dat = na.omit(dat)
-            if(exists('dat') && nrow(dat)>0){
-              dat$year <- as.Date(paste0(dat$year,'-12-31'))
-              datSeries <- xts(dat[,idx],order.by=dat$year)
-              idxName = names(mxConfig$wdiIndicators[idx])
-              graphIndicator = dygraph(
-                data=datSeries,
-                main=idxName,
-                ylab=idxName) %>% 
-              dyRangeSelector()
-              output$dyGraphWdi <- renderDygraph({
-                graphIndicator
-              })
-            }
-          }
+          dat = na.omit(dat)
+          if(exists('dat') && nrow(dat)>0){
+            dat$year <- as.Date(paste0(dat$year,'-12-31'))
+            datSeries <- xts(dat[,idx],order.by=dat$year)
+            idxName = names(mxConfig$wdiIndicators[idx])
+            graphIndicator = dygraph(
+              data=datSeries,
+              main=idxName,
+              ylab=idxName) %>% 
+            dyRangeSelector()
+            output$dyGraphWdi <- renderDygraph({
+              graphIndicator
             })
+          }
+
+            })
+      }
     })
   }
 })

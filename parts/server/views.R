@@ -1,6 +1,6 @@
 
 #
-# POPULATE VIEWS LIST TODO: add filter on desc,title,class,....
+# POPULATE VIEWS LIST 
 #
 
 observe({
@@ -16,7 +16,6 @@ observe({
           views[[i]] <- as.list(viewsDf[viewsDf$id==i,])
           views[[i]]$style <- fromJSON(views[[i]]$style)
         }
-        #mxDebugMsg(sprintf("%s map views retrieved for country %s",length(views),cntry))
       }
       mxReact$views <- views
     }
@@ -56,11 +55,12 @@ observe({
       checkList <- tagList(checkList,tags$span(class="map-views-class",i))
       for(j in names(items)){
         #
-        # set item id
+        # set item id text
         #
         it <- items[j]
         itId <- as.character(it)
         itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
+        itIdLabel <- sprintf('label_for_%s',itId)
         itIdCheckOptionLabel <- sprintf('checkbox_opt_label_%s',itId)
         itIdCheckOptionPanel <- sprintf('checkbox_opt_panel_%s',itId)
         itIdFilterCompany <- sprintf('select_filter_for_%s',itId)
@@ -82,27 +82,24 @@ observe({
         }else{
           timeSlider <- tags$div()
         }
-        # create slider input
+        # 
+        # create custom selectize input for company
+        #
         if(hasCompany){
+          # which field contains company names ?
           fieldSelected <- "parties"
-          q <- sprintf("SELECT array_to_json(array_agg(row_to_json(t))) FROM ( SELECT DISTINCT(%1$s) FROM  %2$s ORDER BY %1$s) t",
+          # get distinct company names for this layer
+          q <- sprintf(
+            "SELECT array_to_json(array_agg(row_to_json(t))) 
+            FROM ( SELECT DISTINCT(%1$s) 
+              FROM  %2$s 
+              ORDER BY %1$s) t",
             fieldSelected,
             v[[itId]]$layer
             )
-          companies<- as.character(mxDbGetQuery(dbInfo,q))
-
-          #noFilter <- mxConfig$noFilter
-          #companies <- companies[order(companies)][!is.na(companies)]
-          #companies <- c(noFilter,companies)
-          #browser()
+          companies <- as.character(mxDbGetQuery(dbInfo,q))
+          # create selectize js code
           filterSelect <- tagList(
-           # selectInput(
-           #   itIdFilterCompany,
-           #   label="Filter by company",
-           #   choices=companies,
-           #   selected=NULL,
-           #   selectize=FALSE
-           #   ),
             tags$div(id=itIdFilterCompany,placeholder=sprintf("Search for '%s' ...",fieldSelected)),
             tags$script(
               sprintf(" $('#%1$s').selectize({
@@ -110,8 +107,8 @@ observe({
                 onChange: function(value){
                   mxSetFilter('%2$s','%3$s','%4$s',value)
                 },
-                 valueField: '%4$s',
-                 labelField: '%4$s',
+                valueField: '%4$s',
+                labelField: '%4$s',
                 searchField: '%4$s',
                 options:%5$s,
                 plugins: ['remove_button']
@@ -127,40 +124,48 @@ observe({
       }else{
         filterSelect <- tags$div()
       }
-
-        val <- div(class="checkbox",
-          tags$label(
-            tags$input(type="checkbox",class="vis-hidden",name=id,value=itId,
-              onChange=sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)),
-            div(class="map-views-item",
-              tags$span(class='map-views-selector',names(it)),
-                mxCheckboxIcon(itIdCheckOption,itIdCheckOptionLabel,"cog",display=FALSE)
-              ) 
-            ),
-          conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
-            tags$div(class="map-views-item-options",id=itIdCheckOptionPanel,
-              mxSliderOpacity(itId,v[[itId]]$style$opacity),
-              timeSlider,
-              filterSelect
+      # toggle option panel for this view
+      toggleOptions <- sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)
+      # set on hover previre for this view
+      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,500))
+      # create html
+      val <- div(class="checkbox",
+        tags$label(id=itIdLabel,
+          #onmouseover=sprintf("vtPreview('%s')",itId),
+          #onmouseout=sprintf("vtPreview('%s')",""),
+          tags$input(type="checkbox",class="vis-hidden",name=id,value=itId,
+            onChange=toggleOptions),
+          div(class="map-views-item",
+            tags$span(class="map-views-selector",names(it)),
+            mxCheckboxIcon(itIdCheckOption,itIdCheckOptionLabel,"cog",display=FALSE)
+            ) 
+          ),
+        conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
+          tags$div(class="map-views-item-options",id=itIdCheckOptionPanel,
+            mxSliderOpacity(itId,v[[itId]]$style$opacity),
+            timeSlider,
+            filterSelect
             )
-          )
+          ),
+        previewTimeOut
         )
-        checkList <- tagList(checkList,val)
-      }
+      checkList <- tagList(checkList,val)
     }
-    checkListOut <- tagList(
-      div(id=id,class="form-group shiny-input-checkboxgroup shiny-input-container",
-        div(class="shiny-options-group",
-          checkList
-          )
+  }
+  checkListOut <- tagList(
+    div(id=id,class="form-group shiny-input-checkboxgroup shiny-input-container",
+      div(class="shiny-options-group",
+        checkList
         )
       )
-    output$checkInputViewsContainer <- renderUI(checkListOut)
-  }
+    )
+  output$checkInputViewsContainer <- renderUI(checkListOut)
+}
   mxDebugMsg(paste("Time for generating views list=",Sys.time()-start))
 })
-
-
+#
+# handle company filter
+#
           observe({
             f<-input$filterLayer
             if(!noDataCheck(f) && ! isTRUE(f == mxConfig$noFilter)){
@@ -185,134 +190,128 @@ observe({
 
 
 
-#
-# VIEWS MANAGER
-#
+          #
+          # VIEWS MANAGER
+          #
 
-observe({
-  mxCatch(title="Views manager",{
-    vUrl <- mxReact$viewsFromUrl
-    vMenu <- input$viewsFromMenu
-    vAvailable <- names(mxReact$views) 
-    vToDisplay <- NULL
-    if(!noDataCheck(vAvailable)){  
-      if(noDataCheck(vMenu) && !noDataCheck(vUrl)){
-        vToDisplay <- vUrl[vUrl %in% vAvailable]
-      }else if(!noDataCheck(vMenu)){
-        vToDisplay <-  vMenu[vMenu %in% vAvailable]
-      }else{
-        vToDisplay <- mxConfig$noData
-      }
-      mxReact$viewsToDisplay <- vToDisplay
-      mxReact$viewsFromUrl <- NULL
-    }
-      })
-})
-
-
-
-#
-# Queuing system
-#
-
-# add vector tiles
-observeEvent(mxReact$viewsToDisplay,{
-  mxCatch(title="Display selected views",{
-    # begin 
-    # reactive values
-    vData = mxReact$views    
-    vToDisplay = mxReact$viewsToDisplay
-    vDisplayed = input$mapxMap_groups
-    vProcessed = input$leafletvtViews
-
-    cat(paste(paste0(rep("-",80),collapse=""),"\n"))
-    mxDebugMsg("Begin layer Manager")
-    mxDebugMsg(paste("views to display:",paste(vToDisplay,collapse=";")))
-    start = Sys.time()
-
-    # evaluate
-    vAll = names(vData) 
-    vDisplayed = vDisplayed[vDisplayed %in% vAll]
-    vToHide = vDisplayed[! vDisplayed %in% vToDisplay]
-
-    vToShow = vToDisplay[vToDisplay %in% vProcessed]
-    vToShow = vToShow[!vToShow %in% vDisplayed]
-
-    vToCalc =  vToDisplay[!vToDisplay %in% vProcessed][1]
+          observe({
+            mxCatch(title="Views manager",{
+              vUrl <- mxReact$viewsFromUrl
+              vMenu <- c(input$viewsFromMenu,input$viewsFromPreview)
+              vAvailable <- names(mxReact$views) 
+              vToDisplay <- NULL
+              if(!noDataCheck(vAvailable)){  
+                if(noDataCheck(vMenu) && !noDataCheck(vUrl)){
+                  vToDisplay <- vUrl[vUrl %in% vAvailable]
+                }else if(!noDataCheck(vMenu)){
+                  vToDisplay <-  vMenu[vMenu %in% vAvailable]
+                }else{
+                  vToDisplay <- mxConfig$noData
+                }
+                mxReact$viewsToDisplay <- vToDisplay
+                mxReact$viewsFromUrl <- NULL
+              }
+                })
+          })
 
 
-    #
-    # VIEWS FOR WICH DOWNLOAD VECTOR TILES
-    #
 
 
-    if(!noDataCheck(vToCalc)){
-      sty <- vData[[vToCalc]]$style
-      if(!noDataCheck(sty)){
-        mxDebugMsg(paste("First style computation for",vToCalc))
-        mxStyle$layer <- sty$layer
-        mxStyle$group <- vToCalc
-        mxStyle$variable <- sty$variable
-        vToKeep <- sty$variableToKeep 
-        # NOTE: as we check for null in layerStyle(),add "noData/noVariable" values..
-        if(is.null(vToKeep))vToKeep=mxConfig$noVariable
-        mxStyle$variableToKeep = vToKeep
-        # NOTE: should activate "start download tiles"
-      }
-      return()
-    }
+          # views queuing system
+          observeEvent(mxReact$viewsToDisplay,{
+            mxCatch(title="Views queing system",{
+              # available views data
+              vAll <- names(mxReact$views)
+              # views list to render
+              vToDisplay <- mxReact$viewsToDisplay
+              # views actually rendered by leaflet
+              vDisplayed <- input$mapxMap_groups
+              # views saved in leafletvt object
+              vProcessed <- input$leafletvtViews
+              # names of all views
+              # render only available ones for the user.
+              vDisplayed <- vDisplayed[vDisplayed %in% vAll]
+              # views to hide
+              mxReact$vToHide <- vDisplayed[! vDisplayed %in% vToDisplay]
+              # views to reactivate
+              vToShow <- vToDisplay[vToDisplay %in% vProcessed]
+              mxReact$vToShow <- vToShow[!vToShow %in% vDisplayed]
+              # views to download and display
+              mxReact$vToCalc <-  vToDisplay[!vToDisplay %in% vProcessed][1]
+                })
+          })
 
 
-    #
-    # VIEWS TO REACTIVATE
-    #
+          # Views to hide
+          observeEvent(mxReact$vToHide,{
+            mxCatch(title="View to hide",{
+              vToHide <- mxReact$vToHide
+              if(!noDataCheck(vToHide)){
+                # set expected legend id
+                legendId <- sprintf("%s_legends",vToHide)
+                # get map proxy, hide group and control. 
+                proxyMap <- leafletProxy("mapxMap",deferUntilFlush=FALSE)
+                proxyMap %>% 
+                hideGroup(as.character(vToHide))
 
-    if(!noDataCheck(vToShow)){
-      mxDebugMsg(paste("Activate",vToShow))
-      legendId = sprintf("%s_legends",vToShow)
-      proxyMap <- leafletProxy("mapxMap")
-      sty <- vData[[vToShow]]$style
-      leg <- sty$hideLegends
-
-      if(!leg){
-        tit <- sty$title
-        pal <- sty$palette
-        val <- sty$values
-
-        sty <- addPaletteFun(sty,pal)
-        palFun <- sty$paletteFun
-
-        mxDebugMsg(sprintf("Add legend in layer id %s", legendId))
-        proxyMap %>%
-        showGroup(as.character(vToShow)) %>%
-        addLegend(position="topright",pal=palFun,values=val,title=tit,layerId = legendId)
-      }else{
-        proxyMap %>%
-        showGroup(as.character(vToShow))
-      }
-      return()
-    }
+                mxRemoveEl(class=legendId)
+              }
+                })
+          })
 
 
-    #
-    # VIEWS TO HIDE
-    #
+          # Views to display but not already processed.
+          # Use 
+          observeEvent(mxReact$vToCalc,{
+            mxCatch(title="Views to calc",{
+              vToCalc <- mxReact$vToCalc
+              vData <- mxReact$views
+              if(!noDataCheck(vToCalc)){
+                sty <- vData[[vToCalc]]$style
+                if(!noDataCheck(sty)){
+                  mxDebugMsg(paste("First style computation for",vToCalc))
+                  mxStyle$layer <- sty$layer
+                  mxStyle$group <- vToCalc
+                  mxStyle$variable <- sty$variable
+                  vToKeep <- sty$variableToKeep 
 
+                  # As we check for null in layerStyle(),add "noData/noVariable" values.
+                  if(is.null(vToKeep))vToKeep=mxConfig$noVariable
+                  mxStyle$variableToKeep = vToKeep
+                }
+              }
+                })
+          })
 
-    if(!noDataCheck(vToHide)){
-      mxDebugMsg(paste("hide",vToHide))
-      legendId = sprintf("%s_legends",vToHide)
-      proxyMap <- leafletProxy("mapxMap")
-      proxyMap %>% 
-      hideGroup(as.character(vToHide)) %>%
-      removeControl(legendId)
-      return()
-    }
+          # Views to reactivate
+          observeEvent(mxReact$vToShow,{
+            mxCatch(title="Views to reactivate",{
+              vToShow <- mxReact$vToShow
+              vData <- mxReact$views
+              if(!noDataCheck(vToShow)){
+                #legendId <- sprintf("%s_legends",vToShow)
+                legendId <- sprintf("info legend %s_legends",vToShow)
+                proxyMap <- leafletProxy("mapxMap")
+                sty <- vData[[vToShow]]$style
+                hasLegend <- !sty$hideLegends
 
+                # compute legend if necessary
+                if(hasLegend){
+                  tit <- sty$title
+                  pal <- sty$palette
+                  val <- sty$values
+                  sty <- addPaletteFun(sty,pal)
+                  palFun <- sty$paletteFun
+                  proxyMap %>%
+                  showGroup(as.character(vToShow)) %>%
+                  addLegend(position="topright",class=legendId,pal=palFun,values=val,title=tit)
+                  #addLegend(position="topright",pal=palFun,values=val,title=tit,layerId = legendId)
+                }else{
+                  proxyMap %>%
+                  showGroup(as.character(vToShow))
+                }
+              }
 
-    stop = Sys.time() - start
-    mxDebugMsg(paste("End of vector tiles manager. Timing=",stop))
-    cat(paste(paste0(rep("-",80),collapse=""),"\n"))
-      })
-})
+                })
+          })
 

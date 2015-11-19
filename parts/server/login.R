@@ -82,10 +82,6 @@ observeEvent(input$readCookie,{
       })
 
 
-observe({
-print(mxReact$userLogged)
-})
-
 observeEvent(input$btnLogout,{
   mxSetCookie(cookie=res,deleteAll=TRUE)
       })
@@ -103,6 +99,7 @@ observe({
   mxReact$allowAnalysis <- mxAllow(
     logged = mxReact$userLogged,
     roleName = mxReact$userRole,
+    #roleLowerLimit = 100
     roleLowerLimit = 100
     )
   mxReact$allowMap <- mxAllow(
