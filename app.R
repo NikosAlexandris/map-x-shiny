@@ -3,7 +3,7 @@ source("loadlib.R")
 source("helper/R/mapx.R")
 source('helper/R/handson.R')
 source("settings/settings.R")
-source("config.R")
+source("settings/config.R")
 
 
 # User interface
