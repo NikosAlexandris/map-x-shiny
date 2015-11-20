@@ -187,7 +187,22 @@ Map
   float:right;
 }
 
-
+/*
+loading content
+ 
+ */
+#loading-content {
+  padding-top : 70px;
+  position: absolute;
+  background: #000000;
+  opacity: 0.9;
+  z-index: 10000;
+  left: 0;
+  right: 0;
+  height: 100%;
+  text-align: center;
+  color: #FFFFFF;
+}
 
 /*
 leaflet modification
@@ -204,7 +219,7 @@ leaflet modification
 }
 
 .leaflet-control-zoom {
-  display : none ; 
+right: 30px;
 }
 
 .info {

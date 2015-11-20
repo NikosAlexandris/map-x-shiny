@@ -32,12 +32,24 @@ uiMapCreator <-tagList(
                 )
               ),
             "style"=list("title"="Style settings",content=tagList(
+                textInput("mapViewTitle","Map view title",mxConfig$noTitle),
                 selectInput("selLayer","Select a vector tiles layer",choices=""),
                 selectInput("selColumnVar","Select a variable to display",choices=""),
+                textInput("txtVarUnit","Unit suffixe"),
                 selectInput("selPalette","Select a palette",choices=""),
                 selectInput("selColumnVarToKeep","Select other variables to keep",choices="",multiple=T),
                 numericInput("selOpacity","Opacity",min=0,max=1,value=0.6,step=0.1),
                 numericInput("selSize","Size point / line",min=0,max=100,value=5,step=0.1),
+                selectInput("mapViewClass","Map view class",choices=mxConfig$class),
+                dateRangeInput("mapViewDateRange",
+                  label = "Set a date range for this layer",
+                  start = Sys.Date(), end = Sys.Date(),
+                  min = mxConfig$minDate, max = mxConfig$maxDate,
+                  separator = " - ", format = "yyyy/mm/dd",
+                  startview = "year", language = "en", weekstart = 1
+                  ),
+                tags$b("Description"),
+                aceEditor("txtViewDescription", mode="markdown", value="Enter description",height="100px"),
                 ##checkboxInput("checkBoxInversePalette","Inverse palette"),
                 checkboxInput("checkBoxUseDate","Use a date column"),
                 conditionalPanel(condition="input.checkBoxUseDate == true",
@@ -49,22 +61,7 @@ uiMapCreator <-tagList(
                 checkboxInput("checkBoxUseBounds","Store map position and zoom"),
                 checkboxInput("checkBoxHideLabels","Hide labels"),
                 checkboxInput("checkBoxHideLegends","Hide legend")
-                )), 
-            "meta"=list("title"="Metadata",content=tagList(
-                textInput("mapViewTitle","Map view title","[Map view title]"),
-                selectInput("mapViewClass","Map view class",choices=mxConfig$class),
-                dateRangeInput("mapViewDateRange",
-                  label = "Set a date range for this layer",
-                  start = Sys.Date(), end = Sys.Date(),
-                  min = mxConfig$minDate, max = mxConfig$maxDate,
-                  separator = " - ", format = "yyyy/mm/dd",
-                  startview = "year", language = "en", weekstart = 1
-                  ),
-                tags$b("Description"),
-                aceEditor("mapViewDesc", mode="markdown", value="Enter description",height="100px")
-
-                )
-              )
+                )) 
             )
           ),
           div(class="shiny-input-container-inline shiny-flow-layout",
@@ -103,7 +100,8 @@ uiMapConfig <- tagList(
           itemList=list(
             "baseMap"=list("title"="Additional maps",content=tagList(
                 h4('Add tools'),
-                actionButton("btnAddMeasure","Add measure tools"),
+                checkboxInput("checkRemoveZoom","Zoom button",value=T),
+                checkboxInput("checkAddControlMeasure","Measure widget",value=T),
                 h4('Set base map'),
                 selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
                 tags$ul(class="list-inline banner-social-buttons",

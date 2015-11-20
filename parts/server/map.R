@@ -157,36 +157,30 @@ observeEvent(input$btnViewsCreator,{
   }
 })
 
+
+
+
+
+
+setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){ 
+     invokeMethod(map,getMapData(map),'setZoomOptions',buttonOptions,removeButton)
+   }
+
+
+
 # Main map
 output$mapxMap <- renderLeaflet({
   if(mxReact$allowMap){
+    map <- leaflet()
     if(noDataCheck(mxReact$selectCountry))return()
     group = "main"
     iso3 <- mxReact$selectCountry
     if(!noDataCheck(iso3)){
       center <- mxConfig$countryCenter[[iso3]] 
-      mxConfig$baseLayerByCountry(iso3,group,center)
+      map <- mxConfig$baseLayerByCountry(iso3,group,center)
     }
+    map %>% setZoomOptions(buttonOptions=list(position="topright")) 
   }
 })
 
-#
-#
-### additionan thingy
-#toggleToolMeasure <- TRUE
-#observeEvent(input$btnAddMeasure,{
-#  mapxMap <- leafletProxy("mapxMap")
-#  if(toggleToolMeasure){
-#    mapxMap %>% addMeasure(
-#      primaryLengthUnit = "kilometers",
-#      primaryAreaUnit = "hectares",
-#      activeColor = "#3D535D",
-#      completedColor = "#7D4479"
-#
-#      )
-#  }else{
-#    mapxMap %>% removeMeasure()
-#  }
-#  toggleToolMeasure <- !toggleToolMeasure
-#})
-#
+

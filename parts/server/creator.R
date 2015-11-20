@@ -325,6 +325,11 @@ observeEvent(input$fileNewLayer,{
         mxStyle$hideLegends <- if(!noDataCheck(input$checkBoxHideLegends)) input$checkBoxHideLegends 
       })
 
+  observe({
+        mxStyle$variableUnit <- input$txtVarUnit
+      })
+
+
 
       observe({
         dRange <- input$mapViewDateRange
@@ -359,6 +364,9 @@ observeEvent(input$fileNewLayer,{
             sty$hasCompanyColumn <- isTRUE("parties" %in% vToKeep)
 
             tableName <- mxConfig$viewsListTableName
+
+            sty$description <- input$txtViewDescription
+
 
             d <- dbInfo
             drv <- dbDriver("PostgreSQL")
