@@ -23,6 +23,8 @@ mxConfig$noData = "[ NO DATA ]"
 mxConfig$noVariable = "[ DEFAULT ]"
 # No layer string
 mxConfig$noLayer = "[ NO LAYER ]"
+# No title
+mxConfig$noTitle = "[ NO TITLE ]"
 # No filter value
 mxConfig$noFilter = "[ ALL ]"
 # map zoom

@@ -26,6 +26,13 @@ ui <- tagList(
     ),
   # body
   tags$body(id="page-top",`data-spy`="scroll",`data-target`=".navbar-fixed-top", `data-offset`="0",
+    # Loading message
+    #useShinyjs(),
+    div(
+      id = "loading-content",
+      h2("MAP-X LOADING"),
+      tags$img(src="img/loading.gif")
+      ),
     # error panels
     uiOutput('panelAlert'),
     uiOutput('panelAlertCountry'),
@@ -78,6 +85,10 @@ server <- function(input, output, session) {
   source("parts/server/admin.R",local=TRUE)
   source("parts/server/analysis.R",local=TRUE)
   source("parts/server/tenke.R",local=TRUE)
+ 
+  mxJsHide(id="loading-content",duration=1000)
+  
+
 } # end of server part
 
 

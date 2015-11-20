@@ -82,6 +82,23 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
       )
 }
 
+
+#' Hide element by id with animation
+#' @param session Shiny session
+#' @param id Html id
+#' @param duration Duraiton in milisecond
+#' @export
+mxJsHide <- function(session=getDefaultReactiveDomain(),id="",duration=1000){
+  js = sprintf("$('#%1$s').fadeOut('%2$s')",id,duration)
+  session$sendCustomMessage(
+    type="jsCode",
+    list(code=js)
+    )
+}
+
+
+
+
 #' Set map panel mode.
 #'
 #' Map-x panel use multiple panel mode : config,creator,explorer,toolbox. This function set and save the panel mode.
@@ -735,6 +752,7 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   bnd <- style$bounds
   mxd <- style$mxDateMax
   mnd <- style$mxDateMin
+  unt <- style$variableUnit
   
   # handle min and max date if exists.
   if(is.null(mnd))mnd<-as.POSIXlt(mxConfig$minDate)
@@ -748,16 +766,25 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   legendId <- sprintf("%s_legends",grp)
   legendClass <- sprintf("info legend %s",legendId)
   proxyMap <- leafletProxy(mapId)
-  
+ 
+
+  # label format 
+
+
   # If no title, take the layer name.
   if(noDataCheck(tit))tit<-lay
 
   # delete old legend
    mxRemoveEl(class=legendId) 
-  
+
   if(!leg){
+    if(!noDataCheck(unt)){
+      labFor<-labelFormat(suffix=unt)
+    }else{
+      labFor<-labelFormat()
+    }
     proxyMap %>%
-    addLegend(position="topright",pal=pal,values=val,class=legendClass,title=tit)
+    addLegend(position="topright",labFormat=labFor,pal=pal,values=val,class=legendClass,title=tit)
   }
 
   names(col) <- val

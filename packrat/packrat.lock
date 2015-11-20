@@ -141,17 +141,6 @@ Version: 0.3.1
 Hash: cfb6298122a087ba6d01245c69e64aaf
 Requires: R.utils, foreach, sp
 
-Package: ggplot2
-Source: CRAN
-Version: 1.0.1
-Hash: 4aff1b269135bd2cdea378f4f2f2895e
-Requires: digest, gtable, plyr, proto, reshape2, scales
-
-Package: gtable
-Source: CRAN
-Version: 0.1.2
-Hash: 38a0f066373a60824cd3ade2362af363
-
 Package: haven
 Source: CRAN
 Version: 0.2.0
@@ -282,11 +271,6 @@ Source: CRAN
 Version: 0.1-7
 Hash: 421d7d6e0fb4bd885ecbd909b6456b8b
 
-Package: proto
-Source: CRAN
-Version: 0.3-10
-Hash: 05d7ad64db29a39d1b02c4b9f1f4edb2
-
 Package: raster
 Source: CRAN
 Version: 2.4-20
@@ -378,8 +362,8 @@ Requires: magrittr, stringi
 
 Package: xtable
 Source: CRAN
-Version: 1.7-4
-Hash: 30ed90ebdd90a529aab31fd6792a8d61
+Version: 1.8-0
+Hash: 3816a222bb6837b3344d230b54b4c3cc
 
 Package: xts
 Source: CRAN
