@@ -127,7 +127,7 @@ observe({
       # toggle option panel for this view
       toggleOptions <- sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)
       # set on hover previre for this view
-      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,500))
+      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,1000))
       # create html
       val <- div(class="checkbox",
         tags$label(id=itIdLabel,
