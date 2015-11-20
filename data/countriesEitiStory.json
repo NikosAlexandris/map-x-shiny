@@ -1,0 +1,26 @@
+{
+  "COD" : {
+    "gdp" : "$236",
+    "hdi" : "0.304 (186/187)",
+    "eiti_status" : "Compliant",
+    "gvt_revenues" : "$878mil",
+    "comp_payment" : "$773mil",
+    "story" : "<p>The <strong>Democratic Republic of the Congo</strong> is a poster child for the complexities and contradictions of extractive resource wealth.  The country is home to massive extractive reserves, estimated in value to be upwards of <strong>$24 trillion</strong>, including as much as <strong>80%</strong> of the world's reserves of <strong>Coltan</strong>.  However, these natural riches have been a key focal point of conflict.  Following on two successive civil wars from <strong>'96 - '97</strong> and <strong>'98 - '02</strong> that decimated the country's governmental and civil society capacities, the DRC has made strides in reconstruction.  However, challenges to development posed by corruption and regional unrest remain, often fueled in part by the extractives trade.</p>"
+  },
+  "SLE" : {
+    "gdp" : "$1,344",
+    "hdi" : "0.336 (180/187)",
+    "eiti_status" : "Compliant",
+    "gvt_revenues" : "$7.6mil",
+    "comp_payment" : "$8.27mil",
+    "story" : "<p>The development of the extractive sector has shaped Sierra Leone's recent history. Mismanagement and corruption in the sector in the 1970s and 1980s set the scene for the outbreak of the country's violent 11-year civil war, which began in 1991. The trade in smuggled conflict diamonds funded and prolonged the fighting. Control of the country's southeastern diamond fields became a strategic objective for both government forces and the rebel Revolutionary United Front.</p> <p>More than a decade after the end of the civil war, the country s rich mineral reserves offer the promise of much-needed jobs and government revenue. Exports of minerals, in particular iron ore, accelerated economic growth in 2012 to 21.3%, one of the highest rates in the world. However, the government will need to carefully manage the sector to avoid many of the problems associated with the resource curse: currency appreciation, economic distortion and increased corruption</p> <p>Use the tabs above to view the data that explores the complex dynamics of extractive industries in Sierra Leone: their developmental potential, their environmental impact , and their linkages to conflict and fragility.</p>"
+  },
+  "AFG" : {
+    "gdp" : "$621",
+    "hdi" : "0.398 (172/187)",
+    "eiti_status" : "Candidate",
+    "gvt_revenues" : "$23.4mil",
+    "comp_payment" : "$25.0mil",
+    "story" : "<p>More than three decades of war in <strong>Afghanistan</strong> have caused untold human suffering. Since 1978, nearly <strong>two million</strong> Afghan citizens have been killed, and <strong>a million</strong> orphaned or disabled by political instability and civil wars that have, at times, forced one third of the population to flee the country.</p><p>International forces have agreed to hand over full responsibility for the country’s security to the Afghan National Security Forces by the end of <strong>2014</strong>, a year that will also witness Presidential elections. Meanwhile Afghanistan is increasingly looking to its own resources to provide for its development.</p><p>Managed well, the country’s rich mineral and hydrocarbon resources offer the prospect of government revenue, jobs and economic development, permitting Afghanistan to become more financially self-sufficient. However, on-going <strong>instability</strong>, <strong>poor infrastructure</strong> and <strong>weak governance</strong> present the sector with daunting challenges.</p>"
+  }
+}
