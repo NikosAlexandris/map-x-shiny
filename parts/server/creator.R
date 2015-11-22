@@ -1,6 +1,11 @@
-
-
-
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# view creator management
 
 observe({
   if(mxReact$allowViewsCreator){
@@ -349,6 +354,8 @@ observeEvent(input$fileNewLayer,{
       observeEvent(input$btnMapCreatorSave,{
         if(mxReact$enableViewsCreator){
           mxCatch(title="Save style",{
+            sty2<-layerStyle()
+            browser()
             sty <- reactiveValuesToList(mxStyle)
             # save additional variables
             hasDate <- mxStyle$hasDateColumns

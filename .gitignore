@@ -1,6 +1,7 @@
 # settings
 settings/settings.R
 settings/config.R
+settings/sshConfig
 # History files
 .Rhistory
 .Rapp.history

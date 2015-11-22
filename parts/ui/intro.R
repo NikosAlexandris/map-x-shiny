@@ -1,7 +1,12 @@
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# Header
 
-  #
-  # HEADER
-  #
 tags$section(id="sectionTop",class="intro container-fluid",
   div(class="col-md-8 col-md-offset-2",
     h1(class='map-x-title',"MAP-X"),

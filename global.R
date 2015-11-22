@@ -5,7 +5,13 @@
 # |_| |_| |_|\__,_| .__/  /_/\_\
 #                 | |           
 #                 |_|           
-# shortcut to launch map-x
+# source code that will be available globaly.
 
-library(shiny)
-runApp('.',port = 4545, launch.browser = F)
+source("loadlib.R")
+source("helper/R/mapx.R")
+source('helper/R/handson.R')
+source("settings/settings.R")
+source("settings/config.R")
+
+
+

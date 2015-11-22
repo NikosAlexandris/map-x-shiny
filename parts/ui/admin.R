@@ -1,7 +1,11 @@
-#
-# admin panel
-#
-
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# Admin panel
 
 userPanel = tagList(
   p("Note: buttons doesn't do anything for now."),
@@ -15,6 +19,7 @@ userPanel = tagList(
  
   )
 
+# views management panel
 viewsPanel <- tagList(
   p("Note: update button does nothing yet."),
   tags$ul(class="list-inline",
@@ -27,9 +32,8 @@ viewsPanel <- tagList(
   div(class="mxTableContainer",hotable("tableViews")) 
   )
 
-
-
-tags$section(id="sectionAdmin",class="container-fluid",
+# main structure
+tags$section(id="sectionAdmin",class="container-fluid mx-hide",
   div(class="row",
     div(class="col-xs-12",
       h2("Admin"),

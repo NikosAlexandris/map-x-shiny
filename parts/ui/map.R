@@ -1,11 +1,17 @@
-#
-# MAP-CONTENT
-#
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# map content
+
 uiMapCreator <-tagList(
   #
   # MAP CREATOR
   #
-  tags$section(id="sectionMapcreator",class="container-fluid",
+  tags$section(id="sectionMapcreator",class="section-map-creator mx-mode-creator container-fluid mx-hide",
     div(class="row",
       div(class="col-lg-12",
         mxAccordionGroup(id="mapCreator",
@@ -65,10 +71,7 @@ uiMapCreator <-tagList(
             )
           ),
           div(class="shiny-input-container-inline shiny-flow-layout",
-            actionButton("btnMapCreatorSave",class="btn-icon",label=icon("floppy-o")),
-            actionButton("btnZoomToLayer",class="btn-icon",label=icon("binoculars")),
-            actionButton('btnViewsRefresh',class="btn-icon",label=icon("refresh")),
-            tags$h4(textOutput("txtValidationCreator"))
+                       tags$h4(textOutput("txtValidationCreator"))
             ) 
           )
         )
@@ -79,9 +82,10 @@ uiMapCreator <-tagList(
     #
     # MAP 
     #
-    tags$section(id="sectionMapList",class="container-fluid",
+    tags$section(id="sectionMapList",class="mx-mode-explorer container-fluid",
       div(class="row",
         div(class="col-lg-12",
+          # created in parts/server/views.R
           uiOutput('checkInputViewsContainer')
           )
         )
@@ -93,7 +97,7 @@ uiMapConfig <- tagList(
   #
   # MAP CONFIG
   #
-  tags$section(id="sectionMapConfig",class="container-fluid",
+  tags$section(id="sectionMapConfig",class="mx-mode-config mx-hide container-fluid",
     div(class="row",
       div(class="col-lg-12", 
         mxAccordionGroup(id="mapConfig",show=1,
@@ -128,20 +132,22 @@ uiMapConfig <- tagList(
   )
 
 
-uiMapAnalysis <- tagList(
+uiMapToolbox <- tagList(
   #
   # UI ANALYTICS
   #
-  div(class="row",
-    div(class="col-lg-12", 
-      mxAccordionGroup(id="mapConfig",show=1,
-        itemList=list(
-          "analysis"=list("title"="Analysis",content=tagList(
-              selectInput("selectAnalysis","Select an analysis",
-                choices=list("Overlaps"="overlaps")
-                ),
-              uiOutput("uiAnalysis"),
-              actionButton("btnAnalysisRemoveLayer",icon("times"))
+  tags$section(id="sectionMapAnalysis",class="mx-mode-toolbox mx-hide container-fluid",
+    div(class="row",
+      div(class="col-lg-12", 
+        mxAccordionGroup(id="mapConfig",show=1,
+          itemList=list(
+            "analysis"=list("title"="Analysis",content=tagList(
+                selectInput("selectAnalysis","Select an analysis",
+                  choices=list("Overlaps"="overlaps")
+                  ),
+                uiOutput("uiAnalysis"),
+                actionButton("btnAnalysisRemoveLayer",icon("times"))
+                )
               )
             )
           )
@@ -155,7 +161,7 @@ uiMapAnalysis <- tagList(
   # MAP SECTION
   #
 
-  tags$section(id="sectionMap",
+  tags$section(id="sectionMap",class="mx-hide",
 #    conditionalPanel(condition="output.uiDisplayMap==true",
       div(class="map-wrapper col-xs-12", 
         #
@@ -171,29 +177,30 @@ uiMapAnalysis <- tagList(
         # MAP LEFT
         #
         div(id="map-left",
-            h2(style="text-align:center",textOutput("titlePanelMode")),
+            h2(style="text-align:center",
+              div(id="titlePanelMode","Views explorer")
+              #textOutput("titlePanelMode")
+              ),
             div(class="hide-scroll",
               div(class="viewport",
           div(class="map-text",
             
             div(class="row",
               div(class="map-text-left",
-                conditionalPanel(condition="mxPanelMode.mode == 'mapViewsExplorer'",
-                  uiMapList
-                  ),
-                conditionalPanel(condition="mxPanelMode.mode == 'mapViewsCreator'",
-                  uiMapCreator
-                  ),
-                conditionalPanel(condition="mxPanelMode.mode == 'mapViewsToolbox'",
-                  uiMapAnalysis
-                  ),
-                conditionalPanel(condition="mxPanelMode.mode == 'mapViewsConfig'",
+                  uiMapList,
+                  uiMapCreator,
+                  uiMapToolbox,
                   uiMapConfig
-                  ) 
                 ),
+              #
+              # NAV MENU
+              #
               div(class="map-text-nav",
                 tags$ul(class="nav",
-                  tags$li(
+                  #
+                  # UI BUTTON
+                  #
+                   tags$li(
                     tags$button(
                       mx_set_lang="title.mapLeft.lock",
                       id="btnStopMapScroll",
@@ -210,6 +217,20 @@ uiMapAnalysis <- tagList(
                       )
                     ),
                   tags$li(
+                    tags$button(
+                      mx_set_lang="title.mapLeft.info",
+                      id='btnInfoClick',
+                      class="btn-icon",
+                      icon("info")
+                      )
+                    ),
+                  tags$li(
+                    hr()
+                    ),
+                  #
+                  # PANEL BUTTON
+                  #
+                  tags$li(
                     actionButton('btnViewsExplorer',
                       mx_set_lang="title.mapLeft.explorer",
                       class="btn-icon",
@@ -218,17 +239,23 @@ uiMapAnalysis <- tagList(
                     ),
                   tags$li(
                     actionButton('btnViewsCreator',
-                      mx_set_lang="title.mapLeft.add",
-                      class="btn-icon",
+                      mx_set_lang="title.mapLeft.creator",
+                      class="btn-icon mx-hide mx-allow-creator",
                       label=icon("plus")
                       )
                     ),
-                  tags$li(
-                    tags$button(
-                      mx_set_lang="title.mapLeft.info",
-                      id='btnInfoClick',
-                      class="btn-icon",
-                      icon("info")
+                   tags$li(
+                    actionButton('btnStoryCreator',
+                      mx_set_lang="title.mapLeft.storyCreator",
+                      class="btn-icon mx-hide mx-allow-story-creator",
+                      label=icon("pencil-square-o")
+                      )
+                    ),
+                    tags$li(
+                    actionButton('btnStoryReader',
+                      mx_set_lang="title.mapLeft.storyReader",
+                      class="btn-icon mx-hide mx-allow-story-reader",
+                      label=icon("book")
                       )
                     ),
                   tags$li(
@@ -244,12 +271,37 @@ uiMapAnalysis <- tagList(
                       class="btn-icon",
                       label=icon("gears")
                       )
+                    ),
+                  #
+                  # PANEL CREATOR ONLY
+                  #
+                    tags$li(
+                    hr(class='mx-mode-creator mx-hide')
+                    ),
+                    tags$li(
+                    actionButton("btnMapCreatorSave",
+                      class="btn-icon mx-mode-creator mx-hide",
+                      label=icon("floppy-o")
+                      )
+                    ),
+                  tags$li(
+                    actionButton("btnZoomToLayer",
+                      class="btn-icon mx-mode-creator mx-hide",
+                      label=icon("binoculars")
+                      )
+                    ),
+                  tags$li(
+                    actionButton('btnViewsRefresh',
+                      class="btn-icon mx-mode-creator mx-hide",
+                      label=icon("refresh")
+                      )
+                    )
+            
                   )
                 )
-                )
               )
-              )
-            ) 
+            )
+          ) 
           )
         )
      )

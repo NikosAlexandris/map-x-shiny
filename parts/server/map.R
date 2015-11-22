@@ -1,174 +1,139 @@
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# Map server part
+
 #
 # MAP SECTION 
 #
 
-# Default base layer for testing
-mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,lat=0,zoom=5)){
-  switch(iso3,
-    "COD"={
-      leaflet() %>%
-      clearGroup(group) %>%
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=-5,
-          "minZoom"=0,
-          "maxZoom"=6)
-        ) %>%  
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=-5,
-          "minZoom"=7,
-          "maxZoom"=10)
-        ) %>%
-      setView(center$lng,center$lat,center$zoom)
-    },
-    "AFG"={
-      leaflet() %>%
-      clearGroup(group) %>%
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/afg_base_layer/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=-5
-          )
-        )%>% setView(center$lng,center$lat,center$zoom)
-    } 
-    )
-}
 
-
-# Default label layer for testing
-mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
-  switch(iso3,
-    "COD"={
-      proxyMap %>%
-      clearGroup(group) %>%
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/cod_labels_0_6/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=30,
-          "minZoom"=0,
-          "maxZoom"=6)
-        ) %>%  addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/cod_labels_7_10/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=30,
-          "minZoom"=7,
-          "maxZoom"=10)
-        )
-    },
-    "AFG"={
-      proxyMap %>%
-      clearGroup(group) %>%
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/afg_labels/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          zIndex=30
-          )
-        )
-    }
-    )
-}
-
-
-
-
-
-observe({
-  # Enable map ui if allowMap is true
-  mxUiEnable(id="sectionMap",enable=mxReact$allowMap) 
-})
-
-observe({
-  # Enable ui if allow map is true
-  mxUiEnable(id="btnViewsCreator",enable=mxReact$allowViewsCreator) 
-})
-
+#
+# PERMISSION EVENT : loading server files
+#
 observe({
   if(mxReact$allowMap){
+    mxReact$mapPanelMode="mapViewsExplorer"
     source("parts/server/style.R",local=TRUE)
-    source('parts/server/panelMode.R',local=TRUE)
     source("parts/server/views.R",local=TRUE)
+  }
+})
+
+observe({
+  if(mxReact$allowViewsCreator){
     source("parts/server/creator.R",local=TRUE)
   }
 })
 
+observe({
+  if(mxReact$allowToolbox){
+  source("parts/server/toolbox.R",local=TRUE)
+  }
+})
+
+#
+# ENABLE PANEL BUTTONs
+#
+
+observe({
+  mxUiEnable(id="sectionMap",enable=mxReact$allowMap) 
+})
+
+observe({
+  mxUiEnable(id="btnViewsCreator",enable=mxReact$allowViewsCreator) 
+})
+
+observe({
+  mxUiEnable(id="btnViewsToolbox",enable=mxReact$allowToolbox) 
+})
+observe({
+  mxUiEnable(id="btnStoryReader",enable=mxReact$allowStoryReader) 
+})
+observe({
+  mxUiEnable(id="btnStoryCreator",enable=mxReact$allowStoryCreator) 
+})
 
 
+
+
+#
+# UI ENVENT : change ui apparence
+#
+
+observeEvent(input$btnViewsExplorer,{
+  mxSetMapPanelMode("mx-mode-explorer") 
+  mxReact$mapPanelMode="mapViewsExplorer"
+  mxUpdateText(id="titlePanelMode",text="Views explorer")
+})
+
+observeEvent(input$btnViewsConfig,{
+  mxSetMapPanelMode("mx-mode-config")
+  mxReact$mapPanelMode="mapViewsConfig"
+  mxUpdateText(id="titlePanelMode",text="Views config")
+})
+
+observeEvent(input$btnViewsToolbox,{
+  mxSetMapPanelMode("mx-mode-toolbox")
+  mxReact$mapPanelMode="mapViewsToolbox"
+  mxUpdateText(id="titlePanelMode",text="Views toolbox")
+})
+observeEvent(input$btnViewsCreator,{
+  mxSetMapPanelMode("mx-mode-creator")
+  mxReact$mapPanelMode="mapViewsCreator"
+  mxUpdateText(id="titlePanelMode",text="Views creator")
+})
+observeEvent(input$btnStoryCreator,{
+  mxSetMapPanelMode("mx-mode-story-creator")
+  mxReact$mapPanelMode="mapStoryCreator"
+  mxUpdateText(id="titlePanelMode",text="Story map creator")
+})
+observeEvent(input$btnStoryReader,{
+  mxSetMapPanelMode("mx-mode-story-reader")
+  mxReact$mapPanelMode="mapStoryReader"
+  mxUpdateText(id="titlePanelMode",text="<story map>")
+})
+#
 # Clear layer after exlorer mode enter
+#
 observeEvent(input$btnViewsExplorer,{
   if(mxReact$allowMap){
     mxCatch(title="Clean creator layers",{
+      reactiveValuesReset(mxStyle)
       mxStyle <- reactiveValues()
       dGroup <- mxConfig$defaultGroup
       legendId <- paste0(dGroup,"_legends")
       proxyMap <- leafletProxy("mapxMap")
       proxyMap %>%
+      removeControl(layerId=legendId) %>%
       clearGroup(dGroup)
-      mxRemoveEl(class=legendId)
+  # double remove.
+  mxRemoveEl(class=legendId)
         })
   }
 })
 
+#
 # Clear layer after creator enter
+#
 observeEvent(input$btnViewsCreator,{
   if(mxReact$allowMap){
-    mxCatch(title="Clean explorer layers",{
-      mxStyle <- reactiveValues()
+
+    mxStyle$group <- "G1"
+    mxStyle$layer <- NULL
+    mxStyle$variable <- NULL
+    mxStyle$values <- NULL
+      #   reactiveValuesReset(mxStyle)
       mxReact$viewsToDisplay = ""
-        })
   }
 })
 
-
-
-
-
-
-setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){ 
-     invokeMethod(map,getMapData(map),'setZoomOptions',buttonOptions,removeButton)
-   }
-
-
-
+#
 # Main map
+#
 output$mapxMap <- renderLeaflet({
   if(mxReact$allowMap){
     map <- leaflet()

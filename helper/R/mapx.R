@@ -88,33 +88,20 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
 #' @param id Html id
 #' @param duration Duraiton in milisecond
 #' @export
-mxJsHide <- function(session=getDefaultReactiveDomain(),id="",duration=1000){
-  js = sprintf("$('#%1$s').fadeOut('%2$s')",id,duration)
+mxJsHide <- function(session=getDefaultReactiveDomain(),id="loading-content",duration=2000){ 
+  function(){
+  js=sprintf("var el = document.getElementById('%1$s'); el.style.opacity=0;",id)
   session$sendCustomMessage(
     type="jsCode",
     list(code=js)
     )
+  }
 }
 
 
 
 
-#' Set map panel mode.
-#'
-#' Map-x panel use multiple panel mode : config,creator,explorer,toolbox. This function set and save the panel mode.
-#'
-#' @param session Shiny session
-#' @param mode Map panel mode. In mapViewCreator, mapStoryCreator, mapExplorer
-#' @param title Optionnal title to be returned.
-#' @return title string
-#' @export
-mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("mapViewsConfig","mapViewsCreator","mapStoryCreator","mapViewsExplorer","mapViewsToolbox"),title=NULL){
-  mode = match.arg(mode)
-  mxDebugMsg(paste("Set mode to : ", mode))
-  jsCode <- sprintf("mxPanelMode.mode ='%s';",mode)
-  session$sendCustomMessage(type="jsCode",list(code=jsCode))
-  return(list(title=title,mode=mode))
-}
+
 
 #' Print debug message
 #'
@@ -125,7 +112,7 @@ mxSetMapPanelMode <- function(session=shiny::getDefaultReactiveDomain(),mode=c("
 #' @export
 mxDebugMsg <- function(m=""){ 
   options(digits.secs=6)
-  cat(paste0("[",Sys.time(),"]",m,'\n'))
+  cat(paste0("[",Sys.time(),"] ",m,'\n'))
 }
 
 #' Create a modal panel
@@ -755,8 +742,8 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   unt <- style$variableUnit
   
   # handle min and max date if exists.
-  if(is.null(mnd))mnd<-as.POSIXlt(mxConfig$minDate)
-  if(is.null(mxd))mxd<-as.POSIXlt(mxConfig$maxDate)
+  if(noDataCheck(mnd))mnd<-as.POSIXlt(mxConfig$minDate)
+  if(noDataCheck(mxd))mxd<-as.POSIXlt(mxConfig$maxDate)
 
   # debug messages
   mxDebugMsg("Begin style")
@@ -774,17 +761,18 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   # If no title, take the layer name.
   if(noDataCheck(tit))tit<-lay
 
-  # delete old legend
-   mxRemoveEl(class=legendId) 
-
-  if(!leg){
+  # delete old legend.
+  proxyMap %>% removeControl(layerId=legendId)
+  # sometimes this does not work. Double removal.
+  mxRemoveEl(class=legendClass)
+  if(isTRUE(!leg)){
     if(!noDataCheck(unt)){
       labFor<-labelFormat(suffix=unt)
     }else{
       labFor<-labelFormat()
     }
     proxyMap %>%
-    addLegend(position="topright",labFormat=labFor,pal=pal,values=val,class=legendClass,title=tit)
+    addLegend(position="topright",labFormat=labFor,pal=pal,values=val,layerId=legendId,class=legendClass,title=tit)
   }
 
   names(col) <- val
@@ -854,17 +842,27 @@ mxUiAccess <- function(logged,roleNum,roleLowerLimit,uiDefault,uiRestricted){
 
 #' Control visbility of elements
 #' 
-#' Display or hide element by id, without removing element AND without having element's space empty in UI. This function add or remove mxHide class to the element.
+#' Display or hide element by id, without removing element AND without having element's space empty in UI. This function add or remove mx-hide class to the element.
 #'
 #' @param session Shiny session
 #' @param id Id of element to enable/disable 
 #' @param enable Boolean. Enable or not.
 #' @export
-mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,enable=TRUE){
-  if(!enable){
-    js <- sprintf("$('#%s').addClass('mxHide')",id)
+mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,class=NULL,enable=TRUE){
+  prefix <- ifelse(is.null(id),".","#")
+
+  if(is.null(id)){
+    element <- class
   }else{
-    js <- sprintf("$('#%s').removeClass('mxHide')",id)
+    element <- id
+  } 
+
+  element <- paste(paste0(prefix,element),collapse=",")
+  
+  if(!enable){
+    js <- sprintf("$('%1$s').addClass('mx-hide')",element)
+  }else{
+    js <- sprintf("$('%1$s').removeClass('mx-hide')",element)
   }
     session$sendCustomMessage(
       type="jsCode",
@@ -892,6 +890,46 @@ mxAllow <- function(logged,roleName,roleLowerLimit){
   }
   return(allow)
 }
+
+
+
+
+mxSetMapPanelMode <- function(modeSelected,modeAvailable=NULL){
+  modeAvailable <- c(
+    "mx-mode-explorer",
+    "mx-mode-config",
+    "mx-mode-toolbox",
+    "mx-mode-creator",
+    "mx-mode-story-reader",
+    "mx-mode-story-creator"
+    )
+  stopifnot(modeSelected %in% modeAvailable)
+  mS <- modeSelected
+  mA <- modeAvailable
+  mD <- mA[!mA %in% mS]
+  mxUiEnable(class=mS,enable=TRUE)
+  mxUiEnable(class=mD,enable=FALSE)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #' Set a checkbox button with custom icon.
 #' 
@@ -1007,16 +1045,39 @@ mxTimeSlider <-function(id,min,max,lay){
 #' @param text New text
 #' @export
 mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text){
-  if(is.null(text) || nchar(text)==0){
+  if(is.null(text)){
     return(NULL)
   }else{
-    val <- sprintf("el = document.getElementById('%1$s');el.innerHTML='%2$s;'",id,text)
+    val <- sprintf("el = document.getElementById('%1$s');el.innerHTML='%2$s'",id,text)
     session$sendCustomMessage(
       type="jsCode",
       list(code=val)
       )
   }
 }
+
+
+#' Update value by id
+#'
+#' Search for given id and update value. 
+#' 
+#' @param session Shiny session
+#' @param id Id of the element
+#' @param  value New text value
+#' @export
+mxUpdateValue <- function(session=shiny:::getDefaultReactiveDomain(),id,value){
+  if(is.null(value)){
+    return(NULL)
+  }else{
+    val <- sprintf("el = document.getElementById('%1$s');el.value='%2$s'",id,value)
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=val)
+      )
+  }
+}
+
+
 
 
 
@@ -1080,18 +1141,6 @@ mxCreateSecret =  function(n=20){
 #' @return NULL
 #' @export
 mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpires=NULL,deleteAll=FALSE){
-
-  log = toJSON(cookie)
-
-  log = paste0("console.log(",log,")")
-
- session$sendCustomMessage(
-      type="jsCode",
-      list(code=log)
-      )
-
-
-
   cmd=character(0)
   if(deleteAll){
     cmd = "clearListCookies()"
@@ -1116,7 +1165,6 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
     #Add date
     addDate <- ";if(document.cookie.indexOf('d=')==-1){document.cookie='d='+new Date();}"
     cmd <- paste(cmd,addDate)
-
     session$sendCustomMessage(
       type="mxSetCookie",
       list(code=cmd)
@@ -1228,5 +1276,40 @@ mxGetWdiIndicators <- function(){
 }
 
 
+#' Reset all value in a reactiveValues object
+#' @param reaciveObj Reactive values object
+#' @export
+   reactiveValuesReset <-function(reactiveObj,resetValue=""){
+     rList <- names(reactiveValuesToList(reactiveObj))
+     for(n in rList){
+     reactiveObj[[n]]<-resetValue
+     }
+    }
+
+#' Set zoom button options
+#' @param map Leaflet map object
+#' @param butonOptions List of  Leaflet options for zoom butons. E.g. list(position="topright") 
+#' @param removeButton Boolean. Remove the zoom button.
+#' @param
+setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){ 
+     invokeMethod(map,getMapData(map),'setZoomOptions',buttonOptions,removeButton)
+   }
+
+
+#' Enable or disable loading panel
+#' @param session Shiny reactive domain
+#' @param enable Boolean activate or disable panel
+#' @export
+mxLoadingPanel <- function(session=getDefaultReactiveDomain(),enable=FALSE){
+    if(isTRUE(enable)){ 
+      js <- "$('#loading-content').fadeIn(1500);"
+    }else{
+      js <- "$('#loading-content').fadeOut(1500);"
+    }
+    session$sendCustomMessage(
+      type="jsCode",
+      list(code=js)
+      )
+  }
 
 
