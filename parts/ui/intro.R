@@ -17,7 +17,7 @@ tags$section(id="sectionTop",class="intro container-fluid",
     hr(),
     tags$div(class="map-x-logos",
       tags$img(src="img/intro_logo_grid_white_en.svg",class="map-x-logo"),
-      tags$img(src="img/world-bank-optimized.svg",class="map-x-logo"),
+      tags$img(src="img/intro_world-bank-optimized.svg",class="map-x-logo"),
       tags$img(src="img/intro_g7-vect-optimized.svg",class="map-x-logo")
       ),
     hr()
