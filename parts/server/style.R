@@ -1,3 +1,12 @@
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# Style management for creator and explorer
+
 #
 # Add vector tiles with selected variables
 #
@@ -287,7 +296,6 @@ layerStyle <- reactive({
     grpClient <- input$leafletvtIsLoaded$grp
     layClient <- input$leafletvtIsLoaded$lay
 
-
   mxCatch(title="Set layerStyle()",{
     if(
       !noDataCheck(grpLocal) && 
@@ -320,10 +328,10 @@ layerStyle <- reactive({
 #
 
 observe({
-  sty = layerStyle() # NOTE: Why this reactiv function invalidate the observer ?
-
-  if(!noDataCheck(sty)){
-    mxDebugMsg(paste("layerStyle() received for",sty$group))
-    mxSetStyle(style=sty)
-  }
+  mxCatch(title="Apply layerStyle()",{
+    sty = layerStyle() # NOTE: Why this reactiv function invalidate the observer ?
+    if(!noDataCheck(sty)){
+      mxSetStyle(style=sty)
+    }
+})
 })

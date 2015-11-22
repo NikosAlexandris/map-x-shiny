@@ -186,24 +186,6 @@ Map
   width: 52px;
   float:right;
 }
-
-/*
-loading content
- 
- */
-#loading-content {
-  padding-top : 70px;
-  position: absolute;
-  background: #000000;
-  opacity: 0.9;
-  z-index: 10000;
-  left: 0;
-  right: 0;
-  height: 100%;
-  text-align: center;
-  color: #FFFFFF;
-}
-
 /*
 leaflet modification
  */
@@ -833,9 +815,10 @@ select:focus, select:active{
 }
 
 
-.mxHide {
+.mx-hide {
   position: absolute !important;
   top: -9999px !important;
+ /* display:none !important;*/
 }
 
 
@@ -1240,15 +1223,16 @@ padding-right: 100px;
 }
 
 .hide-scroll {
-
   overflow: hidden;
 }
 
 .hide-scroll {
   border-bottom: 1px solid white;
   border-top: 1px solid white;
-  height: 100%;
-  margin:10px;
+  height: 90%;
+  margin: 0px;
+  /*  height: 100%;*/
+   margin:10px;
   position: relative;
 }
 .viewport p:last-child {

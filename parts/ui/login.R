@@ -1,6 +1,12 @@
-#
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
 # user login
-#
+
 tags$section(id="sectionLogin",class="container-fluid",
   div(class="row",
     div(class="col-lg-10 col-lg-offset-1",

@@ -70,7 +70,7 @@ loc = {
       "eng": "Display the map views explorer",
       "fre": "Afficher l'explorateur de vues"
     },
-    "add": {
+    "creator": {
       "eng": "Add data and configure views",
       "fre": "Ajouter des données et configurer les vues"
     },

@@ -1,7 +1,12 @@
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# navigation bar
 
-#
-# NAVBAR
-#
 tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
   div(class="container",
     div(class="navbar-header",
@@ -39,7 +44,7 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
           tags$a(
             mx_set_lang="title.navBar.country",
             id="btnNavCountry",
-            class="page-scroll btn btn-circle",
+            class="page-scroll btn btn-circle mx-hide",
             href="#sectionCountry",
             tags$i(
               class="fa fa-bar-chart animated")
@@ -49,7 +54,7 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
           tags$a(
             mx_set_lang="title.navBar.map",
             id="btnNavMap",
-            class="page-scroll btn btn-circle",
+            class="page-scroll btn btn-circle mx-hide",
             href="#sectionMap",
             tags$i(
               class="fa fa-map-o animated")
@@ -68,7 +73,7 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
           tags$a(
             mx_set_lang="title.navBar.admin",
             id="btnNavAdmin",
-            class="page-scroll btn btn-circle",
+            class="page-scroll btn btn-circle mx-hide",
             href="#sectionAdmin",
             tags$i(
               class="fa fa-wrench animated")
@@ -83,7 +88,7 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
             tags$i(class="fa fa-comment-o animated")
             )
           )
-       
+
         ) 
       )
     )

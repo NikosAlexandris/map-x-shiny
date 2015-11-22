@@ -1,12 +1,13 @@
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# country analysis 
 
-
-#
-# ui country
-#
-
-
-
-tags$section(id="sectionCountry",class="container-fluid",
+tags$section(id="sectionCountry",class="container-fluid mx-hide",
   tagList(
     div(class="row",
       div(class="col-lg-10 col-lg-offset-1",

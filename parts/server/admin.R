@@ -1,15 +1,29 @@
-#
-# ADMIN SECTION RESTRICTED AREA
-#
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# administrative panel management
 
+# ui enable
 observe({
-  #mxDebugMsg(paste("ALLOW ADMIN TEST=",mxReact$allowAdmin))
   mxUiEnable(id="sectionAdmin",enable=mxReact$allowAdmin) 
 })
 
+# 
+# Debugger button
+#
+observeEvent(input$btnDebug,{
+  if(mxReact$allowAdmin){
+    browser()
+  }
+})
+
+
 observe({
   if(mxReact$allowAdmin){
-    #mxReact$pwd <- mxData$pwd
     #
     # USERS
     # 

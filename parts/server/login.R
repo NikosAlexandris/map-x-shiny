@@ -1,47 +1,65 @@
-#### Log in module ###
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# login and restriction  management
 
-
-
-
-mxReact <- reactiveValues(
-  userLogged = FALSE,
-  userRole = character(0),
-  userName = character(0),
-  mxSecret = mxCreateSecret() 
-  )
-
-# set the first secret
-
-
-observeEvent(session$onFlushed,{
-  cat("Session flushed\n")
-  mxSetCookie(cookie=list(s=mxReact$mxSecret))
+#
+# initialise  session when document is ready
+#
+observeEvent(input$documentIsReady,{
+  tempSecret <-  mxCreateSecret()
+  mxSetCookie(cookie=list(t=session$token,s=tempSecret))
+  mxReact$tempSecret <- tempSecret
+  mxReact$userLogged <- FALSE
+  mxReact$userRole <- character(0)
+  mxReact$userName <- character(0)
+  mxReact$sessionToken <- session$token
+  mxLoadingPanel(enable=FALSE) 
 })
 
 
 
+
+
+# Language selection
+observe({
+  selLanguage = input$selectLanguage
+  if(!noDataCheck(selLanguage)){
+    mxReact$selectLanguage = selLanguage
+  } 
+})
+
+# if the user press the login button and is not yet logged, write a cookie
+# the cookie will be read again server side.
 observeEvent(input$btnLogin,{
   if (mxReact$userLogged == FALSE) {
-    if (!is.null(input$loginUser)) {
+    lUser <- input$loginUser
+    lKey <- input$loginKey
+    if (!noDataCheck(lUser) && !noDataCheck(lKey)) {
       if (input$btnLogin > 0) {
-        lUser <- input$loginUser
-        lKey <- input$loginKey
-        lSec <- mxCreateSecret()
+        lSec <- mxCreateSecret() # send a temp secret, only for this request.
         res <- list(
-          l = input$loginUser,
-          k = input$loginKey,
+          l = lUser,
+          k = lKey,
           s = lSec
           )
-        mxReact$mxSecret <- lSec
+        # NOTE: save the secret in reactive elemement
+        mxReact$tempSecret <- lSec
         mxSetCookie(cookie=res,nDaysExpires=10)
     }}
   }
-      })
+  })
 
-
+# read the cookie and check if everything is ok
 observeEvent(input$readCookie,{
-  cat("Read cookies done.\n")
-  val = input$readCookie 
+  mxDebugMsg("Read cookies in server")
+  val <- input$readCookie 
+  if(noDataCheck(val) || length(val)==0)return()
+
   nVal = names(val)
   msg =  "Plase enter user name and key"
   mxReact$userLogged <- FALSE
@@ -50,11 +68,13 @@ observeEvent(input$readCookie,{
   mxReact$userLastLogin <- NULL
   mxReact$userEmail <- NULL
   pwd <- mxData$pwd
-
+  # check if login and key are in given cookie values
   if(isTRUE("l" %in% nVal && "k" %in% nVal)){
-    if(val$s==mxReact$mxSecret){
+    # Check for secret and session token.
+    # if the secret does not match : not done after btnLogin pressed.
+    if(val$s==mxReact$tempSecret){
       # delete the secret
-      mxReact$mxSecret <- NULL
+      mxReact$tempSecret <- NULL
       msg = character(0)
       idUser <- which(pwd$l==val$l)
       idKey <- which(pwd$k==val$k) 
@@ -82,24 +102,42 @@ observeEvent(input$readCookie,{
       })
 
 
+
+
+
 observeEvent(input$btnLogout,{
-  mxSetCookie(cookie=list(s="",l="",k=""),deleteAll=TRUE)
-      })
+  mxLoadingPanel(enable=T)
+  mxUpdateValue(id="loginUser",value="")
+  mxUpdateValue(id="loginKey",value="")
+  mxSetCookie(cookie=list(t="",s="",l="",k=""),deleteAll=TRUE)
+  
+  session$sendCustomMessage("jsCode",list(code="location.reload(true);window.history.forward(1);"))
+  Sys.sleep(1.5)
+})
 
 #
 # ALLOW PARTS
 #
 observe({
   #NOTE: order is important
+  mxReact$allowStoryCreator <- mxAllow(
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
+    roleLowerLimit = 1000
+    )
+  mxReact$allowStoryReader <- mxAllow(
+    logged = mxReact$userLogged,
+    roleName = mxReact$userRole,
+    roleLowerLimit = 100
+    )
   mxReact$allowViewsCreator <- mxAllow(
     logged = mxReact$userLogged,
     roleName = mxReact$userRole,
     roleLowerLimit = 1000
     )
-  mxReact$allowAnalysis <- mxAllow(
+  mxReact$allowToolbox <- mxAllow(
     logged = mxReact$userLogged,
     roleName = mxReact$userRole,
-    #roleLowerLimit = 100
     roleLowerLimit = 100
     )
   mxReact$allowMap <- mxAllow(

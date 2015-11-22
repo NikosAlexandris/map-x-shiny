@@ -1,3 +1,11 @@
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# views list generator
 
 #
 # POPULATE VIEWS LIST 
@@ -127,12 +135,10 @@ observe({
       # toggle option panel for this view
       toggleOptions <- sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)
       # set on hover previre for this view
-      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,1000))
+      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,3000))
       # create html
       val <- div(class="checkbox",
         tags$label(id=itIdLabel,
-          #onmouseover=sprintf("vtPreview('%s')",itId),
-          #onmouseout=sprintf("vtPreview('%s')",""),
           tags$input(type="checkbox",class="vis-hidden",name=id,value=itId,
             onChange=toggleOptions),
           div(class="map-views-item",
@@ -252,8 +258,9 @@ observe({
                 # get map proxy, hide group and control. 
                 proxyMap <- leafletProxy("mapxMap",deferUntilFlush=FALSE)
                 proxyMap %>% 
+                removeControl(layerId=legendId) %>%
                 hideGroup(as.character(vToHide))
-
+                # double removal
                 mxRemoveEl(class=legendId)
               }
                 })
@@ -273,11 +280,15 @@ observe({
                   mxStyle$layer <- sty$layer
                   mxStyle$group <- vToCalc
                   mxStyle$variable <- sty$variable
+                  vUnit <- sty$variableUnit
                   vToKeep <- sty$variableToKeep 
-
                   # As we check for null in layerStyle(),add "noData/noVariable" values.
-                  if(is.null(vToKeep))vToKeep=mxConfig$noVariable
-                  mxStyle$variableToKeep = vToKeep
+                  if(is.null(vToKeep))vToKeep <- mxConfig$noVariable
+                  mxStyle$variableToKeep <- vToKeep
+
+                  if(is.null(vUnit))vUnit <- ""
+                  mxStyle$variableUnit
+
                 }
               }
                 })
@@ -289,8 +300,8 @@ observe({
               vToShow <- mxReact$vToShow
               vData <- mxReact$views
               if(!noDataCheck(vToShow)){
-                #legendId <- sprintf("%s_legends",vToShow)
-                legendId <- sprintf("info legend %s_legends",vToShow)
+                legendId <- sprintf("%s_legends",vToShow)
+                legendClass <- sprintf("info legend %s",legendId)
                 proxyMap <- leafletProxy("mapxMap")
                 sty <- vData[[vToShow]]$style
                 hasLegend <- ! isTRUE(sty$hideLegends)
@@ -305,8 +316,7 @@ observe({
                   palFun <- sty$paletteFun
                   proxyMap %>%
                   showGroup(as.character(vToShow)) %>%
-                  addLegend(position="topright",class=legendId,pal=palFun,values=val,title=tit)
-                  #addLegend(position="topright",pal=palFun,values=val,title=tit,layerId = legendId)
+                  addLegend(position="topright",layerId=legendId,class=legendClass,pal=palFun,values=val,title=tit)
                 }else{
                   proxyMap %>%
                   showGroup(as.character(vToShow))

@@ -1,3 +1,55 @@
+
+
+
+
+
+
+// When document is ready
+$( document ).ready(function() {
+// read cookie at start
+//readCookie();
+Shiny.onInputChange("documentIsReady",new Date());
+// shiny binding to set cookie. After cookie set, read it again.
+Shiny.addCustomMessageHandler("mxSetCookie",
+    function(message) {
+      eval(message.code);
+      readCookie();  
+    }
+    )
+});
+
+
+
+
+// Generic read cookie function and send result to shiny
+function readCookie()
+{   
+  var cookies = document.cookie.split("; ");
+  var values = {};
+  for (var i = 0; i < cookies.length; i++)
+  {   
+    var spcook =  cookies[i].split("=");
+    values[spcook[0]]=spcook[1];
+  }
+  Shiny.onInputChange("readCookie", values);
+}
+
+
+function clearListCookies(){
+  var cookies = document.cookie.split(";");
+  for (var i = 0; i < cookies.length; i++){   
+    var spcook =  cookies[i].split("=");
+    document.cookie = spcook[0] + "=;expires=Thu, 21 Sep 1979 00:00:01 UTC;";                                
+  }
+  //  document.location.reload(true);
+}
+
+
+
+
+
+
+
 /* temporary object to hold ui and style state*/
 var leafletvtId = {};
 var mxPanelMode = {};
@@ -451,6 +503,8 @@ function mxSetStyle(id,vtStyle,lay,overwrite){
   console.log("Apply style function for "+id);
   leafletvtId[id].setStyle(sty,lay+"_geom");
 }
+
+
 
 
 //
