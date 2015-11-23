@@ -112,10 +112,14 @@ uiMapConfig <- tagList(
                   tags$li(actionButton("btnRemoveBaseMap",icon("times")))
                   ),
                 h4('Add wms'),
-                actionLink("linkSetWmsExampleColumbia","http://sedac.ciesin.columbia.edu/geoserver/wms"),
-                actionLink("linkSetWmsExampleGrid","http://preview.grid.unep.ch:8080/geoserver/wms"),
-                actionLink("linkSetWmsExampleEsri","http://preview.grid.unep.ch:8080/geoserver/wms"),
-                textInput("txtWmsServer","Add wms server"),
+                selectInput("selectWmsServer","Select a predefined WMS server",choices=list(
+                      "columbia.edu"="http://sedac.ciesin.columbia.edu/geoserver/wms",
+                      "preview.grid.unep.ch"="http://preview.grid.unep.ch:8080/geoserver/wms",
+                      "sampleserver6.arcgisonline.com"="http://sampleserver6.arcgisonline.com/arcgis/services/911CallsHotspot/MapServer/WMSServer",
+                      "nowcoast.noaa.gov"="http://nowcoast.noaa.gov/arcgis/services/nowcoast/analysis_meteohydro_sfc_qpe_time/MapServer/WmsServer"
+                    )
+                  ),
+                textInput("txtWmsServer","Edit WMS server"),
                 textOutput("msgWmsServer"),
                 selectInput("selectWmsLayer","Select available layer",choices=""),
                 tags$ul(class="list-inline banner-social-buttons",

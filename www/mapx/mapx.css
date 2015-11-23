@@ -412,7 +412,7 @@ input:checked + .map-views-item {
   overflow-y:scroll;
   margin:20px;
   width:90%;
-
+  cursor:text;
 }
 
 .panel-overall {
