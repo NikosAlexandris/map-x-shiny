@@ -110,10 +110,23 @@ mxJsHide <- function(session=getDefaultReactiveDomain(),id="loading-content",dur
 #' @param m Message to be printed
 #' @return NULL
 #' @export
-mxDebugMsg <- function(m=""){ 
+mxDebugMsg <- function(text=""){ 
+  m <- text
   options(digits.secs=6)
   cat(paste0("[",Sys.time(),"] ",m,'\n'))
 }
+
+mxConsoleText <- function(text=""){
+ nc <- nchar(text)
+ lc <- 79-nc
+ mc <- lc %/% 2
+ bar <- paste(rep("-",mc),collapse="")
+ out <- paste0(bar,text,bar,"\n",sep="")
+cat(out)
+}
+
+
+
 
 #' Create a modal panel
 #'

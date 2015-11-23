@@ -182,19 +182,49 @@ observeEvent(input$btnRemoveBaseMap,{
 # Additional WMS map
 #
 
-observeEvent(input$linkSetWmsExampleColumbia,{
-  updateTextInput(session,"txtWmsServer",value="http://sedac.ciesin.columbia.edu/geoserver/wms")
+
+
+observe({
+updateTextInput(session,inputId="txtWmsServer",value=input$selectWmsServer)
 })
 
 
 
-observeEvent(input$linkSetWmsExampleGrid,{
-  updateTextInput(session,"txtWmsServer",value="http://preview.grid.unep.ch:8080/geoserver/wms")
-})
-
-
-
-
+#' Get list of available layers and name.
+#' @param getCapabilitiesList List that contains a list of a parsed GetCapabilities on a wms server (esri or ogc should work)
+mxGetWmsLayers <- function(getCapabilitiesList){
+  dat <- getCapabilitiesList
+  if(class(dat) != "list"){
+    stop("mxGetWmsLayers expects a list")
+  }
+  layers <- dat[['Capability']][['Layer']]
+  layers <- layers[names(layers)=="Layer"]
+  nLayer <- length(layers)
+  res <- list()
+  for(i in 1:nLayer){
+    j <- layers[[i]]
+    k <- j[names(j) == "Layer"]
+    n <- length(k)
+    ln <- j[['Name']]
+    lt <- na.omit(j[['Title']])
+    if(n>0){
+      for(l in 1:n){
+        kn <- k[[l]][['Name']]
+        if(!is.null(kn)){
+          ln<-c(ln,kn)
+        }
+      }
+    }
+    ln<-paste(ln,collapse=",")
+    if(!isTRUE(nchar(lt)>0)){
+      ln <-paste("[ no title ", randomName()," ]",sep="")
+    }
+    if(isTRUE(nchar(ln)>0)){
+      res[lt]<-ln
+    }
+  }
+  return(res)
+}
 
 
 observeEvent(input$btnValidateWms,{
@@ -202,53 +232,53 @@ observeEvent(input$btnValidateWms,{
     wmsServer <- input$txtWmsServer
     if(!noDataCheck(wmsServer)){
 
+#      wmsServer="http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi"
+ #     wmsServer="http://nowcoast.noaa.gov/arcgis/services/nowcoast/analysis_meteohydro_sfc_qpe_time/MapServer/WmsServer"
       req="?service=WMS&request=GetCapabilities"
       req <- paste0(wmsServer,req)
 
       cachedRequest<-mxReact$wmsRequest[[wmsServer]]
 
       if(noDataCheck(cachedRequest)){ 
-        dat <- XML::xmlToList(req)
+
+        pars <- XML::xmlParse(req,options=XML::NOCDATA) 
+        dat <- XML::xmlToList(pars)
+
         mxReact$wmsRequest[[wmsServer]] <- dat
       }else{
         dat <- cachedRequest 
       }
-      res=list()
-      layers <- dat[['Capability']][['Layer']]
-      layLength <- length(layers)
-      for(i in 1:layLength){
-        if(names(layers[i])=="Layer"){
-          # legends : Layers[i]$Layer$Style$LegendURL
-          res[layers[i]$Layer$Title]<-i
-        }
-      }
+  
+
+      res = mxGetWmsLayers(dat)
+
       updateSelectInput(session,'selectWmsLayer',choices=res,selected=res[1])
     }
 })
 })
 
 
-observe({
+observeEvent(input$selectWmsLayer,{
   mxCatch(title="Add wms layer",{
     layerId = "wmslayer"
     lay <- input$selectWmsLayer
     url <- input$txtWmsServer
-    if(!noDataCheck(lay) && !noDataCheck(url)){
-      isolate({
-        dat<-mxReact$wmsRequest[[url]][['Capability']][['Layer']][[as.numeric(lay)]]
-        proxyMap <- leafletProxy("mapxMap")
-        proxyMap %>% addWMSTiles(
-          layerId=layerId,
-          baseUrl=url,
-          layers=dat$Name,
-          options=list(
-            "transparent"="true",
-            "format"="image/png8",
-            "zIndex"=-1
-            )
-          )
 
-    })}
+    if(!noDataCheck(lay) && !noDataCheck(url)){
+
+      proxyMap <- leafletProxy("mapxMap")
+      proxyMap %>% addWMSTiles(
+        layerId=layerId,
+        baseUrl=url,
+        layers=lay,
+        options=list(
+          "transparent"="true",
+          "format"="image/png8",
+          "zIndex"=-1
+          )
+        )
+
+    }
 })
 })
 
