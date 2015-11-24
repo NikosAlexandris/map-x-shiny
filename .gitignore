@@ -1,6 +1,5 @@
 # settings
-settings/settings.R
-settings/config.R
+settings/config-local.R
 settings/sshConfig
 # History files
 .Rhistory
