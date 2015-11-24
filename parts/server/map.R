@@ -99,37 +99,36 @@ observeEvent(input$btnStoryReader,{
 #
 # Clear layer after exlorer mode enter
 #
-observeEvent(input$btnViewsExplorer,{
-  if(mxReact$allowMap){
-    mxCatch(title="Clean creator layers",{
-      reactiveValuesReset(mxStyle)
-      mxStyle <- reactiveValues()
-      dGroup <- mxConfig$defaultGroup
-      legendId <- paste0(dGroup,"_legends")
-      proxyMap <- leafletProxy("mapxMap")
-      proxyMap %>%
-      removeControl(layerId=legendId) %>%
-      clearGroup(dGroup)
-  # double remove.
-  mxRemoveEl(class=legendId)
-        })
-  }
-})
-
+#observeEvent(input$btnViewsExplorer,{
+#  if(mxReact$allowMap){
+#    mxCatch(title="Clean creator layers",{
+#      reactiveValuesReset(mxStyle)
+#      mxStyle <- reactiveValues()
+#      dGroup <- mxConfig$defaultGroup
+#      legendId <- paste0(dGroup,"_legends")
+#      proxyMap <- leafletProxy("mapxMap")
+#      proxyMap %>%
+#      removeControl(layerId=legendId) %>%
+#      clearGroup(dGroup)
+#  # double remove.
+#  mxRemoveEl(class=legendId)
+#        })
+#  }
+#})
+#
 #
 # Clear layer after creator enter
 #
-observeEvent(input$btnViewsCreator,{
-  if(mxReact$allowMap){
-
-    mxStyle$group <- "G1"
-    mxStyle$layer <- NULL
-    mxStyle$variable <- NULL
-    mxStyle$values <- NULL
-      #   reactiveValuesReset(mxStyle)
-      mxReact$viewsToDisplay = ""
-  }
-})
+#observeEvent(input$btnViewsCreator,{
+#  if(mxReact$allowMap){
+#    mxStyle$group <- "G1"
+#    #mxStyle$layer <- NULL
+#    #mxStyle$variable <- NULL
+#    #mxStyle$values <- NULL
+#      #   reactiveValuesReset(mxStyle)
+#    # mxReact$viewsToDisplay = ""
+#  }
+#})
 
 #
 # Main map
