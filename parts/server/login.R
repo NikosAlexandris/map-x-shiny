@@ -24,6 +24,20 @@ observeEvent(input$documentIsReady,{
 
 
 
+mxDebugToJs<-function(text){
+
+  js <- jsonlite::toJSON(text)
+
+  js <- sprintf("console.log(%s);",js)
+session$sendCustomMessage(
+      type="jsCode",
+      list(code=js)
+      )
+
+
+}
+
+
 
 # Language selection
 observe({
@@ -72,6 +86,8 @@ observeEvent(input$readCookie,{
   if(isTRUE("l" %in% nVal && "k" %in% nVal)){
     # Check for secret and session token.
     # if the secret does not match : not done after btnLogin pressed.
+  
+
     if(val$s==mxReact$tempSecret){
       # delete the secret
       mxReact$tempSecret <- NULL
@@ -80,6 +96,7 @@ observeEvent(input$readCookie,{
       idKey <- which(pwd$k==val$k) 
       match <- isTRUE(idUser == idKey)
       if(isTRUE(match)){
+      mxDebugToJs(sprintf("user %s will be loged in ",val$l))  
         # retrieve info about the user
         mxReact$userLogged <- TRUE
         mxReact$userRole <- pwd[idKey,'r']
