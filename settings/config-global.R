@@ -322,6 +322,7 @@ mxData$pwd <- rbind(
   c(id=5,u="paulina",l="e16866458c9403fe9fb3df93bd4b3a41", k="e16866458c9403fe9fb3df93bd4b3a41", r="user",e="mail@example.com"),
   c(id=6,u="greg",l="ea26b0075d29530c636d6791bb5d73f4",k="ea26b0075d29530c636d6791bb5d73f4", r="user",e="mail@example.com"),
   c(id=7,u="guest",l="084e0343a0486ff05530df6c705c8bb4",k="084e0343a0486ff05530df6c705c8bb4", r="user",e="mail@example.com")
+  c(id=7,u="jjacques",l="6cb261a6203d1e441c5b2110a182701f",k="0e3b98b36a16e55b08ce156a02397506", r="user",e="mail@example.com")
   )
 mxData$pwd <- as.data.frame(mxData$pwd,stringsAsFactors=F)
 mxData$pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 
