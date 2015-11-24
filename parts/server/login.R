@@ -24,18 +24,7 @@ observeEvent(input$documentIsReady,{
 
 
 
-mxDebugToJs<-function(text){
 
-  js <- jsonlite::toJSON(text)
-
-  js <- sprintf("console.log(%s);",js)
-session$sendCustomMessage(
-      type="jsCode",
-      list(code=js)
-      )
-
-
-}
 
 
 

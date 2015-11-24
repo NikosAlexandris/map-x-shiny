@@ -125,7 +125,14 @@ mxConsoleText <- function(text=""){
 cat(out)
 }
 
-
+mxDebugToJs<-function(text,session=getDefaultReactiveDomain()){
+  js <- jsonlite::toJSON(text)
+  js <- sprintf("console.log(%s);",js)
+  session$sendCustomMessage(
+    type="jsCode",
+    list(code=js)
+    )
+}
 
 
 #' Create a modal panel

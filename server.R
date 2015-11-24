@@ -84,6 +84,7 @@ shinyServer(function(input, output, session) {
     observe({
       if(mxReact$allowMap){
         source("parts/server/map.R",local=TRUE)
+        source("parts/server/wms.R",local=TRUE)
         source("parts/server/tenke.R",local=TRUE)
       }
     })
