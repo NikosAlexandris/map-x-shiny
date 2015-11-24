@@ -180,6 +180,19 @@ observeEvent(input$fileNewLayer,{
         }
 })
 
+      observeEvent(input$btnViewsCancel,{
+        if(mxReact$allowViewsCreator){
+          dGroup <- mxConfig$defaultGroup
+          legendId <- paste0(dGroup,"_legends")
+          proxyMap <- leafletProxy("mapxMap")
+          proxyMap %>%
+          removeControl(layerId=legendId) %>%
+          clearGroup(dGroup)
+          # double remove.
+          mxRemoveEl(class=legendId)
+        }
+})
+
 
 
       #
