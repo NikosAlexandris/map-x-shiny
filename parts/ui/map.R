@@ -302,14 +302,8 @@ uiMapToolbox <- tagList(
                       class="btn-icon mx-mode-creator mx-hide",
                       label=icon("refresh")
                       )
-                    ),
-                   tags$li(
-                    actionButton('btnViewsCancel',
-                      class="btn-icon mx-mode-creator mx-hide",
-                      label=icon("times")
-                      )
                     )
- 
+            
                   )
                 )
               )
