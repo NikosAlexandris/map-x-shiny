@@ -113,6 +113,7 @@ uiMapConfig <- tagList(
                   ),
                 h4('Add wms'),
                 selectInput("selectWmsServer","Select a predefined WMS server",choices=list(
+                      "forestCover"="http://50.18.182.188:6080/arcgis/services/ForestCover_lossyear/ImageServer/WMSServer",
                       "columbia.edu"="http://sedac.ciesin.columbia.edu/geoserver/wms",
                       "preview.grid.unep.ch"="http://preview.grid.unep.ch:8080/geoserver/wms",
                       "sampleserver6.arcgisonline.com"="http://sampleserver6.arcgisonline.com/arcgis/services/911CallsHotspot/MapServer/WMSServer",
@@ -120,10 +121,12 @@ uiMapConfig <- tagList(
                     )
                   ),
                 textInput("txtWmsServer","Edit WMS server"),
+                tags$ul(class="list-inline banner-social-buttons",
+                  tags$li(actionButton("btnValidateWms",icon("refresh")))
+                  ),
                 textOutput("msgWmsServer"),
                 selectInput("selectWmsLayer","Select available layer",choices=""),
                 tags$ul(class="list-inline banner-social-buttons",
-                  tags$li(actionButton("btnValidateWms",icon("refresh"))),
                   tags$li(actionButton("btnRemoveWms",icon("times")))
                   )
                 )
