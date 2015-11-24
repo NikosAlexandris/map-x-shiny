@@ -1,3 +1,13 @@
+#                             
+#  _ __ ___   __ _ _ __   __  __
+# | '_ ` _ \ / _` | '_ \  \ \/ /
+# | | | | | | (_| | |_) |  >  < 
+# |_| |_| |_|\__,_| .__/  /_/\_\
+#                 | |           
+#                 |_|           
+# configuration global.
+
+
 # Set shiny options
 options(shiny.maxRequestSize=30*1024^2)
 # map-x configuration list (hold parameters)
@@ -12,27 +22,18 @@ options(
  shiny.trace=FALSE
  )
 
-#
-# Config
-#
 
-mxConfig$defaultCountry = "COD"
-# no data string
-mxConfig$noData = "[ NO DATA ]"
-# Defaut value string
-mxConfig$noVariable = "[ DEFAULT ]"
-# No layer string
-mxConfig$noLayer = "[ NO LAYER ]"
-# No title
-mxConfig$noTitle = "[ NO TITLE ]"
-# No filter value
-mxConfig$noFilter = "[ ALL ]"
-# map zoom
-mxConfig$defaultZoom = 9
-# Default layer group name
-mxConfig$defaultGroup = "G1"
-# column column used in postgis
-mxConfig$defaultGeomCol = "geom"
+##########################################################################
+#                                                                        #
+# LOCAL CONFIGURATION                                                    #
+#                                                                        # 
+##########################################################################
+# those settings should be modified in /settings/config-local.R 
+
+# database connection 
+dbInfo=list(host="",dbname="",port="",user="",password="")
+# remote host (when using map-x outside virtual server)
+remoteInfo = list(host="",user="",port="")
 # In this case : Darwin = devel environment; linux = production environment
 mxConfig$os<-Sys.info()['sysname']
 # port depending on which plateform map-x shiny is launched
@@ -51,6 +52,34 @@ switch(
     print("map-x launched on LINUX")
   } 
   )
+
+
+##########################################################################
+#                                                                        #
+# GLOBAL CONFIGURATION                                                   #
+#                                                                        # 
+##########################################################################
+# set general parameters. Modify with caution :)
+
+
+mxConfig$defaultCountry = "COD"
+# no data string
+mxConfig$noData = "[ NO DATA ]"
+# Defaut value string
+mxConfig$noVariable = "[ DEFAULT ]"
+# No layer string
+mxConfig$noLayer = "[ NO LAYER ]"
+# No title
+mxConfig$noTitle = "[ NO TITLE ]"
+# No filter value
+mxConfig$noFilter = "[ ALL ]"
+# map zoom
+mxConfig$defaultZoom = 9
+# Default layer group name
+mxConfig$defaultGroup = "G1"
+# column column used in postgis
+mxConfig$defaultGeomCol = "geom"
+
 # roles
 mxConfig$rolesVal <- list(
   "superuser" = 1000,
@@ -159,6 +188,122 @@ mxConfig$maxDate <- paste0(mxConfig$currentYear+50,"-01-01")
 #
 
 
+
+mxData$countryStory <- fromJSON('data/countriesEitiStory.json')
+mxData$rgi_score_2013 <- na.omit(import('data/rgi_2013-compscores.csv'))
+mxData$rgi_score_2013$iso3 <- countrycode(mxData$rgi_score_2013$Country,'country.name','iso3c')
+
+
+
+
+
+
+# Default base layer for testing
+mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,lat=0,zoom=5)){
+  switch(iso3,
+    "COD"={
+      leaflet() %>%
+      clearGroup(group) %>%
+      addTiles(
+        paste0(
+          "http://",
+          mxConfig$hostVt,":",
+          mxConfig$portVtPublic,
+          "/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png"
+          ),
+        group=group,
+        options=list(
+          "zIndex"=-5,
+          "minZoom"=0,
+          "maxZoom"=6)
+        ) %>%  
+      addTiles(
+        paste0(
+          "http://",
+          mxConfig$hostVt,":",
+          mxConfig$portVtPublic,
+          "/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png"
+          ),
+        group=group,
+        options=list(
+          "zIndex"=-5,
+          "minZoom"=7,
+          "maxZoom"=10)
+        ) %>%
+      setView(center$lng,center$lat,center$zoom)
+    },
+    "AFG"={
+      leaflet() %>%
+      clearGroup(group) %>%
+      addTiles(
+        paste0(
+          "http://",
+          mxConfig$hostVt,":",
+          mxConfig$portVtPublic,
+          "/services/tiles/afg_base_layer/{z}/{x}/{y}.png"
+          ),
+        group=group,
+        options=list(
+          "zIndex"=-5
+          )
+        )%>% setView(center$lng,center$lat,center$zoom)
+    } 
+    )
+}
+
+
+# Default label layer for testing
+mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
+  switch(iso3,
+    "COD"={
+      proxyMap %>%
+      clearGroup(group) %>%
+      addTiles(
+        paste0(
+          "http://",
+          mxConfig$hostVt,":",
+          mxConfig$portVtPublic,
+          "/services/tiles/cod_labels_0_6/{z}/{x}/{y}.png"
+          ),
+        group=group,
+        options=list(
+          "zIndex"=30,
+          "minZoom"=0,
+          "maxZoom"=6)
+        ) %>%  addTiles(
+        paste0(
+          "http://",
+          mxConfig$hostVt,":",
+          mxConfig$portVtPublic,
+          "/services/tiles/cod_labels_7_10/{z}/{x}/{y}.png"
+          ),
+        group=group,
+        options=list(
+          "zIndex"=30,
+          "minZoom"=7,
+          "maxZoom"=10)
+        )
+    },
+    "AFG"={
+      proxyMap %>%
+      clearGroup(group) %>%
+      addTiles(
+        paste0(
+          "http://",
+          mxConfig$hostVt,":",
+          mxConfig$portVtPublic,
+          "/services/tiles/afg_labels/{z}/{x}/{y}.png"
+          ),
+        group=group,
+        options=list(
+          zIndex=30
+          )
+        )
+    }
+    )
+}
+
+
 # md5 hashed pwd (for testing only)
 # u = user
 # l = login
@@ -180,17 +325,6 @@ mxData$pwd <- rbind(
   )
 mxData$pwd <- as.data.frame(mxData$pwd,stringsAsFactors=F)
 mxData$pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 
-
-
-
-
-mxData$countryStory <- fromJSON('data/countriesEitiStory.json')
-mxData$rgi_score_2013 <- na.omit(import('data/rgi_2013-compscores.csv'))
-mxData$rgi_score_2013$iso3 <- countrycode(mxData$rgi_score_2013$Country,'country.name','iso3c')
-
-
-
-
 
 
 
