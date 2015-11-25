@@ -332,9 +332,9 @@ setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtId
 #' @param label Label to display
 #' @export
 pwdInput <- function(inputId, label) {
-  tagList(
-    tags$label(label),
-    tags$input(id = inputId,class="mxLoginInput",type="password", value="")
+    tagList(
+#    tags$label(label),
+    tags$input(id = inputId,placeholder=label,class="mxLoginInput",type="password", value="")
     )
 }
 
@@ -347,8 +347,8 @@ pwdInput <- function(inputId, label) {
 #' @export
 usrInput <- function(inputId, label) {
   tagList(
-    tags$label(label),
-    tags$input(id = inputId, class="mxLoginInput usernameInput", value="")
+    #tags$label(label),
+    tags$input(id = inputId, placeholder=label,class="mxLoginInput usernameInput", value="")
     )
 }
 

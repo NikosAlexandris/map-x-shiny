@@ -798,6 +798,8 @@ padding: 10px;
   border: white;
   border-bottom: 1px solid white;
   border-left: 1px solid white;
+  width: 100%;
+  overflow: hidden;
 }
 
 #selectCountryNav {

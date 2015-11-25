@@ -23,11 +23,6 @@ observeEvent(input$documentIsReady,{
 
 
 
-
-
-
-
-
 # Language selection
 observe({
   selLanguage = input$selectLanguage
