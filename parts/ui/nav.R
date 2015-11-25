@@ -40,6 +40,16 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
               class="fa fa-user animated")
             )
           ),
+     #   tags$li(
+     #     actionLink(
+     #       mx_set_lang="title.navBar.profil",
+     #       inputId="btnNavLogin",
+     #       class="btn btn-circle",
+     #       label=tags$i(
+     #         class="fa fa-bar-chart animated")
+     #       )
+     #       )
+     #     ),
         tags$li(
           tags$a(
             mx_set_lang="title.navBar.country",
