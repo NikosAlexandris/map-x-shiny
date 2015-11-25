@@ -70,6 +70,14 @@ loc = {
       "eng": "Display the map views explorer",
       "fre": "Afficher l'explorateur de vues"
     },
+    "storyCreator": {
+      "eng": "Display story map creator",
+      "fre": "Afficher le createur de story map"
+    },
+    "storyReader": {
+      "eng": "Display the story map reader",
+      "fre": "Afficher le lecteur de story map"
+    },
     "creator": {
       "eng": "Add data and configure views",
       "fre": "Ajouter des données et configurer les vues"
