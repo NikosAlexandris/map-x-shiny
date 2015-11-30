@@ -31,3 +31,6 @@ library(xts)
 
 # data transfer
 library(base64enc)
+
+# story map
+library(knitr)
