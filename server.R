@@ -27,9 +27,9 @@ ui <- tagList(
   # sections
   loadUi("parts/ui/nav.R"),
   loadUi("parts/ui/intro.R"), 
-  loadUi("parts/ui/login.R"),
-  loadUi("parts/ui/country.R"),
+#  loadUi("parts/ui/login.R"),
   loadUi("parts/ui/map.R"),
+  loadUi("parts/ui/country.R"),
   loadUi("parts/ui/about.R"),
   loadUi("parts/ui/admin.R"),
   loadUi("parts/ui/footer.R"),

@@ -200,6 +200,8 @@ observe({
           # VIEWS MANAGER
           #
 
+
+     
           observe({
             mxCatch(title="Views manager",{
               vUrl <- mxReact$viewsFromUrl

@@ -28,7 +28,7 @@ uiMapCreator <-tagList(
                     )
                   ),
                 hr(),
-                uiOutput("newLayerNameValidation"),
+                div(id="newLayerNameValidation"),
                 hr(),
                 mxFileInput("fileNewLayer",
                   label="Choose a file (geojson)",
@@ -70,27 +70,27 @@ uiMapCreator <-tagList(
                 )) 
             )
           ),
-          div(class="shiny-input-container-inline shiny-flow-layout",
-                       tags$h4(textOutput("txtValidationCreator"))
-            ) 
-          )
+        div(class="shiny-input-container-inline shiny-flow-layout",
+          tags$h4(textOutput("txtValidationCreator"))
+          ) 
         )
       )
     )
+  )
 
-  uiMapList <- tagList(
-    #
-    # MAP 
-    #
-    tags$section(id="sectionMapList",class="mx-mode-explorer container-fluid",
-      div(class="row",
-        div(class="col-lg-12",
-          # created in parts/server/views.R
-          uiOutput('checkInputViewsContainer')
-          )
+uiMapList <- tagList(
+  #
+  # MAP 
+  #
+  tags$section(id="sectionMapList",class="mx-mode-explorer container-fluid",
+    div(class="row",
+      div(class="col-lg-12",
+        # created in parts/server/views.R
+        uiOutput('checkInputViewsContainer')
         )
       )
     )
+  )
 
 
 uiMapConfig <- tagList(
@@ -113,11 +113,11 @@ uiMapConfig <- tagList(
                   ),
                 h4('Add wms'),
                 selectInput("selectWmsServer","Select a predefined WMS server",choices=list(
-                      "forestCover"="http://50.18.182.188:6080/arcgis/services/ForestCover_lossyear/ImageServer/WMSServer",
-                      "columbia.edu"="http://sedac.ciesin.columbia.edu/geoserver/wms",
-                      "preview.grid.unep.ch"="http://preview.grid.unep.ch:8080/geoserver/wms",
-                      "sampleserver6.arcgisonline.com"="http://sampleserver6.arcgisonline.com/arcgis/services/911CallsHotspot/MapServer/WMSServer",
-                      "nowcoast.noaa.gov"="http://nowcoast.noaa.gov/arcgis/services/nowcoast/analysis_meteohydro_sfc_qpe_time/MapServer/WmsServer"
+                    "forestCover"="http://50.18.182.188:6080/arcgis/services/ForestCover_lossyear/ImageServer/WMSServer",
+                    "columbia.edu"="http://sedac.ciesin.columbia.edu/geoserver/wms",
+                    "preview.grid.unep.ch"="http://preview.grid.unep.ch:8080/geoserver/wms",
+                    "sampleserver6.arcgisonline.com"="http://sampleserver6.arcgisonline.com/arcgis/services/911CallsHotspot/MapServer/WMSServer",
+                    "nowcoast.noaa.gov"="http://nowcoast.noaa.gov/arcgis/services/nowcoast/analysis_meteohydro_sfc_qpe_time/MapServer/WmsServer"
                     )
                   ),
                 textInput("txtWmsServer","Edit WMS server"),
@@ -164,152 +164,226 @@ uiMapToolbox <- tagList(
   )
 
 
-  #
-  # MAP SECTION
-  #
 
-  tags$section(id="sectionMap",class="mx-hide",
-#    conditionalPanel(condition="output.uiDisplayMap==true",
-      div(class="map-wrapper col-xs-12", 
-        #
-        # LEAFLET PART
-        #
-        leafletOutput("mapxMap",width="100%",height="100%"),
-        div(id="info-box",
-          div(id="info-box-container",
-              uiOutput("info-box-content")
+
+#
+# STORY MAP
+#
+
+
+uiStorySelect <- tagList(
+  tagList(
+  selectInput("selectStoryId","Select a story",choices=""),
+  textInput("txtDescriptionSelect","Description")
+    )
+  )
+
+uiStoryEdit <- tagList(
+  h3("Editor"),
+  tags$div(id="storyEditorContainer",
+    tags$ul(class="list-inline",
+      tags$li(
+        tags$a(
+          id="btnStoryEditorExpand",
+          class="btn-icon",
+          icon("expand")
+          )
+        ),
+      tags$li(
+        tags$label("Edit the story map")
+        )
+      ),
+    aceEditor("txtStoryMap", mode="markdown", value="Write story",height="500px",hotkeys=NULL,wordWrap=TRUE),
+    singleton(tags$script("editor__txtStoryMap.getSession().setWrapLimitRange(80,80);"))
+    ),
+  h3("Preview"),
+  hr(),
+  div(id="mxStoryContainerPreview")
+  )
+
+
+uiStoryNew <- tagList(
+  tagList(
+    textInput("txtStoryName","Add new story title"), 
+    hr(),
+    tags$label("Validation"),
+    div(id="validateNewStoryName"),
+    hr(),
+    actionButton("btnSaveNewStory",label=icon("save"))
+    )
+  )
+
+uiMapStoryCreator <- tagList(
+  #
+  # STORY MAP CREATOR 
+  #
+  tags$section(id="sectionStoryMapCreator",class="mx-mode-story-creator mx-hide container-fluid",
+    div(class="row",
+      div(class="col-lg-12",
+        mxAccordionGroup(id="mapStoryCreatorMenu",
+          itemList=list(
+             "data"=list("title"="Select",content=uiStorySelect),
+             "data"=list("title"="Edit",content=uiStoryEdit),
+             "data"=list("title"="New",content=uiStoryNew)
+             )
             )
-          ),
-        #
-        # MAP LEFT
-        #
-        div(id="map-left",
-            h2(style="text-align:center",
-              div(id="titlePanelMode","Views explorer")
-              #textOutput("titlePanelMode")
-              ),
-            div(class="hide-scroll",
-              div(class="viewport",
-          div(class="map-text",
-            
-            div(class="row",
-              div(class="map-text-left",
-                  uiMapList,
-                  uiMapCreator,
-                  uiMapToolbox,
-                  uiMapConfig
-                ),
-              #
-              # NAV MENU
-              #
-              div(class="map-text-nav",
-                tags$ul(class="nav",
-                  #
-                  # UI BUTTON
-                  #
-                   tags$li(
-                    tags$button(
-                      mx_set_lang="title.mapLeft.lock",
-                      id="btnStopMapScroll",
-                      class="btn-icon",
-                      icon("unlock")
-                      )
-                    ),
-                  tags$li(
-                    tags$button(
-                      mx_set_lang="title.mapLeft.hide",
-                      id='btnViewsCollapse',
-                      class="btn-icon",
-                      icon("angle-double-left")
-                      )
-                    ),
-                  tags$li(
-                    tags$button(
-                      mx_set_lang="title.mapLeft.info",
-                      id='btnInfoClick',
-                      class="btn-icon",
-                      icon("info")
-                      )
-                    ),
-                  tags$li(
-                    hr()
-                    ),
-                  #
-                  # PANEL BUTTON
-                  #
-                  tags$li(
-                    actionButton('btnViewsExplorer',
-                      mx_set_lang="title.mapLeft.explorer",
-                      class="btn-icon",
-                      label=icon("map-o")
-                      )
-                    ),
-                  tags$li(
-                    actionButton('btnViewsCreator',
-                      mx_set_lang="title.mapLeft.creator",
-                      class="btn-icon mx-hide mx-allow-creator",
-                      label=icon("plus")
-                      )
-                    ),
-                   tags$li(
-                    actionButton('btnStoryCreator',
-                      mx_set_lang="title.mapLeft.storyCreator",
-                      class="btn-icon mx-hide mx-allow-story-creator",
-                      label=icon("pencil-square-o")
-                      )
-                    ),
-                    tags$li(
-                    actionButton('btnStoryReader',
-                      mx_set_lang="title.mapLeft.storyReader",
-                      class="btn-icon mx-hide mx-allow-story-reader",
-                      label=icon("book")
-                      )
-                    ),
-                  tags$li(
-                    actionButton('btnViewsConfig',
-                      mx_set_lang="title.mapLeft.config",
-                      class="btn-icon",
-                      label=icon("wrench")
-                      )
-                    ),
-                  tags$li(
-                    actionButton('btnViewsToolbox',
-                      mx_set_lang="title.mapLeft.toolbox",
-                      class="btn-icon",
-                      label=icon("gears")
-                      )
-                    ),
-                  #
-                  # PANEL CREATOR ONLY
-                  #
-                    tags$li(
-                    hr(class='mx-mode-creator mx-hide')
-                    ),
-                    tags$li(
-                    actionButton("btnMapCreatorSave",
-                      class="btn-icon mx-mode-creator mx-hide",
-                      label=icon("floppy-o")
-                      )
-                    ),
-                  tags$li(
-                    actionButton("btnZoomToLayer",
-                      class="btn-icon mx-mode-creator mx-hide",
-                      label=icon("binoculars")
-                      )
-                    ),
-                  tags$li(
-                    actionButton('btnViewsRefresh',
-                      class="btn-icon mx-mode-creator mx-hide",
-                      label=icon("refresh")
-                      )
-                    )
-            
-                  )
-                )
-              )
+        )
+      )
+    )
+  )
+
+uiMapStoryReader <- tagList()
+
+#
+# MAP SECTION
+#
+
+
+uiLeftNav <- tagList(
+  #
+  # NAV MENU
+  #
+  tags$ul(class="nav",
+    #
+    # UI BUTTONS
+    #
+    tags$li(
+      tags$button(
+        mx_set_lang="title.mapLeft.lock",
+        id="btnStopMapScroll",
+        class="btn-icon",
+        icon("unlock")
+        )
+      ),
+    #tags$li(
+    #  tags$button(
+    #    mx_set_lang="title.mapLeft.hide",
+    #    id='btnViewsCollapse',
+    #    class="btn-icon",
+    #    icon("angle-double-left")
+    #    )
+    #  ),
+    tags$li(
+      tags$button(
+        mx_set_lang="title.mapLeft.info",
+        id='btnInfoClick',
+        class="btn-icon",
+        icon("info")
+        )
+      ),
+    tags$li(
+      hr()
+      ),
+    #
+    # PANEL BUTTON
+    #
+    tags$li(
+      actionButton('btnViewsExplorer',
+        mx_set_lang="title.mapLeft.explorer",
+        class="btn-icon",
+        label=icon("map-o")
+        )
+      ),
+    tags$li(
+      actionButton('btnViewsCreator',
+        mx_set_lang="title.mapLeft.creator",
+        class="btn-icon mx-hide mx-allow-creator",
+        label=icon("plus")
+        )
+      ),
+    tags$li(
+      actionButton('btnStoryCreator',
+        mx_set_lang="title.mapLeft.storyCreator",
+        class="btn-icon mx-hide mx-allow-story-creator",
+        label=icon("pencil-square-o")
+        )
+      ),
+    tags$li(
+      actionButton('btnStoryReader',
+        mx_set_lang="title.mapLeft.storyReader",
+        class="btn-icon mx-hide mx-allow-story-reader",
+        label=icon("book")
+        )
+      ),
+    tags$li(
+      actionButton('btnViewsConfig',
+        mx_set_lang="title.mapLeft.config",
+        class="btn-icon",
+        label=icon("wrench")
+        )
+      ),
+    tags$li(
+      actionButton('btnViewsToolbox',
+        mx_set_lang="title.mapLeft.toolbox",
+        class="btn-icon",
+        label=icon("gears")
+        )
+      ),
+    #
+    # PANEL CREATOR ONLY
+    #
+    tags$li(
+      hr(class='mx-mode-creator mx-hide')
+      ),
+    tags$li(
+      actionButton("btnMapCreatorSave",
+        class="btn-icon mx-mode-creator mx-hide",
+        label=icon("floppy-o")
+        )
+      ),
+    tags$li(
+      actionButton("btnZoomToLayer",
+        class="btn-icon mx-mode-creator mx-hide",
+        label=icon("binoculars")
+        )
+      ),
+    tags$li(
+      actionButton('btnViewsRefresh',
+        class="btn-icon mx-mode-creator mx-hide",
+        label=icon("refresh")
+        )
+      )
+
+    )
+  )
+
+
+
+
+tags$section(id="sectionMap",class="mx-hide",
+  div(class="map-wrapper col-xs-12", 
+    #
+    # LEAFLET PART
+    #
+    leafletOutput("mapxMap",width="100%",height="100%"),
+    #
+    # INFO BOX
+    #
+    div(id="info-box",
+      div(id="info-box-container",
+        uiOutput("info-box-content")
+        )
+      ),
+    #
+    # MAP LEFT PANEL
+    #
+    div(id="map-left-panel", class="map-left-panel-default",
+      h2(id="titlePanelMode","Views explorer"),
+      div(class="map-left-nav",
+        uiLeftNav
+        ),
+        div(class="hide-scroll",
+          div(class="viewport",
+      div(class="map-left-content",
+            uiMapList,
+            uiMapCreator,
+            uiMapToolbox,
+            uiMapConfig,
+            uiMapStoryCreator,
+            uiMapStoryReader
             )
-          ) 
           )
         )
-     )
+      )
     )
+  )

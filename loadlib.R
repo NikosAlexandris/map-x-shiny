@@ -27,3 +27,7 @@ library(shinyAce)
 # Graphs 
 library(dygraphs)
 library(xts)
+
+
+# data transfer
+library(base64enc)

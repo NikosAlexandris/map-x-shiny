@@ -17,6 +17,7 @@ observeEvent(input$documentIsReady,{
   mxReact$userLogged <- FALSE
   mxReact$userRole <- character(0)
   mxReact$userName <- character(0)
+  mxReact$userId <- integer(0)
   mxReact$sessionToken <- session$token
   mxLoadingPanel(enable=FALSE) 
 })
@@ -60,9 +61,11 @@ observeEvent(input$readCookie,{
 
   nVal = names(val)
   msg =  "Plase enter user name and key"
+  # NOTE: initialisation s already done before.
   mxReact$userLogged <- FALSE
   mxReact$userRole <- NULL
   mxReact$userName <- NULL
+  mxReact$userId <- NULL
   mxReact$userLastLogin <- NULL
   mxReact$userEmail <- NULL
   pwd <- mxData$pwd
@@ -85,6 +88,7 @@ observeEvent(input$readCookie,{
         mxReact$userLogged <- TRUE
         mxReact$userRole <- pwd[idKey,'r']
         mxReact$userName <- pwd[idKey,'u']
+        mxReact$userId <- pwd[idKey,'id']
         mxReact$userLastLogin <- pwd[idKey,'d']
         mxReact$userEmail <- pwd[idKey,'e']
         msg= paste("ACCESS GRANTED FOR:",

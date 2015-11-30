@@ -129,11 +129,22 @@ GithubUsername: rstudio
 GithubRef: master
 GithubSha1: 82914e04595035e3a5c4c70cace9ed4fb46c2763
 
+Package: evaluate
+Source: CRAN
+Version: 0.7
+Hash: a60973dc1469b851e9b099b7e47043b5
+Requires: stringr
+
 Package: foreach
 Source: CRAN
 Version: 1.4.2
 Hash: c306afbbf5cc2608170bc7205bf58bea
 Requires: iterators
+
+Package: formatR
+Source: CRAN
+Version: 1.2
+Hash: cce53206179a99ae5a8bcf154ab5abde
 
 Package: gdalUtils
 Source: CRAN
@@ -146,6 +157,11 @@ Source: CRAN
 Version: 0.2.0
 Hash: 249b534d6b4bf2daddfd5781fc2bdc06
 Requires: BH, Rcpp
+
+Package: highr
+Source: CRAN
+Version: 0.5
+Hash: 25f9c02030b94c8154273699a7df9cf8
 
 Package: htmltools
 Source: CRAN
@@ -184,6 +200,12 @@ Package: jsonlite
 Source: CRAN
 Version: 0.9.17
 Hash: d44b8f8c89ff794d6ec8a07dde103d24
+
+Package: knitr
+Source: CRAN
+Version: 1.10.5
+Hash: 3734733a01c3a749fcf26a6c9adfb8e4
+Requires: digest, formatR, highr, yaml, markdown, stringr, evaluate
 
 Package: labeling
 Source: CRAN
