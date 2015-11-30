@@ -7,7 +7,7 @@
 #                 |_|           
 # Header
 
-tags$section(id="sectionTop",class="intro container-fluid",
+tags$section(id="sectionTop",class="intro container-fluid background-triangles",
   div(class="col-md-8 col-md-offset-2",
     h1(class='map-x-title',"MAP-X"),
     hr(),
@@ -20,10 +20,26 @@ tags$section(id="sectionTop",class="intro container-fluid",
       tags$img(src="img/intro_world-bank-optimized.svg",class="map-x-logo"),
       tags$img(src="img/intro_g7-vect-optimized.svg",class="map-x-logo")
       ),
-    hr()
+    hr(),
+    div(class="col-xs-12",
+      div(class="col-lg-4 col-md-12 col-xs-12",
+        usrInput("loginUser", "User name")
+        ),
+      div(class="col-lg-4 col-md-12 col-xs-12",
+        pwdInput("loginKey", "Key")
+        ),
+      div(class="col-lg-4 col-md-12 col-xs-12",
+        tags$ul(class="list-inline",
+          tags$li(actionButton("btnLogin", icon("sign-in"))),
+          tags$li(actionButton("btnLogout", icon("sign-out")))
+          )
+        ),
+      div(class="col-xs-12",
+         h6(textOutput("loginValidation"))
+    )
     )
   )
-
+  )
 
 
 

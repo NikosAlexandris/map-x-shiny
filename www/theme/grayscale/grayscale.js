@@ -18,7 +18,7 @@ $(function() {
     $('a.page-scroll').bind('click', function(event) {
         var $anchor = $(this);
         $('html, body').stop().animate({
-            scrollTop: $($anchor.attr('href')).offset().top - $(".navbar-header").height() 
+            scrollTop: $($anchor.attr('href')).offset().top - $(".navbar-fixed-top").height() 
         }, 0, 'easeOutQuad');
         event.preventDefault();
     });

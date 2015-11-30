@@ -38,27 +38,20 @@ observe({
     out  = character(0)
     msgList = character(0)
 
-
     cty <- mxReact$selectCountry
     ymn <- input$selNewLayerStartYear
     ymx <- input$selNewLayerStopYear
     cla <- input$selNewLayerClass
     sub <- input$selNewLayerSubClass
 
-
     newLayerName <- tolower( paste0(cty,"__",ymn,"_",ymx,"__",cla,"__",sub))
-    dataExists <- tolower(newLayerName) %in% tolower(mxReact$layerList)
 
-    valid = FALSE
-    if(dataExists){
-      outTxt = (sprintf("<b style=\"color:#FF0000\">(taken)</b> %s",newLayerName))
-      valid = FALSE
-    }else{
-      outTxt = (sprintf("<b style=\"color:#00CC00\">(ok)</b> %s",newLayerName))
-      valid = TRUE
-    }
+    valid <- mxTextValidation(
+      textToTest = newLayerName,
+      existingTexts = mxReact$layerList,
+      idTextValidation = "newLayerNameValidation"
+      )
 
-    output$newLayerNameValidation = renderUI(HTML(outTxt))
     mxActionButtonState(id="fileNewLayer",disable=!valid) 
 
     mxReact$newLayerName <- ifelse(valid,newLayerName,"")
@@ -354,8 +347,7 @@ observeEvent(input$fileNewLayer,{
       observeEvent(input$btnMapCreatorSave,{
         if(mxReact$enableViewsCreator){
           mxCatch(title="Save style",{
-            sty2<-layerStyle()
-            browser()
+            #sty2<-layerStyle()
             sty <- reactiveValuesToList(mxStyle)
             # save additional variables
             hasDate <- mxStyle$hasDateColumns
@@ -387,7 +379,7 @@ observeEvent(input$fileNewLayer,{
                   title = input$mapViewTitle,
                   class = input$mapViewClass,
                   layer = sty$layer,
-                  editor = mxReact$userName,
+                  editor = mxReact$userId,
                   reviever = "",
                   revision = 0,
                   validated = TRUE,

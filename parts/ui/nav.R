@@ -31,15 +31,16 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
             tags$i(class="fa fa-home animated")
             )
           ),
-        tags$li(
-          tags$a(
-            mx_set_lang="title.navBar.profil",
-            class="page-scroll btn btn-circle",
-            href="#sectionLogin",
-            tags$i(
-              class="fa fa-user animated")
-            )
-          ),
+
+   #     tags$li(
+   #       tags$a(
+   #         mx_set_lang="title.navBar.profil",
+   #         class="page-scroll btn btn-circle",
+   #         href="#sectionLogin",
+   #         tags$i(
+   #           class="fa fa-user animated")
+   #         )
+   #       ),
      #   tags$li(
      #     actionLink(
      #       mx_set_lang="title.navBar.profil",
@@ -52,25 +53,25 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
      #     ),
         tags$li(
           tags$a(
-            mx_set_lang="title.navBar.country",
-            id="btnNavCountry",
-            class="page-scroll btn btn-circle mx-hide",
-            href="#sectionCountry",
-            tags$i(
-              class="fa fa-bar-chart animated")
-            )
-          ),
-        tags$li(
-          tags$a(
             mx_set_lang="title.navBar.map",
             id="btnNavMap",
             class="page-scroll btn btn-circle mx-hide",
             href="#sectionMap",
             tags$i(
-              class="fa fa-map-o animated")
+              class="fa fa-globe animated")
             )
           ),
         tags$li(
+          tags$a(
+            mx_set_lang="title.navBar.country",
+            id="btnNavCountry",
+            class="page-scroll btn btn-circle mx-hide",
+            href="#sectionCountry",
+            tags$i(
+              class="fa fa-flag animated")
+            )
+          ),
+               tags$li(
           tags$a(
             mx_set_lang="title.navBar.about",
             class="page-scroll btn btn-circle",

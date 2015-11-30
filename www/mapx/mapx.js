@@ -15,8 +15,9 @@ Shiny.addCustomMessageHandler("mxSetCookie",
       eval(message.code);
       readCookie();  
     }
-    )
+    );
 });
+
 
 
 
@@ -50,9 +51,9 @@ function clearListCookies(){
 
 
 
-/* temporary object to hold ui and style state*/
+/* Object to hold ui and style state*/
 var leafletvtId = {};
-var mxPanelMode = {};
+
 var mxConfig = {
   mapPanelMode : null,
   mapInfoBox : {
@@ -82,8 +83,60 @@ var mxConfig = {
       console.log("mxConfig info box changes: height="+this.height+" enabled="+this.enabled);
       this.enabled =! this.enabled;
     }
+  },
+  leftPanel : {
+    id : "map-left-panel",
+    modes :{
+      fw:"map-left-panel-full-width",
+      d:"map-left-panel-default",
+      c:"map-left-panel-collapse"
+    },
+    mode : "map-left-panel-default",
+    set:function(m){
+      m = this.modes[m];
+      el = document.getElementById(this.id);
+      el.className = m;
+    }
   }
 };
+
+
+//
+//
+// id : "#map-left",
+//    idInfo : "#info-box",
+//    idBtnViews : "#btnViewsCollapse",
+//    modes : {
+//      h:0,
+//      s:90,
+//      m:450,
+//      l:null
+//    },
+//    set : function(mode){
+//      a = this.modes[mode];
+//      if(a!==null){
+//        b = a+"px";
+//        c = a-450+"px";
+//        $(this.id).animate({left:c,width:450},500);
+//        $(this.idInfo).animate({left:b},500);
+//      }else{
+//        b = "100%"
+//        $(this.id).animate({width:b},500);
+//        mxConfig.mapInfoBox.toggle(0,false);
+//        $(this.idInfo).animate({left:0},0);
+//      }
+//      if(a=="s" || a=="h"){
+//        $(this.idBtnViews).html("<i class='fa fa-angle-double-right'>");
+//      }else{ 
+//        $(this.idBtnViews).html("<i class='fa fa-angle-double-left'>");
+//      }
+//    }
+//
+//
+
+
+
+
 
 //
 // Shiny binding 
@@ -111,45 +164,7 @@ $(function() {
 // Update map panel elements interaction 
 //
 function updateMapElement(){
-  //
-  //  map panel lock button 
-  //
-  $("#btnStopMapScroll").click(function(){
-    var idSection = "#sectionMap";
-    idScroll = "#map-left,#info-box-container,#mapxMap";
-    idBtn = "#btnStopMapScroll";
-
-    var $document = $(document),
-    $body = $('body'),
-    $scrolable = $(idScroll);
-
-    if(toggleScrollMap){
-      $('html, body').stop().animate({
-        scrollTop: $(idSection).offset().top - $(".navbar-header").height() 
-      }, 100, 'easeOutQuad');
-    
-      $body.addClass('noscroll');
-      $scrolable.on({
-        'mouseenter': function () {
-          // add hack class to prevent workspace scroll when scroll outside
-          $body.addClass('noscroll');
-        },
-        'mouseleave': function () {
-          // remove hack class to allow scroll
-          $body.removeClass('noscroll');
-        }
-      });
-      $(idBtn).html("<i class='fa fa-lock'>");
-    }else{
-      $body.removeClass('noscroll');
-      $(idScroll).off('mouseenter');
-      $(idScroll).off('mouseleave');
-      $(idBtn).html("<i class='fa fa-unlock'>");
-    }
-    toggleScrollMap = !toggleScrollMap ;
-  });
-
-  //
+ //
   // Panel animation
   //
   var idViews = "#map-left",
@@ -157,11 +172,63 @@ function updateMapElement(){
   idInfo = "#info-box" ,
   idBtnInfo = "#btnInfoClick",
   idTitlePanel = "#titlePanelMode",
+  idBtnStoryExpand = "#btnStoryEditorExpand",
+  idContainerStoryExpand = "#storyEditorContainer",
+
+  // 
+  idSection = "#sectionMap",
+  idBody = $('body'),
+  idBtn = $("#btnStopMapScroll");
 
   // set default state
-  toggleScrollMap = true,
+  var toggleScrollMap = true,
   toggleCollapseViews = true,
-  toggleCollapseInfoClick = true;
+  toggleCollapseInfoClick = true,
+  toggleStoryEditorExpand = true;
+  //
+  //  map panel lock button 
+  //
+  idBtn.click(function(){ 
+    if(toggleScrollMap){
+      idBtn.html("<i class='fa fa-lock'>");
+      $('html, body').stop().animate({
+        scrollTop: $(idSection).offset().top - $(".navbar-fixed-top").height() 
+      }, 100, 'easeOutQuad');
+      idBody.addClass('noscroll');
+    }else{
+      idBtn.html("<i class='fa fa-unlock'>");
+      idBody.removeClass('noscroll');
+    }
+    toggleScrollMap = !toggleScrollMap ;
+  });
+
+  // Story map editor expand
+
+  $(idBtnStoryExpand).click(function(){
+    if(toggleStoryEditorExpand){ 
+      $(idContainerStoryExpand).addClass("editor-full-width");
+      $(idContainerStoryExpand).draggable({ 
+        //handle: idContainerStoryExpand,
+        cancel: "#txtStoryMap",
+        containment: $(idSection),
+        cursor: "crosshair"
+      });
+      $(idBtnStoryExpand).html("<i class='fa fa-compress'></i>");
+     $('html, body').stop().animate({
+        scrollTop: $(idSection).offset().top - $(".navbar-fixed-top").height() 
+      }, 100, 'easeOutQuad');
+      idBody.addClass('noscroll');
+    }else{
+      $(idContainerStoryExpand).removeClass("editor-full-width");
+      $(idBtnStoryExpand).html("<i class='fa fa-expand'></i>");
+      if(toggleScrollMap){
+      idBody.removeClass('noscroll');
+      }
+    }
+    toggleStoryEditorExpand = !toggleStoryEditorExpand;
+
+  });
+ 
 
   // add a click function to btn collapse views 
   $(idBtnViews).click(function(){
@@ -183,6 +250,56 @@ function updateMapElement(){
   $(idBtnInfo).click(function(){
     mxConfig.mapInfoBox.toggle();
    });
+
+// story map handler
+var storyMapLayer = {store:[]};
+
+var checkStorySectionsPostion = function(){
+
+  var containerOffset =  $("#mxStoryContainerPreview").offset().top;
+
+
+  $(".mx-story-section").each(
+      function(){
+
+        var $item = $(this),
+            enable = false,
+            mId = $item.attr("mx-map-id"),
+            prevData = storyMapLayer[mId],
+            prevState = false,
+            newState = false;
+
+        if(prevData === undefined){
+          storyMapLayer[mId] = {};
+        }else{
+
+          prevState = prevData.enable;
+          
+          tDist = containerOffset - $item.offset().top;
+          bDist = containerOffset - ($item.offset().top + $item.height());
+
+          if ( tDist > 0 && bDist < 0){
+            newState = true;
+          }
+
+          if(newState !== prevState){
+          console.log(mId +"change state = "+newState);
+            storyMapLayer[mId].enable = newState;
+            if(newState){
+              storyMapLayer.store.push(mId);
+            }else{
+              storyMapLayer.store.pop(mId);
+            }
+            Shiny.onInputChange("viewsFromPreview",storyMapLayer.store);
+          }
+        }
+      }
+  );
+};
+
+$("#mxStoryContainerPreview").on('scroll',checkStorySectionsPostion);
+
+
 }
 
 //
@@ -638,11 +755,12 @@ LeafletWidget.methods.setZoomOptions = function(buttonOptions,removeButton){
       z.parentNode.removeChild(z);
     }
     if(!removeButton){
-      zC = L.control.zoom(buttonOptions)
+      zC = L.control.zoom(buttonOptions);
         zC.addTo(this);
     }
   }
 };
+
 
 
 

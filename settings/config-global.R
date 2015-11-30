@@ -127,6 +127,8 @@ mxConfig$mapPanelModeAvailable <- c(
 
 # Name of the table containing the views data
 mxConfig$viewsListTableName = "mx_views"
+# Name of the table containing story maps
+mxConfig$storyMapsTableName = "mx_story_maps"
 # Command to restart pgrestapi
 # NOTE: touch "restart.txt" reactivate nodejs application launched by NGINX + passenger.
 mxConfig$restartPgRestApi = "touch /home/vagrant/tools/PGRestAPI/tmp/restart.txt"

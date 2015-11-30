@@ -868,7 +868,7 @@ mxUiAccess <- function(logged,roleNum,roleLowerLimit,uiDefault,uiRestricted){
 #' @param id Id of element to enable/disable 
 #' @param enable Boolean. Enable or not.
 #' @export
-mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,class=NULL,enable=TRUE){
+mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,class=NULL,enable=TRUE,classToRemove="mx-hide"){
   prefix <- ifelse(is.null(id),".","#")
 
   if(is.null(id)){
@@ -880,15 +880,17 @@ mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,class=NU
   element <- paste(paste0(prefix,element),collapse=",")
   
   if(!enable){
-    js <- sprintf("$('%1$s').addClass('mx-hide')",element)
+    js <- sprintf("$('%1$s').addClass('%2$s')",element,classToRemove)
   }else{
-    js <- sprintf("$('%1$s').removeClass('mx-hide')",element)
+    js <- sprintf("$('%1$s').removeClass('%2$s')",element,classToRemove)
   }
     session$sendCustomMessage(
       type="jsCode",
       list(code=js)
       )
 }
+
+
 #' Control ui access
 #' 
 #' Use mxConfig$roleVal list to check if the curent user's role name can access to the given numeric role.
@@ -914,15 +916,13 @@ mxAllow <- function(logged,roleName,roleLowerLimit){
 
 
 
-mxSetMapPanelMode <- function(modeSelected,modeAvailable=NULL){
-  modeAvailable <- c(
-    "mx-mode-explorer",
-    "mx-mode-config",
-    "mx-mode-toolbox",
-    "mx-mode-creator",
-    "mx-mode-story-reader",
-    "mx-mode-story-creator"
-    )
+mxToggleMapPanels <- function(modeSelected){
+  modeAvailable <- mxConfig$mapPanelModeAvailable
+
+  if(!isTRUE(modeSelected %in% modeAvailable)){
+     stop(sprintf("Map panel mode % not available. Set it in mxConfig",modeSelected))
+  }
+  
   stopifnot(modeSelected %in% modeAvailable)
   mS <- modeSelected
   mA <- modeAvailable
@@ -1054,7 +1054,18 @@ mxTimeSlider <-function(id,min,max,lay){
     ) 
 }
 
-   
+
+#' encode in base64
+mxEncode <- function(text){
+  base64enc::base64encode(charToRaw(as.character(text)))
+}
+
+mxDecode <- function(base64text){
+  rawToChar(base64enc::base64decode(base64text))
+}
+
+
+
 
 #' Update text by id
 #'
@@ -1065,10 +1076,11 @@ mxTimeSlider <-function(id,min,max,lay){
 #' @param text New text
 #' @export
 mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text){
+  textb64 <- mxEncode(text)
   if(is.null(text)){
     return(NULL)
   }else{
-    val <- sprintf("el = document.getElementById('%1$s');el.innerHTML='%2$s'",id,text)
+    val <- sprintf("el = document.getElementById('%1$s');el.innerHTML=atob('%2$s');",id,textb64)
     session$sendCustomMessage(
       type="jsCode",
       list(code=val)
@@ -1137,6 +1149,66 @@ mxDbListTable<- function(dbInfo){
   },finally=if(exists('con'))dbDisconnect(con)
   )
 }
+
+#' Add data to db
+#'
+#' 
+#'
+mxDbAddData <- function(dbInfo,data,table){
+
+  stopifnot(class(data)=="data.frame")
+  stopifnot(class(table)=="character")
+
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbListTables(con)
+    tExists <- isTRUE(table %in% res)
+    nExists <- FALSE
+
+    if(tExists){
+      tNam <- names(table)
+      rNam <- dbListFields(con,table)
+      nExists <- all(tNam %in% rNam)
+      wText <- sprintf("mxDbAddData: remote table %1$s has fields: '%2$s', table to append: '%3$s'",
+        table,
+        paste(rNam,collapse="; "),
+        paste(tNam,collapse="; ")
+        )
+      if(!nExists){
+        stop(wText)
+      }
+    }
+
+    dbWriteTable(con,name=table,value=data,append=nExists,row.names=F)
+
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+mxDbUpdate <- function(dbInfo,table,column,idCol="id",id,value){
+ tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    query <- sprintf("
+      UPDATE %1$s
+      SET %2$s='%3$s'
+      WHERE %4$s='%5$s'",
+      table,
+      column,
+      value,
+      idCol,
+      id
+      )
+    dbGetQuery(con,query)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+
+
 
 
 #' Create random secret
@@ -1331,5 +1403,89 @@ mxLoadingPanel <- function(session=getDefaultReactiveDomain(),enable=FALSE){
       list(code=js)
       )
   }
+
+#' Test if a text exists, update a output ui item
+#' @param textTotest text to test against rules
+#' @param existingTexts  Vector of existing text
+#' @param idTextValidation Id of the ui element to update (id=example -> uiOutput("example"))
+#' @param minChar Minimum character length
+#' @param testForDuplicate Boolean test for duplicate.
+#' @param testForMinChar Boolean test for minimum number of character
+#' @param displayNameInValidation Boolean add text in validation text
+#' @return boolean : valid or not
+#' @export
+mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5,testForDuplicate=TRUE,testForMinChar=TRUE,displayNameInValidation=TRUE){
+
+  if(isTRUE(length(textToTest)>1)){
+    stop("mxTextValidation only validate one input item")
+  }
+
+  isValid <- FALSE
+  isDuplicate <- FALSE
+  isTooShort  <- FALSE
+  err <- character(0)
+
+  if(testForDuplicate){
+    itemExists <- isTRUE(tolower(textToTest) %in% tolower(existingTexts))
+  }
+  if(testForMinChar){
+    itemTooShort <- isTRUE(nchar(textToTest)<minChar)
+  }
+
+
+  err <- ifelse(itemExists,"taken",character(0))
+  err <- c(err,ifelse(itemTooShort,sprintf("too short. Min %s letters",minChar),character(0)))
+  err <- na.omit(err)
+
+  if(!displayNameInValidation){
+     textToTest = ""
+  }
+
+  if(length(err)>0){
+    outTxt = (sprintf("<b style=\"color:#FF0000\">(%1$s)</b> %2$s",err,textToTest))
+    isValid = FALSE
+  }else{
+    outTxt = (sprintf("<b style=\"color:#00CC00\">(ok)</b> %s",textToTest))
+    isValid = TRUE
+  }
+
+  mxUpdateText(id=idTextValidation,text=HTML(outTxt))
+
+  return(isValid)
+
+}
+
+#
+# story map functions
+#
+
+
+mxParseStory <- function(txt,knit=T,toc=F){
+
+
+
+ if(require(knitr) || knit){
+    txt <- knit2html(text = txt, quiet = TRUE, 
+      #NOTE: options from markdownHTMLoptions()
+      options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
+      )
+  }
+
+  txt <- stringr::str_replace_all(txt,"\n","@@n")
+  txt <- stringr::str_replace_all(
+    txt,
+    "@mapxSection\\((.*?)\\)(.*?)@mapxEnd",
+    "<div class='mx-story-section' mx-map-id='\\1'>\\2</div>"
+    )
+  txt <- stringr::str_replace_all(txt,"@@n","\n")
+  
+
+ 
+
+  
+  
+  return(txt)
+}
+
 
 

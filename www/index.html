@@ -7,7 +7,8 @@
     <script type="application/html-dependencies">json2[2014.02.04];jquery[1.11.0];shiny[0.12.2.9000]</script>
     <script src="shared/json2-min.js"></script>
     <script src="shared/jquery.min.js"></script>
-    <link href="shared/shiny.css" rel="stylesheet" />
+    <script src="shared/jqueryui/1.10.4/jquery-ui.min.js"></script>
+      <link href="shared/shiny.css" rel="stylesheet" />
     <script src="shared/shiny.min.js"></script>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -15,12 +16,13 @@
     <meta name="author" content=""/>
     <meta name="robots" content="noindex"/>
     <link rel="stylesheet" type="text/css" href="mapx/loading.css"/>
+    <link rel="stylesheet" type="text/css" href="mapx/backgrounds.css"/>
   </head>
   <body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top" data-offset="0">
-    <div id="loading-content">
+    <div id="loading-content" class="background-triangles">
       <h2>MAP-X LOADING</h2>
       <div id="loading-image"></div>
     </div>
     <div id="mapxUi" class="shiny-html-output"></div>
-  </body>
+  </body>  
 </html>

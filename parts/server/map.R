@@ -23,20 +23,30 @@ observe({
   }
 })
 
+# Allow map views creator
 observe({
   if(mxReact$allowViewsCreator){
     source("parts/server/creator.R",local=TRUE)
   }
 })
 
+# Allow story map creator
+observe({
+  if(mxReact$allowStoryCreator){
+    source("parts/server/storyCreator.R",local=TRUE)
+  }
+})
+
+
+# Allow toolbox / analysis
 observe({
   if(mxReact$allowToolbox){
-  source("parts/server/toolbox.R",local=TRUE)
+    source("parts/server/toolbox.R",local=TRUE)
   }
 })
 
 #
-# ENABLE PANEL BUTTONs
+# ENABLE NAVIGATION BUTTONS
 #
 
 observe({
@@ -65,36 +75,36 @@ observe({
 #
 
 observeEvent(input$btnViewsExplorer,{
-  mxSetMapPanelMode("mx-mode-explorer") 
+  mxToggleMapPanels("mx-mode-explorer") 
   mxReact$mapPanelMode="mapViewsExplorer"
   mxUpdateText(id="titlePanelMode",text="Views explorer")
 })
 
 observeEvent(input$btnViewsConfig,{
-  mxSetMapPanelMode("mx-mode-config")
+  mxToggleMapPanels("mx-mode-config")
   mxReact$mapPanelMode="mapViewsConfig"
   mxUpdateText(id="titlePanelMode",text="Views config")
 })
 
 observeEvent(input$btnViewsToolbox,{
-  mxSetMapPanelMode("mx-mode-toolbox")
+  mxToggleMapPanels("mx-mode-toolbox")
   mxReact$mapPanelMode="mapViewsToolbox"
   mxUpdateText(id="titlePanelMode",text="Views toolbox")
 })
 observeEvent(input$btnViewsCreator,{
-  mxSetMapPanelMode("mx-mode-creator")
+  mxToggleMapPanels("mx-mode-creator")
   mxReact$mapPanelMode="mapViewsCreator"
   mxUpdateText(id="titlePanelMode",text="Views creator")
 })
 observeEvent(input$btnStoryCreator,{
-  mxSetMapPanelMode("mx-mode-story-creator")
+  mxToggleMapPanels("mx-mode-story-creator")
   mxReact$mapPanelMode="mapStoryCreator"
   mxUpdateText(id="titlePanelMode",text="Story map creator")
 })
 observeEvent(input$btnStoryReader,{
-  mxSetMapPanelMode("mx-mode-story-reader")
+  mxToggleMapPanels("mx-mode-story-reader")
   mxReact$mapPanelMode="mapStoryReader"
-  mxUpdateText(id="titlePanelMode",text="<story map>")
+  mxUpdateText(id="titlePanelMode",text="First story map")
 })
 #
 # Clear layer after exlorer mode enter
