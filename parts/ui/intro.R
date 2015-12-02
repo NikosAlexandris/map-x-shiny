@@ -9,7 +9,7 @@
 
 tags$section(id="sectionTop",class="intro container-fluid background-triangles",
   div(class="col-md-8 col-md-offset-2",
-    h1(class='map-x-title',"MAP-X"),
+   h1("MAP-X"),
     hr(),
     tags$p(class="map-x-subtitle",
       "Mapping and Assessing the Performance of Extractive Industries in Emerging Economies and Fragile States."

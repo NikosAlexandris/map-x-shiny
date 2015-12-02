@@ -9,6 +9,12 @@
 #
 
 
+
+
+
+
+
+
 # db : id,user,country,name,desc,content_b64,content_ascii
 
 # available story
@@ -80,7 +86,7 @@ mxCatch(title="Select story id",{
 # -update db with change
 #- trigger update for story map
 
-observeEvent(input$txtStoryMap,{
+observeEvent(input$btnStoryMapEditorUpdate,{
   mxCatch(title="Input story map text",{
   storyText <- input$txtStoryMap
   if( isTRUE(mxReact$allowStoryCreator && mxReact$mapPanelMode=="mapStoryCreator")){

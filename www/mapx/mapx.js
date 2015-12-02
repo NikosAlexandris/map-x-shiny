@@ -255,10 +255,7 @@ function updateMapElement(){
 var storyMapLayer = {store:[]};
 
 var checkStorySectionsPostion = function(){
-
   var containerOffset =  $("#mxStoryContainerPreview").offset().top;
-
-
   $(".mx-story-section").each(
       function(){
 
@@ -267,23 +264,35 @@ var checkStorySectionsPostion = function(){
             mId = $item.attr("mx-map-id"),
             prevData = storyMapLayer[mId],
             prevState = false,
-            newState = false;
+            newState = false,
+            opa = 1;
+            ;
 
         if(prevData === undefined){
           storyMapLayer[mId] = {};
         }else{
 
           prevState = prevData.enable;
+          prevOpa = prevData.opacity;
           
           tDist = containerOffset - $item.offset().top;
           bDist = containerOffset - ($item.offset().top + $item.height());
 
           if ( tDist > 0 && bDist < 0){
             newState = true;
+          
+            if(tDist<50){
+             opa = tDist*2/100  
+            }
+            if(bDist>-50){
+             opa = ((bDist*-1)*2)/100
+            }
+
           }
 
+
+
           if(newState !== prevState){
-          console.log(mId +"change state = "+newState);
             storyMapLayer[mId].enable = newState;
             if(newState){
               storyMapLayer.store.push(mId);
@@ -292,11 +301,22 @@ var checkStorySectionsPostion = function(){
             }
             Shiny.onInputChange("viewsFromPreview",storyMapLayer.store);
           }
+
+          if(prevOpa !== opa){
+           setOpacityForId(mId,opa);
+           storyMapLayer[mId].opacity=opa;
+          }
         }
       }
   );
 };
 
+var testOnChange = function(){
+console.log("i haz changed");
+};
+
+
+$("#mxStoryContainerPreview").on('change',testOnChange);
 $("#mxStoryContainerPreview").on('scroll',checkStorySectionsPostion);
 
 
