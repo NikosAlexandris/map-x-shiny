@@ -183,17 +183,19 @@ uiStoryEdit <- tagList(
   tags$div(id="storyEditorContainer",
     tags$ul(class="list-inline",
       tags$li(
-        tags$a(
+        tags$button(
           id="btnStoryEditorExpand",
           class="btn-icon",
           icon("expand")
+          ),
+        actionButton(
+          inputId="btnStoryMapEditorUpdate",
+          class="btn-icon",
+         label=icon("save")
           )
-        ),
-      tags$li(
-        tags$label("Edit the story map")
         )
       ),
-    aceEditor("txtStoryMap", mode="markdown", value="Write story",height="500px",hotkeys=NULL,wordWrap=TRUE),
+    aceEditor("txtStoryMap", mode="markdown", theme="chaos",value="Write story",height="500px",hotkeys=NULL,wordWrap=TRUE),
     singleton(tags$script("editor__txtStoryMap.getSession().setWrapLimitRange(80,80);"))
     ),
   h3("Preview"),
@@ -222,8 +224,8 @@ uiMapStoryCreator <- tagList(
       div(class="col-lg-12",
         mxAccordionGroup(id="mapStoryCreatorMenu",
           itemList=list(
-             "data"=list("title"="Select",content=uiStorySelect),
-             "data"=list("title"="Edit",content=uiStoryEdit),
+#             "data"=list("title"="Select",content=uiStorySelect),
+             "Edit"=list("title"="Edit",content=tagList(uiStorySelect,uiStoryEdit)),
              "data"=list("title"="New",content=uiStoryNew)
              )
             )

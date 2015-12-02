@@ -60,7 +60,7 @@ observeEvent(input$readCookie,{
   if(noDataCheck(val) || length(val)==0)return()
 
   nVal = names(val)
-  msg =  "Plase enter user name and key"
+  msg =  "Please enter user name and key"
   # NOTE: initialisation s already done before.
   mxReact$userLogged <- FALSE
   mxReact$userRole <- NULL

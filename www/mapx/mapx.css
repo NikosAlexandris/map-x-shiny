@@ -50,6 +50,12 @@ a {
 }
 
 
+/*used in ace editor*/
+pre {
+  border: 0px ;
+  border-radius: 0px; 
+}
+
 
 #sectionTop {
   padding-top:100px;
@@ -1312,15 +1318,18 @@ padding-right: 100px;
 .editor-full-width {
   position: fixed;
   width: 670px;
-  background: rgba(130, 130, 130, 0.8);
+  background: rgba(47, 47, 47, 0.8);
   z-index: 1000;
   padding: 5px;
-  border-radius: 6px;
   left: 520px;
   top: 320px;
   resize:both;
 }
 
+.ace-chaos {
+  background-color: rgba(47,47,47,0.8);
+  color: #FFF;
+}
 
 .mx-story-section {
   margin: 0 0 25px;
