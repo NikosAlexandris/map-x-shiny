@@ -526,7 +526,7 @@ mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
     showItem<-ifelse(cnt %in% show,'collapse in','collapse')
     stopifnot(!is.list(x) || !is.null(x$title) || !char(x$title)<1 || !is.null(x$content) || !nchar(x$content)<1)
     if(is.null(x$condition))x$condition="true"
-    div(style=style,class="panel panel-default",`data-display-if`=x$condition,
+    div(style=style,class=paste("panel panel-default",x$class),`data-display-if`=x$condition,
       div(class="panel-heading mx-panel-header",
         h4(class="panel-title",
           a('data-toggle'="collapse", 'data-parent'=paste0('#',id),href=paste0("#",ref),x$title)
@@ -869,6 +869,13 @@ mxUiAccess <- function(logged,roleNum,roleLowerLimit,uiDefault,uiRestricted){
 #' @param enable Boolean. Enable or not.
 #' @export
 mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,class=NULL,enable=TRUE,classToRemove="mx-hide"){
+
+
+  if(noDataCheck(enable)){
+    enable <- FALSE
+  }
+
+
   prefix <- ifelse(is.null(id),".","#")
 
   if(is.null(id)){
@@ -1075,15 +1082,19 @@ mxDecode <- function(base64text){
 #' @param id Id of the element
 #' @param text New text
 #' @export
-mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text){
+mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text,addId=FALSE){
   textb64 <- mxEncode(text)
   if(is.null(text)){
     return(NULL)
   }else{
-    val <- sprintf("el = document.getElementById('%1$s');el.innerHTML=atob('%2$s');",id,textb64)
+    val=list(
+      id = id,
+      txt = textb64,
+      addId = addId
+      )
     session$sendCustomMessage(
-      type="jsCode",
-      list(code=val)
+      type="updateText",
+      val
       )
   }
 }
@@ -1459,32 +1470,48 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
 # story map functions
 #
 
-
-mxParseStory <- function(txt,knit=T,toc=F){
-
+  #gsub('\\[(.*?)\\]\\((.*?)\\)','<a href="\\2">\\1</a>',test,perl=T)
 
 
- if(require(knitr) || knit){
-    txt <- knit2html(text = txt, quiet = TRUE, 
-      #NOTE: options from markdownHTMLoptions()
-      options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
-      )
-  }
 
-  txt <- stringr::str_replace_all(txt,"\n","@@n")
-  txt <- stringr::str_replace_all(
-    txt,
-    "@mapxSection\\((.*?)\\)(.*?)@mapxEnd",
-    "<div class='mx-story-section' mx-map-id='\\1'>\\2</div>"
-    )
-  txt <- stringr::str_replace_all(txt,"@@n","\n")
-  
 
- 
+# works
+# 
+#txt <-  gsub(
+#    "@view_start\\(\\s*([ a-zA-Z]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*(.*?)\\s*\\)(.*?)@view_end",
+#    "<div class='mx-story-section' mx-map-title='\\1' mx-map-id='[\"\\2\"]' mx-map-extent='[\\3]'>\\4</div>",
+#    txtorig
+#    )%>%
+#  gsub("([nesw]):","",.)%>%
+#  knitr::knit2html(text=.,quiet = TRUE, 
+#    #NOTE: options from markdownHTMLoptions()
+#    options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
+#    )
+#
+#
 
-  
-  
+
+
+
+
+
+
+mxParseStory <- function(txtorig,knit=T,toc=F){
+
+  txt <- knitr::knit2html(text=txtorig,quiet = TRUE, 
+    #NOTE: options from markdownHTMLoptions()
+    options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
+    ) %>% gsub(
+    "@view_start\\(\\s*([ a-zA-Z]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*(.*?)\\s*\\)(.*?)@view_end",
+    "<div class='mx-story-section' mx-map-title='\\1' mx-map-id='[\"\\2\"]' mx-map-extent='[\\3]'>\\4</div>",
+    .
+    )%>%
+  gsub("([nesw]):","",.)
+
+
+
   return(txt)
+
 }
 
 

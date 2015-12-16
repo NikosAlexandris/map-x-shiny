@@ -42,7 +42,7 @@ function clearListCookies(){
     var spcook =  cookies[i].split("=");
     document.cookie = spcook[0] + "=;expires=Thu, 21 Sep 1979 00:00:01 UTC;";                                
   }
-  //  document.location.reload(true);
+  window.location.reload();
 }
 
 
@@ -147,6 +147,48 @@ Shiny.addCustomMessageHandler("jsCode",
     }
     );
 
+
+
+        // http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript
+function makeid(){
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for( var i=0; i < 5; i++ )
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
+
+
+// post proc functions
+function setUniqueItemsId(){
+  $(".mx-story-section").each(function(){ 
+      $(this).attr('id',makeid());
+  }
+      );
+}
+// update text
+
+
+Shiny.addCustomMessageHandler("updateText",
+    function(m) {
+      el = document.getElementById(m.id);
+      el.innerHTML=atob(m.txt);
+      if(m.addId){
+        setUniqueItemsId();
+      }
+    }
+    );
+
+
+
+
+
+
+
+
+
 Shiny.addCustomMessageHandler("mapUiUpdate",
     function(message){
       updateMapElement();
@@ -178,7 +220,8 @@ function updateMapElement(){
   // 
   idSection = "#sectionMap",
   idBody = $('body'),
-  idBtn = $("#btnStopMapScroll");
+  //idBtn = $("#btnStopMapScroll");
+  idBtn = $(".btn-stop-map-scroll");
 
   // set default state
   var toggleScrollMap = true,
@@ -255,68 +298,72 @@ function updateMapElement(){
 var storyMapLayer = {store:[]};
 
 var checkStorySectionsPostion = function(){
+
   var containerOffset =  $("#mxStoryContainerPreview").offset().top;
+  
   $(".mx-story-section").each(
       function(){
 
-        var $item = $(this),
-            enable = false,
-            mId = $item.attr("mx-map-id"),
-            prevData = storyMapLayer[mId],
+        var $item = $(this);
+        var enable = false,
+            id = $item.prop('id');
+            vId = JSON.parse($item.attr("mx-map-id"))[0],
+            vExt = JSON.parse($item.attr("mx-map-extent")),
+            vTit = $item.attr('mx-map-title'),
+            prevData = storyMapLayer[id],
             prevState = false,
-            newState = false,
-            opa = 1;
+            onView = false,
+            vOpa = 1, 
+            out = {},
+            distToTop = -200
             ;
 
         if(prevData === undefined){
-          storyMapLayer[mId] = {};
+          storyMapLayer[id] = {};
         }else{
 
-          prevState = prevData.enable;
-          prevOpa = prevData.opacity;
+          if(typeof prevData.enable !== "undefined" ){
+            prevState = prevData.enable;
+          }
           
           tDist = containerOffset - $item.offset().top;
           bDist = containerOffset - ($item.offset().top + $item.height());
 
-          if ( tDist > 0 && bDist < 0){
-            newState = true;
+
+
+          if ( tDist > distToTop && bDist < distToTop){
+            onView = true;
+          }
+
           
-            if(tDist<50){
-             opa = tDist*2/100  
-            }
-            if(bDist>-50){
-             opa = ((bDist*-1)*2)/100
-            }
-
-          }
-
-
-
-          if(newState !== prevState){
-            storyMapLayer[mId].enable = newState;
-            if(newState){
-              storyMapLayer.store.push(mId);
+          if(onView !== prevState){
+            storyMapLayer[id].enable = onView;
+            if(onView){
+              storyMapLayer.store.push(vId);
             }else{
-              storyMapLayer.store.pop(mId);
+              storyMapLayer.store.pop(vId);
             }
-            Shiny.onInputChange("viewsFromPreview",storyMapLayer.store);
-          }
+              
+            out = {
+              view : storyMapLayer.store[0],
+              opacity : vOpa,
+              extent : vExt 
+            };
 
-          if(prevOpa !== opa){
-           setOpacityForId(mId,opa);
-           storyMapLayer[mId].opacity=opa;
+
+            Shiny.onInputChange("storyMapData",out);
           }
+        
         }
       }
   );
 };
 
-var testOnChange = function(){
-console.log("i haz changed");
-};
 
 
-$("#mxStoryContainerPreview").on('change',testOnChange);
+
+//$("#mxStoryContainerPreview").on('change',setUniqueItemsId);
+
 $("#mxStoryContainerPreview").on('scroll',checkStorySectionsPostion);
 
 

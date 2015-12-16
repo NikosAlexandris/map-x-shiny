@@ -17,9 +17,10 @@
 #
 observe({
   if(mxReact$allowMap){
-    mxReact$mapPanelMode="mapViewsExplorer"
     source("parts/server/style.R",local=TRUE)
     source("parts/server/views.R",local=TRUE)
+    # Inital mode
+    mxReact$mapPanelMode="mapViewsExplorer"
   }
 })
 
@@ -29,13 +30,14 @@ observe({
     source("parts/server/creator.R",local=TRUE)
   }
 })
-
-# Allow story map creator
+# Allow story map 
 observe({
-  if(mxReact$allowStoryCreator){
-    source("parts/server/storyCreator.R",local=TRUE)
+  if(mxReact$allowStoryReader){
+    source("parts/server/storyReader.R",local=TRUE)
+    ## will source story creator if needed. scoping. scoping..
   }
 })
+
 
 
 # Allow toolbox / analysis
@@ -46,7 +48,7 @@ observe({
 })
 
 #
-# ENABLE NAVIGATION BUTTONS
+# UI by user privilege
 #
 
 observe({
@@ -63,15 +65,14 @@ observe({
 observe({
   mxUiEnable(id="btnStoryReader",enable=mxReact$allowStoryReader) 
 })
+
 observe({
-  mxUiEnable(id="btnStoryCreator",enable=mxReact$allowStoryCreator) 
+  mxUiEnable(class="mx-allow-story-edit",enable=mxReact$allowStoryCreator)
 })
 
 
-
-
 #
-# UI ENVENT : change ui apparence
+# UI by user event
 #
 
 observeEvent(input$btnViewsExplorer,{
@@ -96,16 +97,20 @@ observeEvent(input$btnViewsCreator,{
   mxReact$mapPanelMode="mapViewsCreator"
   mxUpdateText(id="titlePanelMode",text="Views creator")
 })
-observeEvent(input$btnStoryCreator,{
-  mxToggleMapPanels("mx-mode-story-creator")
-  mxReact$mapPanelMode="mapStoryCreator"
-  mxUpdateText(id="titlePanelMode",text="Story map creator")
-})
+#observeEvent(input$btnStoryCreator,{
+#  mxToggleMapPanels("mx-mode-story-creator")
+#  mxReact$mapPanelMode="mapStoryCreator"
+#  mxUpdateText(id="titlePanelMode",text="Story map creator")
+#})
 observeEvent(input$btnStoryReader,{
   mxToggleMapPanels("mx-mode-story-reader")
   mxReact$mapPanelMode="mapStoryReader"
-  mxUpdateText(id="titlePanelMode",text="First story map")
+  mxUpdateText(id="titlePanelMode",text="Story map")
+
+  # hide some buttons
+#  mxUiEnable(id="btnStoryCreator",enable=mxReact$allowStoryCreator) 
 })
+
 #
 # Clear layer after exlorer mode enter
 #

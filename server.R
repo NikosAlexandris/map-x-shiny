@@ -45,6 +45,7 @@ ui <- tagList(
   tags$footer(
     # TODO: uglify and concat js files OR load with singleton when needed.
     tags$script(src="mapx/mapx.js"),
+    tags$script(src="mapx/base64.js"),
     tags$script(src="language/ui.js"),
     tags$script(src="bootstrap/js/bootstrap.min.js"),
     tags$script(src="pwd/pwd.js"),

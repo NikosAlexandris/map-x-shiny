@@ -2,6 +2,7 @@
 settings/config-local.R
 settings/sshConfig
 figure
+cache
 # History files
 .Rhistory
 .Rapp.history
