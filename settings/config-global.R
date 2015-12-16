@@ -121,8 +121,8 @@ mxConfig$mapPanelModeAvailable <- c(
   "mx-mode-config",
   "mx-mode-toolbox",
   "mx-mode-creator",
-  "mx-mode-story-reader",
-  "mx-mode-story-creator"
+  "mx-mode-story-reader"
+  #"mx-mode-story-creator"
   )
 
 # Name of the table containing the views data

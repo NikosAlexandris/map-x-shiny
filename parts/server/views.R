@@ -67,6 +67,7 @@ observe({
         #
         it <- items[j]
         itId <- as.character(it)
+        itName <- names(it)
         itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
         itIdLabel <- sprintf('label_for_%s',itId)
         itIdCheckOptionLabel <- sprintf('checkbox_opt_label_%s',itId)
@@ -135,14 +136,15 @@ observe({
       # toggle option panel for this view
       toggleOptions <- sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)
       # set on hover previre for this view
-      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,3000))
+#      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,3000))
+      previewTimeOut <- ""
       # create html
       val <- div(class="checkbox",
-        tags$label(id=itIdLabel,
+        tags$label(id=itIdLabel,draggable=TRUE,`data-viewid`=itId,`data-viewtitle`=itName,
           tags$input(type="checkbox",class="vis-hidden",name=id,value=itId,
             onChange=toggleOptions),
           div(class="map-views-item",
-            tags$span(class="map-views-selector",names(it)),
+            tags$span(class="map-views-selector",itName),
             mxCheckboxIcon(itIdCheckOption,itIdCheckOptionLabel,"cog",display=FALSE)
             ) 
           ),
@@ -153,7 +155,21 @@ observe({
             filterSelect
             )
           ),
-        previewTimeOut
+        tags$script(
+          sprintf("
+            document.getElementById('%1$s')
+            .addEventListener('dragstart',function(e){
+              var coord = document.getElementById('txtLiveCoordinate').innerHTML,
+              ret = String.fromCharCode(13),
+              vid = e.target.dataset.viewid,
+              vti = e.target.dataset.viewtitle,
+              vst = '@view_start( '+vti+' ; '+vid+' ; '+coord+' )', 
+              ven = '@view_end',
+              txt = vst + ret + ret + ven + ret + ret;
+              e.dataTransfer.setData('text', txt);
+        })",itIdLabel)
+        )
+       # previewTimeOut
         )
       checkList <- tagList(checkList,val)
     }
@@ -201,11 +217,35 @@ observe({
           #
 
 
+
+
+      observe({
+        storyView <- input$storyMapData
+        if(!noDataCheck(storyView$view)){
+          mxReact$viewsFromStory <- storyView$view
+        }
+        if(!noDataCheck(storyView$extent)){
+          ext <- storyView$extent
+
+          proxyMap <- leafletProxy("mapxMap")
+          proxyMap %>% fitBounds(
+            ext[[4]],
+            ext[[1]],
+            ext[[2]],
+            ext[[3]]
+            ) 
+
+        }
+
+      })
+
+
      
           observe({
             mxCatch(title="Views manager",{
               vUrl <- mxReact$viewsFromUrl
-              vMenu <- c(input$viewsFromMenu,input$viewsFromPreview)
+              #vMenu <- c(input$viewsFromMenu,input$viewsFromPreview)
+              vMenu <- c(input$viewsFromMenu,mxReact$viewsFromStory)
               vAvailable <- names(mxReact$views) 
               vToDisplay <- NULL
               if(!noDataCheck(vAvailable)){  

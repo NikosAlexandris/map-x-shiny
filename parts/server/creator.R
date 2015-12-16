@@ -6,16 +6,16 @@
 #                 | |           
 #                 |_|           
 # view creator management
-
-observe({
-  if(mxReact$allowViewsCreator){
-    bounds <- input$mapxMap_bounds
-    output$txtLiveCoordinate <- renderText({
-      paste(names(bounds),round(as.numeric(bounds),digits=3),collapse="; ")
-    })
-  } 
-})
-
+#
+#observe({
+#  if(mxReact$allowViewsCreator){
+#    bounds <- input$mapxMap_bounds
+#    output$txtLiveCoordinate <- renderText({
+#      paste(names(bounds),round(as.numeric(bounds),digits=3),collapse="; ")
+#    })
+#  } 
+#})
+#
 
 
 observe({

@@ -62,7 +62,6 @@ uiMapCreator <-tagList(
                   selectInput("selColumnDate","Select date column",choices="")
                   ))),
             "storyMap"=list("title"="Story map settings",content=tagList(
-                textOutput("txtLiveCoordinate"),
                 selectInput("selectBaseMap","Select a base map",choices=mxConfig$tileProviders),
                 checkboxInput("checkBoxUseBounds","Store map position and zoom"),
                 checkboxInput("checkBoxHideLabels","Hide labels"),
@@ -172,69 +171,91 @@ uiMapToolbox <- tagList(
 
 
 uiStorySelect <- tagList(
-  tagList(
-  selectInput("selectStoryId","Select a story",choices=""),
-  textInput("txtDescriptionSelect","Description")
-    )
+  #
+  # Story selection
+  #
+  selectInput("selectStoryId","Select a story",choices="")
   )
-
-uiStoryEdit <- tagList(
-  h3("Editor"),
-  tags$div(id="storyEditorContainer",
-    tags$ul(class="list-inline",
-      tags$li(
-        tags$button(
-          id="btnStoryEditorExpand",
-          class="btn-icon",
-          icon("expand")
-          ),
-        actionButton(
-          inputId="btnStoryMapEditorUpdate",
-          class="btn-icon",
-         label=icon("save")
-          )
-        )
-      ),
-    aceEditor("txtStoryMap", mode="markdown", theme="chaos",value="Write story",height="500px",hotkeys=NULL,wordWrap=TRUE),
-    singleton(tags$script("editor__txtStoryMap.getSession().setWrapLimitRange(80,80);"))
-    ),
-  h3("Preview"),
-  hr(),
-  div(id="mxStoryContainerPreview")
-  )
-
 
 uiStoryNew <- tagList(
-  tagList(
-    textInput("txtStoryName","Add new story title"), 
-    hr(),
-    tags$label("Validation"),
-    div(id="validateNewStoryName"),
-    hr(),
-    actionButton("btnSaveNewStory",label=icon("save"))
-    )
+  #
+  # New story crator
+  #
+  textInput("txtStoryName","Add new story title"), 
+  tags$label("Validation"),
+  div(id="validateNewStoryName"),
+  actionButton("btnSaveNewStory",label=icon("save"))  
   )
 
-uiMapStoryCreator <- tagList(
+uiStoryEditor <- tagList(
   #
-  # STORY MAP CREATOR 
+  # editor
   #
-  tags$section(id="sectionStoryMapCreator",class="mx-mode-story-creator mx-hide container-fluid",
-    div(class="row",
-      div(class="col-lg-12",
-        mxAccordionGroup(id="mapStoryCreatorMenu",
-          itemList=list(
-#             "data"=list("title"="Select",content=uiStorySelect),
-             "Edit"=list("title"="Edit",content=tagList(uiStorySelect,uiStoryEdit)),
-             "data"=list("title"="New",content=uiStoryNew)
-             )
-            )
+  tags$textarea(id="txtStoryMap", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
+  #buttons
+  div(id="txtLiveCoordinate",class="mx-hide"),
+  tags$ul(class="list-inline",
+    tags$li(
+      actionButton(
+        inputId="btnStoryMapEditorUpdate",
+        class="btn-icon",
+        label=icon("save")
         )
       )
     )
   )
 
-uiMapStoryReader <- tagList()
+
+uiStoryCreator<- tagList(
+ #
+    # Tabset with creator components
+    #
+  div(class="mx-allow-story-edit mx-hide",
+    tabsetPanel(type="pills",
+      tabPanel("Edit", uiStoryEditor),
+      tabPanel("New", uiStoryNew)
+      )
+    )
+  )
+
+uiMapStoryModal <- tagList(
+  #
+  # STORY MAP MODAL
+  #
+  div(id="storyMapModalHandle",style=" background: rgba(47,47,47,0.8); cursor: move;",
+    tags$ul(class="list-inline",
+      tags$li(
+        div(class="btn-close",
+          tags$i(class="fa fa-times"),
+          onclick="$('#storyMapModal').addClass('mx-hide')"
+          ),
+        tags$li(
+          div(class="",
+            mx_set_lang="title.mapLeft.lock",
+            class="btn-xs btn-stop-map-scroll",
+            icon("unlock")
+            )
+          )
+        )
+      )
+    ),
+  div(style="width: 100%;padding: 10px;",
+    uiStorySelect,
+    uiStoryCreator
+    )
+  )
+
+
+
+
+uiMapStoryReader <- tagList(
+  #
+  # STORY MAP PREVIEW / READER
+  #
+  tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",style="width:100%",
+    div(id="mxStoryContainerPreview")
+    )
+  )
 
 #
 # MAP SECTION
@@ -252,8 +273,8 @@ uiLeftNav <- tagList(
     tags$li(
       tags$button(
         mx_set_lang="title.mapLeft.lock",
-        id="btnStopMapScroll",
-        class="btn-icon",
+        #id="btnStopMapScroll",
+        class="btn-icon btn-stop-map-scroll",
         icon("unlock")
         )
       ),
@@ -283,7 +304,7 @@ uiLeftNav <- tagList(
       actionButton('btnViewsExplorer',
         mx_set_lang="title.mapLeft.explorer",
         class="btn-icon",
-        label=icon("map-o")
+        label=icon("globe")
         )
       ),
     tags$li(
@@ -292,14 +313,7 @@ uiLeftNav <- tagList(
         class="btn-icon mx-hide mx-allow-creator",
         label=icon("plus")
         )
-      ),
-    tags$li(
-      actionButton('btnStoryCreator',
-        mx_set_lang="title.mapLeft.storyCreator",
-        class="btn-icon mx-hide mx-allow-story-creator",
-        label=icon("pencil-square-o")
-        )
-      ),
+      ), 
     tags$li(
       actionButton('btnStoryReader',
         mx_set_lang="title.mapLeft.storyReader",
@@ -311,22 +325,46 @@ uiLeftNav <- tagList(
       actionButton('btnViewsConfig',
         mx_set_lang="title.mapLeft.config",
         class="btn-icon",
-        label=icon("wrench")
+        label=icon("sliders")
         )
       ),
     tags$li(
       actionButton('btnViewsToolbox',
         mx_set_lang="title.mapLeft.toolbox",
         class="btn-icon",
-        label=icon("gears")
+        label=icon("cubes")
         )
       ),
     #
-    # PANEL CREATOR ONLY
+    # PANEL SPECIFIC BUTTONS
     #
     tags$li(
       hr(class='mx-mode-creator mx-hide')
       ),
+    tags$li(
+      hr(class='mx-mode-story-reader mx-hide')
+      ),
+    tags$li(
+      actionButton('btnStoryCreator',
+        mx_set_lang="title.mapLeft.storyEdit",
+        class="btn-icon mx-mode-story-reader mx-hide",
+        label=icon("pencil-square-o")
+        ),
+      singleton(
+        tags$script(
+          "$('#storyMapModal').draggable({ 
+          handle:'#storyMapModalHandle',
+          containment: '#sectionMap'
+         });
+        $('#btnStoryCreator').click(
+          function(){
+            $id = $('#storyMapModal');
+            $id.toggleClass('mx-hide');
+          }
+          );"
+        )
+    )
+  ),
     tags$li(
       actionButton("btnMapCreatorSave",
         class="btn-icon mx-mode-creator mx-hide",
@@ -367,25 +405,31 @@ tags$section(id="sectionMap",class="mx-hide",
         )
       ),
     #
+    # UI STORY MODAL
+    #
+    div(id="storyMapModal",style="position:fixed",class="mx-story-modal mx-hide",
+      uiMapStoryModal
+      ),
+    #
     # MAP LEFT PANEL
     #
     div(id="map-left-panel", class="map-left-panel-default",
-      h2(id="titlePanelMode","Views explorer"),
+      span(id="titlePanelMode","Views explorer"),
       div(class="map-left-nav",
         uiLeftNav
         ),
-        div(class="hide-scroll",
-          div(class="viewport",
-      div(class="map-left-content",
+      div(class="hide-scroll",
+        div(class="viewport",
+          div(class="map-left-content",
             uiMapList,
             uiMapCreator,
             uiMapToolbox,
             uiMapConfig,
-            uiMapStoryCreator,
+            #uiMapStoryCreator,
             uiMapStoryReader
             )
           )
-        )
+      )
       )
     )
   )
