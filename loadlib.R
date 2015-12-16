@@ -27,7 +27,7 @@ library(shinyAce)
 # Graphs 
 library(dygraphs)
 library(xts)
-library(rCharts)
+
 
 # data transfer
 library(base64enc)
