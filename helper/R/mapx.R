@@ -1500,9 +1500,7 @@ mxDbGetQuery <- function(dbInfo,query,stringAsFactors=F){
     # return
     return(res)
   },
-    finally={
-      print(paste("finally after query : ",query))
-    })
+    finally={})
 }
 
 

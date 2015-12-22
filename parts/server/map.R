@@ -233,7 +233,6 @@ observeEvent(input$btnDrawActionConfirm,{
   sa <- input$selDrawAction
   un <- mxReact$userName
 
-  sl <- "cod__2010_2015__ext__mineral"
 
   q <- sprintf("SELECT * FROM %1$s INNER JOIN %2$s ON ST_Intersects(%1$s.geom, %2$s.geom);"
     ,sl
