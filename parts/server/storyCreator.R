@@ -2,38 +2,6 @@
 # ui
 #
 
-
-#
-#
-## observe story map changes
-## -update db with change
-##- trigger update for story map
-#
-#observeEvent(input$btnStoryMapEditorUpdate,{
-#  mxCatch(title="Input story map text",{
-#  storyText <- input$txtStoryMap
-#  if( isTRUE(mxReact$allowStoryCreator && mxReact$mapPanelMode=="mapStoryCreator")){
-#    storyId<-input$selectStoryId
-#    if(isTRUE(storyId %in% mxReact$storyList)){ 
-#      if(nchar(storyText)>0){
-#        mxCatch(title="Parsing story and knit",{
-#          mxDbUpdate(dbInfo,
-#            table = mxConfig$storyMapsTableName,
-#            column = "content_b64",
-#            id = storyId,
-#            value = mxEncode(storyText) 
-#            )
-#          browser()
-#          mxUpdateText(id="mxStoryContainerPreview",text=mxParseStory(storyText))
-#          mxReact$updateStoryMaps <- runif(1)
-#        })
-#      }
-#    }
-#  }
-# })
-#})
-#
-
 # name validation
 observeEvent(input$txtStoryName,{
   newStoryName <- input$txtStoryName 

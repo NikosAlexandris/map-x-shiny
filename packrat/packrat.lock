@@ -26,8 +26,8 @@ Requires: R.methodsS3
 
 Package: R.utils
 Source: CRAN
-Version: 2.1.0
-Hash: 7d40e3af9cd8e39062bb6f491b400fdd
+Version: 2.2.0
+Hash: dfc0bc71c7d72797636bfada613e0027
 Requires: R.methodsS3, R.oo
 
 Package: R6
@@ -345,6 +345,12 @@ Source: CRAN
 Version: 0.3.0
 Hash: 323f8f5a7f2823f19bd3fd3c15fc196a
 Requires: RColorBrewer, Rcpp, dichromat, labeling, munsell, plyr
+
+Package: sendmailR
+Source: CRAN
+Version: 1.2-1
+Hash: 26561ceb5871f3983b40c2bfdf90ed09
+Requires: base64enc
 
 Package: shiny
 Source: github
