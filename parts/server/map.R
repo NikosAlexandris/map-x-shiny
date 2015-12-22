@@ -164,3 +164,140 @@ output$mapxMap <- renderLeaflet({
 })
 
 
+
+
+observeEvent(input$btnDraw,{
+pMap <- leafletProxy("mapxMap")
+pMap %>% addDraw(options=list(position="topright"))
+})
+
+
+
+
+
+
+
+
+observeEvent(input$leafletDrawGeoJson,{
+
+  mxCatch(title="Polygon of interest",{
+
+
+    v = mxReact$views
+    layers = lapply(v,function(x){x$layer})
+    names(layers) = lapply(v,function(x){x$title})
+    layers <- c(mxConfig$noData,unlist(layers))
+    actions <- c(
+      mxConfig$noData,
+      "Observe for changes over time"="changes",
+      "Get current attributes"="summary" 
+      )
+
+    ui <- tagList(
+      selectInput("selDrawLayer","Select a layer",choices=layers),
+      selectInput("selDrawAction","Select an action",choices=actions),
+      textInput("txtDrawEmail","Enter your email",value=mxReact$userEmail)
+      )
+
+    bnts <- tagList(
+      actionButton("btnDrawActionConfirm","confirm",class="btn-modal")
+      )
+
+    panModal <- mxPanel(
+      id="panDrawModal",
+      title="Polygon of interest",
+      subtitle="Action handler",
+      html=ui,
+      listActionButton=bnts,
+      addCancelButton=TRUE
+      )
+
+    mxUpdateText(id="panelAlert",ui=panModal)
+    mxReact$drawActionGeoJson <- input$leafletDrawGeoJson
+        })
+})
+
+ 
+observeEvent(input$btnDrawActionConfirm,{
+  mxCatch(title="Polygon of interest : processing",{
+  gj <- mxReact$drawActionGeoJson 
+  tm <- randomName("tmp")
+ 
+  
+  dbAddGeoJSON(geojsonList=gj,tableName=tm,dbInfo=dbInfo)
+  stopifnot(tm %in% mxDbListTable(dbInfo))
+
+
+  em <- input$txtDrawEmail
+  sl <- input$selDrawLayer
+  sa <- input$selDrawAction
+  un <- mxReact$userName
+
+  sl <- "cod__2010_2015__ext__mineral"
+
+  q <- sprintf("SELECT * FROM %1$s INNER JOIN %2$s ON ST_Intersects(%1$s.geom, %2$s.geom);"
+    ,sl
+    ,tm
+    )
+ 
+  rs <- mxDbGetQuery(dbInfo,q)
+  if(is.null(rs)){
+    rs = data.frame(title="NO VALUE")
+  }else{
+
+
+    # this result will be used to compare to previous results if something changed. 
+
+    cl <- mxDbListColumns(dbInfo,sl)
+
+
+    # rm cols
+    rc <- c('gid','geom','mx_date_start','mx_date_end','guidshap','guidlice','guidspat','intgeome','intshape') 
+
+    cls <- cl[! cl %in% rc]
+
+    rs <- rs[,names(rs) %in% cls]
+
+  }
+
+ 
+  di <- digest(rs)
+  nr <- nrow(rs)
+  ## send result by mail
+  from <- "bot@mapx.io"
+  to <- em
+  subject <- paste("mapx analysis result for on layer",sl)
+
+  msg <- sprintf(
+    "Hi %1$s,
+    \n here is the result for your polygon request.
+    \n Number of rows = %2$s
+    \n MD5 sum = %3$s",
+    un,nr,di
+    )
+
+
+  mime_part.data.frame <- function(x, name=deparse(substitute(x)), ...) {
+      f <- tempfile()
+    on.exit(file.remove(f))
+      write.table(x, file=f, ...)
+      sendmailR:::.file_attachment(f, name=sprintf("%s.csv", name), type="text/plain")
+  }
+
+
+  body <- list(msg, mime_part(rs))
+ 
+
+  mxDebugMsg("send the message")
+  sendmail(
+    from, 
+    to, 
+    subject, 
+    body,
+    control=list(smtpServer="smtp.unige.ch")
+    )
+  })
+
+})
+
+

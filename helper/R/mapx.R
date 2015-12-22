@@ -150,7 +150,7 @@ mxDebugToJs<-function(text,session=getDefaultReactiveDomain()){
 #' @param hideCloseButton Boolean. Hide the close panel button
 #' @param draggable Boolean. Set the panel as draggable
 #' @export
-mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionButton=NULL,background=TRUE,defaultButtonText="OK",style=NULL,class=NULL,hideCloseButton=FALSE,draggable=TRUE){ 
+mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionButton=NULL,background=TRUE,addCancelButton=FALSE,addOnClickClose=TRUE,defaultButtonText="OK",style=NULL,class=NULL,hideCloseButton=FALSE,draggable=TRUE,fixed=TRUE){ 
 
   classModal <- "panel-modal"
   rand <- randomName()
@@ -158,10 +158,35 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
   idBack <- paste(id,rand,"background",sep="_")
   idContent <- paste(id,rand,"content",sep="_")
   jsHide <- paste0("$('#",idContent,"').toggle();$('#",idBack,"').toggle()")
+  
+
+  if(!is.null(listActionButton) && isTRUE(addOnClickClose)){
+    listActionButton <- lapply(
+      listActionButton,
+      function(x){
+        x$attribs$onclick<-jsHide
+        return(x)
+      }
+      )
+  }  
+  
   # If NULL Set default button action to "close" panel, with custom text
-  if(is.null(listActionButton))listActionButton=list(
-    tags$button(onclick=jsHide,defaultButtonText,class="btn btn-info")
+
+  if(is.null(listActionButton)){
+    listActionButton=list(
+    tags$button(onclick=jsHide,defaultButtonText,class="btn btn-modal")
     )
+  }
+
+
+
+  if(addCancelButton){
+  listActionButton <- tagList(
+    listActionButton, 
+    tags$button(onclick=jsHide,"Cancel",class="btn btn-modal")
+    )
+  }
+
   # if explicit FALSE is given, remove modal button. 
   if(isTRUE(is.logical(listActionButton) && !isTRUE(listActionButton)))listActionButton=NULL
 # close button handling
@@ -177,27 +202,69 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
     backg <- character(0)
   }
 
+
+
+  if(draggable){
+  scr <- tags$script(sprintf("
+    $('#%1$s').draggable({ 
+      cancel: '.panel-modal-text'
+    });
+    ",idContent))
+  }else{
+  scr = ""
+  }
+
+  if(fixed){
+  style = paste("position:fixed",style)
+  }else{
+  style = paste("position:absolute",style)
+  }
+
   tagList( 
     backg,
-    absolutePanel(draggable=draggable,
+    div( 
       id=idContent,
       class=paste(class,classModal,"panel-modal-content"),
       style=style,
       closeButton,
-      div(class=paste(classModal,'panel-modal-head'),  
-        div(class=paste(classModal,'panel-modal-title'),title)
+      div(class=paste('panel-modal-head'),  
+        div(class=paste('panel-modal-title'),title)
         ),
-      div(class=paste(classModal,'panel-modal-subtitle'),subtitle),
+      div(class=paste('panel-modal-subtitle'),subtitle),
       hr(),
-      div(class=paste(classModal,'panel-modal-text'),html),
+      div(class=paste('panel-modal-text'),html),
       hr(),
-      div(class=paste(classModal,'panel-modal-buttons'),
+      div(class=paste('panel-modal-buttons'),
         listActionButton
         )
-      )
+      ),
+    scr
     )
+
+  
 }
 
+
+#  tagList( 
+#    backg,
+#    absolutePanel(draggable=draggable,
+#      id=idContent,
+#      class=paste(class,classModal,"panel-modal-content"),
+#      style=style,
+#      closeButton,
+#      div(class=paste(classModal,'panel-modal-head'),  
+#        div(class=paste(classModal,'panel-modal-title'),title)
+#        ),
+#      div(class=paste(classModal,'panel-modal-subtitle'),subtitle),
+#      hr(),
+#      div(class=paste(classModal,'panel-modal-text'),html),
+#      hr(),
+#      div(class=paste(classModal,'panel-modal-buttons'),
+#        listActionButton
+#        )
+#      )
+#    )
+#
 #' Update existing panel
 #'
 #' Use output object to update the panel with a known id. E.g. for updating uiOutput("panelTest"), use mxUpdatePanel with panelId "panelTest"
@@ -419,6 +486,253 @@ subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T,u
   res
 }
 
+
+
+#' Transfert postgis feature by sql query to sp object
+#' @param dbInfo Named list with dbName,host,port,user and password.
+#' @param query PostGIS spatial sql querry.
+#' @return spatial object.
+#' @export
+dbGetSp <- function(dbInfo,query) {
+  if(!require('rgdal')|!require(RPostgreSQL))stop('missing rgdal or RPostgreSQL')
+  d <- dbInfo
+
+  tmpTbl <- sprintf('tmp_table_%s',round(runif(1)*1e5))
+
+  dsn <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
+    d$dbname,d$host,d$port,d$user,d$password
+    )
+
+  drv <- dbDriver("PostgreSQL")
+
+  con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+
+  tryCatch({
+
+    sql <- sprintf("CREATE UNLOGGED TABLE %s AS %s",tmpTbl,query)
+
+    res <- dbSendQuery(con,sql)
+
+    nr <- dbGetInfo(res)$rowsAffected
+
+    if(nr<1){
+
+      warning('There is no feature returned.'); 
+
+      return()
+
+    }
+
+    sql <- sprintf("SELECT f_geometry_column from geometry_columns WHERE f_table_name='%s'",tmpTbl) 
+
+
+    geo <- dbGetQuery(con,sql)
+
+    if(length(geo)>1){
+      tname <- sprintf("%s(%s)",tmpTbl,geo$f_geometry_column[1])
+    }else{
+      tname <- tmpTbl;
+    }
+    out <- readOGR(dsn,tname)
+
+    on.exit({
+      sql <- sprintf("DROP TABLE %s",tmpTbl)
+      dbSendQuery(con,sql)
+      dbClearResult(dbListResults(con)[[1]])
+      dbDisconnect(con) 
+    })
+
+    return(out)
+  })
+
+}
+
+
+#' Geojson from postGIS base
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param query PostGIS spatial sql querry.
+#' @return geojson list
+#' @export
+dbGetGeoJSON<-function(dbInfo,query,fromSrid="4326",toSrid="4326"){
+  # NOTE: check package geojsonio for topojson and geojson handling.
+  # https://github.com/ropensci/geojsonio/issues/61
+  d <- dbInfo
+  dsn <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
+    d$dbname,d$host,d$port,d$user,d$password
+    )
+  tmp <- paste0(tempfile(),".geojson")
+  system(sprintf("ogr2ogr -f GeoJSON '%s' '%s' -sql '%s' -s_srs 'EPSG:%4$i' -t_srs 'EPSG:%5$i'",tmp,dsn,query,fromSrid,toSrid))
+  return(jsonlite::fromJSON(tmp))
+}
+#' Get layer extent
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param table Table/layer from which extract extent
+#' @param geomColumn set geometry column
+#' @return extent
+#' @export
+dbGetLayerExtent<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
+  if(is.null(dbInfo) || is.null(table)) stop('Missing arguments')
+ 
+    if(table %in% mxDbListTable(dbInfo)){
+
+     q <- sprintf("SELECT ST_Extent(%s) as table_extent FROM %s;",geomColumn,table)
+
+      ext <- mxDbGetQuery(dbInfo,q)[[1]] %>% 
+      strsplit(split=",")%>%
+      unlist() %>%
+      gsub("[a-z,A-Z]|\\(|\\)","",.) %>%
+      strsplit(split="\\s") %>%
+      unlist() %>%
+      as.numeric() %>%
+      as.list()
+      names(ext)<-c("lng1","lat1","lng2","lat2")
+      return(ext)
+
+    }
+}
+
+
+#' @export
+dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL,geomColumn="geom",srid="4326",distKm=1){
+  if(
+    noDataCheck(dbInfo) ||
+    noDataCheck(table) || 
+    noDataCheck(column) || 
+    noDataCheck(lat) ||
+    noDataCheck(lng) ||
+    isTRUE(column=='gid')
+    ){
+    return()
+  }else{
+
+    timing<-system.time({
+      sqlPoint <- sprintf("'SRID=%s;POINT(%s %s)'",srid,lng,lat)
+      sqlWhere <- sprintf(
+        paste(
+          "with index_query as (select st_distance(%s, %s) as distance, %s from %s order by %s <#> %s limit 10)",
+          "select %s from index_query where distance < 0.1 order by distance limit 1;"
+          ),
+        geomColumn,sqlPoint,column,table,geomColumn,sqlPoint,column
+        )
+      res <- mxDbGetQuery(dbInfo,sqlWhere)
+    })
+    return(
+      list(
+        result=res,
+        latitude=lat,
+        longitude=lng,
+        timing=timing
+        )
+      ) 
+  }
+}
+
+
+
+
+#' Get variable summary
+#'
+#' @param dbInfo Named list with dbName,host,port, user and password
+#' @param table Table/layer from which extract extent
+#' @param column Column/Variable on wich extract summary
+#' @export
+  dbGetColumnInfo<-function(dbInfo=NULL,table=NULL,column=NULL){
+
+    if(noDataCheck(dbInfo) || noDataCheck(table) || noDataCheck(column) || isTRUE(column=='gid'))return() 
+
+
+      timing<-system.time({
+
+      q <- sprintf(
+            "SELECT attname 
+            FROM pg_attribute 
+            WHERE attrelid = 
+            (SELECT oid 
+              FROM pg_class 
+              WHERE relname = '%s'
+              ) 
+            AND attname = '%s';"
+            ,table,
+            column
+            )
+
+        columnExists <- nrow( mxDbGetQuery(dbInfo,q) ) > 0 
+
+        if(!columnExists){
+          message(paste("column",column," does not exist in ",table))
+          return()
+        }
+
+        nR <- mxDbGetQuery(dbInfo,sprintf(
+            "SELECT count(*) 
+            FROM %s 
+            WHERE %s IS NOT NULL"
+            ,table
+            ,column
+            )
+          )[[1]]
+
+        nN <- mxDbGetQuery(dbInfo,sprintf(
+            "SELECT count(*) 
+            FROM %s 
+            WHERE %s IS NULL"
+            ,table
+            ,column
+            )
+          )[[1]]
+        nD <- mxDbGetQuery(dbInfo,sprintf(
+            "SELECT COUNT(DISTINCT(%s)) 
+            FROM %s 
+            WHERE %s IS NOT NULL"
+            ,column
+            ,table
+            ,column
+            )
+          )[[1]]
+
+        val <- mxDbGetQuery(dbInfo,sprintf("
+            SELECT DISTINCT(%s) 
+            FROM %s 
+            WHERE %s IS NOT NULL"
+            ,column
+            ,table
+            ,column
+            ),stringAsFactors=T)[[1]]
+      })
+
+
+      scaleType <- ifelse(is.factor(val) || is.character(val),'discrete','continuous')
+     
+      return(
+        list(
+          'table' = table,
+          'column' = column,
+          'nDistinct'=nD,
+          'nRow'=nR,
+          'nNa'=nN,
+          'scaleType'=scaleType,
+          'dValues'=val,
+          'timing'=timing
+          )
+        ) 
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Get layer center
 #' 
 #' Compute the union of all geometry in a given layer and return the coordinate of the centroid.
@@ -430,12 +744,22 @@ subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T,u
 #' @export
 dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
   if(is.null(dbInfo) || is.null(table)) stop('Missing arguments')
-  d <- dbInfo
+  
   tryCatch({
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
     if(table %in% dbListTables(con)){
-      ext<- dbGetQuery(con,sprintf("SELECT ST_asText(ST_centroid(ST_union(%s))) FROM %s WHERE ST_isValid(%s) = true;",geomColumn,table,geomColumn))[[1]] %>%
+      
+      query <- sprintf(
+        "SELECT ST_asText(ST_centroid(ST_union(%s))) 
+        FROM %s 
+        WHERE 
+        ST_isValid(%s) = true;"
+        ,geomColumn
+        ,table
+        ,geomColumn
+        )
+
+      
+      mxDbGetQuery(dbInfo,query)[[2]] %>%
       strsplit(split=" ")%>%
       unlist()%>%
       gsub("[a-z,A-Z]|\\(|\\)","",.)%>%
@@ -444,6 +768,8 @@ dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
       as.numeric()%>%
       as.list()
       names(ext)<-c("lng","lat")
+
+    dbDisconnect(con)
       return(ext)
     }
   },finally={
@@ -462,17 +788,15 @@ dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
 #' @export
 dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomColumn='geom',operator="="){
   if(is.null(dbInfo) || is.null(table)) print("missing arguments in dbGetFilterCenter")
-  d <- dbInfo
-  tryCatch({
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    if(table %in% dbListTables(con)){
-      valueOrig <- gsub("'","''",value)
-      valueEscape <- paste0("(E",paste0("\'",valueOrig,"\'",collapse=","),")")
-      if(length(value)>1){
-        operator <- "in"
-      }
-      q = sprintf("
+
+  if(table %in% mxDbListTable(dbInfo)){
+    valueOrig <- gsub("'","''",value)
+    valueEscape <- paste0("(E",paste0("\'",valueOrig,"\'",collapse=","),")")
+    if(length(value)>1){
+      operator <- "in"
+    }
+
+    q = sprintf("
       SELECT ST_Extent(%1$s) 
       FROM (SELECT %1$s FROM %2$s WHERE %3$s %5$s %4$s ) t
       WHERE ST_isValid(%1$s)",
@@ -483,21 +807,21 @@ dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomCo
       operator
       )
 
-      ext <- dbGetQuery(con,q)[[1]]
-      if(noDataCheck(ext))return(NULL)
-      res <- ext %>%
-      strsplit(split=",")%>%
-      unlist()%>%
- strsplit(split=" ")%>%
-      unlist()%>%
-      gsub("[a-z,A-Z]|\\(|\\)","",.)%>%
-      as.numeric()
-      names(res)<-c('lng1', 'lat1', 'lng2', 'lat2')
-      return(res)
-    }
-  },finally={
-    dbDisconnect(con)
-  })
+    ext <- mxDbGetQuery(dbInfo,q)[[1]]
+
+    if(noDataCheck(ext))return(NULL)
+    res <- ext %>%
+    strsplit(split=",")%>%
+    unlist()%>%
+    strsplit(split=" ")%>%
+    unlist()%>%
+    gsub("[a-z,A-Z]|\\(|\\)","",.)%>%
+    as.numeric()
+    names(res)<-c('lng1', 'lat1', 'lng2', 'lat2')
+
+    return(res)
+  }
+
 }
 
 
@@ -565,20 +889,38 @@ loadUi<-function(path){
 #' @param country ISO 3 code to filter country. 
 #' @export
 mxGetViewsTable <- function(dbInfo=NULL, table="mx_views",validated=TRUE,archived=FALSE,country="AFG"){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL") 
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    
     country = paste0("'",country,"'",collapse=",")
-    if(isTRUE(table %in% dbListTables(con))){
-      sql <- sprintf("SELECT * FROM %s WHERE validated is %s AND archived is %s AND country IN (%s)",table,validated,archived,country)
-      res <- dbGetQuery(con,sql)
-      dbDisconnect(con) 
+
+    if(isTRUE(table %in% mxDbListTable(dbInfo))){
+
+      q <- sprintf(
+        "SELECT * FROM %s 
+        WHERE validated is %s 
+        AND archived is %s 
+        AND country 
+        IN (%s)"
+        ,table
+        ,validated
+        ,archived
+        ,country
+        )
+
+      res <- mxDbGetQuery(dbInfo,q)
+
       return(res)
+
     }else{
-      mxDebugMsg(paste("mxGetViewsList: table",table," content requested, but not found in db."))
+      mxDebugMsg(
+        paste(
+          "mxGetViewsList: table"
+          ,table
+          ," content requested, but not found in db."
+          )
+        )
     }
-  },finally=if(exists('con'))dbDisconnect(con)) 
+
+
 }
 
 
@@ -589,7 +931,7 @@ mxGetViewsTable <- function(dbInfo=NULL, table="mx_views",validated=TRUE,archive
 #' @param inputId id of the file input
 #' @param label Label for the input
 #' @param fileAccept List of accepted file type. Could be extension.
-#' @param multiple  Boolean. Allow multiple file to be choosen. Doesn't work on all browser.
+#' @param multiple  Boolean. Allow multiple file to be choosen. Doesn't work on all client.
 #' @export
 mxFileInput<-function (inputId, label, fileAccept=NULL, multiple=FALSE){
   inputTag<-tags$input(
@@ -672,6 +1014,8 @@ remoteCmd <- function(host=NULL,user=NULL,port=NULL,cmd=NULL,vagrant=TRUE,sshCon
 #' @param geomCol Set the name of the geometry column
 dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, overwrite=FALSE, keyCol="gid", srid=4326, geomCol="geom") {
 
+  on.exit(dbDisconnect(con))
+  
   library(rgeos)
 
   # Create well known text and add to spatial DF
@@ -705,10 +1049,13 @@ dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, over
   er <- dbGetQuery(con, statement=query5)
 
 
+
+
   if(!is.null(keyCol)){
     query6 <- sprintf("ALTER TABLE %s ADD COLUMN %s SERIAL PRIMARY KEY;", schema.table, keyCol)
     er <- dbGetQuery(con, statement=query6)
   }
+
 
 
   return(TRUE)
@@ -1082,20 +1429,25 @@ mxDecode <- function(base64text){
 #' @param id Id of the element
 #' @param text New text
 #' @export
-mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text,addId=FALSE){
-  textb64 <- mxEncode(text)
-  if(is.null(text)){
+mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text=NULL,ui=NULL,addId=FALSE){
+  if(is.null(text) && is.null(ui)){
     return(NULL)
   }else{
-    val=list(
-      id = id,
-      txt = textb64,
-      addId = addId
-      )
-    session$sendCustomMessage(
-      type="updateText",
-      val
-      )
+    if(is.null(ui)){
+
+    textb64 <- mxEncode(text)
+      val=list(
+        id = id,
+        txt = textb64,
+        addId = addId
+        )
+      session$sendCustomMessage(
+        type="updateText",
+        val
+        )
+    }else{
+   session$output[[id]] <- renderUI(ui)
+  }
   }
 }
 
@@ -1131,16 +1483,44 @@ mxUpdateValue <- function(session=shiny:::getDefaultReactiveDomain(),id,value){
 #' @param dbInfo Named list with dbName,host,port,user and password
 #' @param SQL query
 #' @export
-mxDbGetQuery <- function(dbInfo,query){
+mxDbGetQuery <- function(dbInfo,query,stringAsFactors=F){
   tryCatch({
     d <- dbInfo
     drv <- dbDriver("PostgreSQL")
     con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbGetQuery(con,query)
+    suppressWarnings({
+    res <- dbGetQuery(con,query,stringAsFactors=stringAsFactors)
+    })
+
+    dbDisconnect(con)
+    on.exit({ 
+    dbDisconnect(con)
+    mxDbClearAll(dbInfo)
+    })
+    # return
     return(res)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
+  },
+    finally={
+      print(paste("finally after query : ",query))
+    })
 }
+
+
+mxDbClearAll <- function(dbInfo){
+  d <- dbInfo
+  drv <- dbDriver("PostgreSQL")
+  cons <- dbListConnections(drv)
+  if(length(cons)>0){
+    lapply(cons,function(x){
+      nR <- dbListResults(x)
+      if(length(nR)>0){
+        lapply(nR,dbClearResult)
+      }
+      dbDisconnect(x)
+  })
+  }
+}
+
 
 
 
@@ -1156,10 +1536,36 @@ mxDbListTable<- function(dbInfo){
     drv <- dbDriver("PostgreSQL")
     con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
     res <- dbListTables(con)
+
+    dbDisconnect(con)
     return(res)
   },finally=if(exists('con'))dbDisconnect(con)
   )
 }
+
+#' List existing column from postgresql table
+#'
+#' Shortcut to create a connection, get the list of column and close the connection, using a dbInfo list. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @export
+mxDbListColumns <- function(dbInfo,table){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbListFields(con,table)
+
+    dbDisconnect(con)
+    return(res)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+
+
+
+
 
 #' Add data to db
 #'
@@ -1194,16 +1600,14 @@ mxDbAddData <- function(dbInfo,data,table){
 
     dbWriteTable(con,name=table,value=data,append=nExists,row.names=F)
 
+    dbDisconnect(con)
   },finally=if(exists('con'))dbDisconnect(con)
   )
 }
 
 mxDbUpdate <- function(dbInfo,table,column,idCol="id",id,value){
- tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    query <- sprintf("
+    
+   query <- sprintf("
       UPDATE %1$s
       SET %2$s='%3$s'
       WHERE %4$s='%5$s'",
@@ -1213,9 +1617,10 @@ mxDbUpdate <- function(dbInfo,table,column,idCol="id",id,value){
       idCol,
       id
       )
-    dbGetQuery(con,query)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
+
+    res <- mxDbGetQuery(dbInfo,query)
+
+    return(res)
 }
 
 
@@ -1252,6 +1657,9 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
     if(is.numeric(nDaysExpires) ){
       exp <- as.numeric(as.POSIXlt(Sys.time()+nDaysExpires*3600*24,tz="gmt"))
       cmd <- sprintf("document.cookie='expires='+(new Date(%s*1000)).toUTCString();",exp)
+      # if no date are visible, add one.
+      addDate <- ";if(document.cookie.indexOf('d=')==-1){document.cookie='d='+new Date();}"
+      cmd <- paste(cmd,addDate)
     }
 
     for(i in 1:length(cookie)){
@@ -1263,11 +1671,9 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
       }
     }
     }
+  # execute command
   if(length(cmd)>0){
-
-    #Add date
-    addDate <- ";if(document.cookie.indexOf('d=')==-1){document.cookie='d='+new Date();}"
-    cmd <- paste(cmd,addDate)
+    #Add date 
     session$sendCustomMessage(
       type="mxSetCookie",
       list(code=cmd)
@@ -1399,6 +1805,12 @@ setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){
    }
 
 
+
+
+
+
+
+
 #' Enable or disable loading panel
 #' @param session Shiny reactive domain
 #' @param enable Boolean activate or disable panel
@@ -1473,36 +1885,13 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
   #gsub('\\[(.*?)\\]\\((.*?)\\)','<a href="\\2">\\1</a>',test,perl=T)
 
 
-
-
-# works
-# 
-#txt <-  gsub(
-#    "@view_start\\(\\s*([ a-zA-Z]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*(.*?)\\s*\\)(.*?)@view_end",
-#    "<div class='mx-story-section' mx-map-title='\\1' mx-map-id='[\"\\2\"]' mx-map-extent='[\\3]'>\\4</div>",
-#    txtorig
-#    )%>%
-#  gsub("([nesw]):","",.)%>%
-#  knitr::knit2html(text=.,quiet = TRUE, 
-#    #NOTE: options from markdownHTMLoptions()
-#    options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
-#    )
-#
-#
-
-
-
-
-
-
-
 mxParseStory <- function(txtorig,knit=T,toc=F){
 
   txt <- knitr::knit2html(text=txtorig,quiet = TRUE, 
     #NOTE: options from markdownHTMLoptions()
     options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
     ) %>% gsub(
-    "@view_start\\(\\s*([ a-zA-Z]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*(.*?)\\s*\\)(.*?)@view_end",
+    "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*(.*?)\\s*\\)(.*?)@view_end",
     "<div class='mx-story-section' mx-map-title='\\1' mx-map-id='[\"\\2\"]' mx-map-extent='[\\3]'>\\4</div>",
     .
     )%>%
@@ -1511,6 +1900,54 @@ mxParseStory <- function(txtorig,knit=T,toc=F){
 
 
   return(txt)
+
+}
+
+#' Add geojson list or file to db postgis
+#' @param geojsonList list containing the geojson data
+#' @param geojsonPath path the geojson
+#' @param dbInfo dbInfo object containgin pass,user, .... 
+#' @param tableName Name of the postgis layer / table 
+dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableName=NULL){
+
+  gL <- geojsonList
+  gP <- geojsonPath
+  tN <- tableName
+  d <- dbInfo
+
+  if(!is.null(gL) && typeof(gL) == "list"){
+    gP <- tempfile(fileext=".GeoJSON")
+    write(jsonlite::toJSON(gL,auto_unbox=TRUE),gP)
+  }
+
+  stopifnot(file.exists(gP))
+
+  # db set destination
+  tD <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
+    d$dbname,d$host,d$port,d$user,d$password
+    )
+  cmd = sprintf(
+    "ogr2ogr
+    -t_srs 'EPSG:4326'
+    -s_srs 'EPSG:4326'
+    -geomfield geom
+    -lco FID=gid
+    -lco GEOMETRY_NAME=geom
+    -lco SCHEMA=public
+    -f 'PostgreSQL'
+    -overwrite
+    -nln '%1$s'
+    '%2$s'
+    '%3$s'
+    OGRGeoJSON
+    ",tN,tD,gP)
+    cmd <- gsub("\\n","",cmd)
+
+
+
+    # er : output. 
+    er <- system(cmd,intern=TRUE)
+
 
 }
 

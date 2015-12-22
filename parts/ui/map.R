@@ -193,7 +193,17 @@ uiStoryEditor <- tagList(
   #
   tags$textarea(id="txtStoryMap", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
   #buttons
-  div(id="txtLiveCoordinate",class="mx-hide"),
+  span("Drag and drop views from the menu; Drag and drop coordinates from the box below :"),
+  div(id="txtLiveCoordinate",draggable=TRUE),
+ tags$script(
+            "
+            document.getElementById('txtLiveCoordinate')
+            .addEventListener('dragstart',function(e){
+              var coord = document.getElementById('txtLiveCoordinate').innerHTML;
+              e.dataTransfer.setData('text', coord);
+        })"
+            ),
+
   tags$ul(class="list-inline",
     tags$li(
       actionButton(
@@ -333,6 +343,13 @@ uiLeftNav <- tagList(
         mx_set_lang="title.mapLeft.toolbox",
         class="btn-icon",
         label=icon("cubes")
+        )
+      ),
+ tags$li(
+      actionButton('btnDraw',
+        mx_set_lang="title.mapLeft.toolbox",
+        class="btn-icon",
+        label=icon("pencil")
         )
       ),
     #

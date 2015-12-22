@@ -327,7 +327,7 @@ mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
 # a = actually logged
 # c = country allowed (all,pending,complete or single iso3)
 mxData$pwd <- rbind(
-  c(id=0,u="fred", l="570a90bfbf8c7eab5dc5d4e26832d5b1",k="570a90bfbf8c7eab5dc5d4e26832d5b1", r="superuser",e="mail@example.com"),
+  c(id=0,u="fred", l="570a90bfbf8c7eab5dc5d4e26832d5b1",k="570a90bfbf8c7eab5dc5d4e26832d5b1", r="superuser",e="moser.frederic@gmail.com"),
   c(id=1,u="pierre",l="84675f2baf7140037b8f5afe54eef841" ,k="84675f2baf7140037b8f5afe54eef841", r="superuser",e="mail@example.com"),
   c(id=2,u="david",l="172522ec1028ab781d9dfd17eaca4427",k="172522ec1028ab781d9dfd17eaca4427", r="user",e="mail@example.com"),
   c(id=3,u="dag",l="b4683fef34f6bb7234f2603699bd0ded", k="b4683fef34f6bb7234f2603699bd0ded", r="user",e="mail@example.com"),
@@ -335,9 +335,10 @@ mxData$pwd <- rbind(
   c(id=5,u="paulina",l="e16866458c9403fe9fb3df93bd4b3a41", k="e16866458c9403fe9fb3df93bd4b3a41", r="user",e="mail@example.com"),
   c(id=6,u="greg",l="ea26b0075d29530c636d6791bb5d73f4",k="ea26b0075d29530c636d6791bb5d73f4", r="user",e="mail@example.com"),
   c(id=7,u="guest",l="084e0343a0486ff05530df6c705c8bb4",k="084e0343a0486ff05530df6c705c8bb4", r="user",e="mail@example.com"),
-  c(id=7,u="jjacques",l="6cb261a6203d1e441c5b2110a182701f",k="0e3b98b36a16e55b08ce156a02397506", r="user",e="mail@example.com"),
-  c(id=7,u="sandra",l="f40a37048732da05928c3d374549c832",k="4925a6581bde894377a2827c9b94608c", r="user",e="mail@example.com"),
-  c(id=7,u="mady",l="137f13f84ad65ab8772946f3eb1d3a65",k="57ba663c95d2e961727cf6ce004e5886", r="user",e="mail@example.com")
+  c(id=8,u="jjacques",l="6cb261a6203d1e441c5b2110a182701f",k="0e3b98b36a16e55b08ce156a02397506", r="user",e="mail@example.com"),
+  c(id=9,u="sandra",l="f40a37048732da05928c3d374549c832",k="4925a6581bde894377a2827c9b94608c", r="user",e="mail@example.com"),
+  c(id=10,u="mady",l="137f13f84ad65ab8772946f3eb1d3a65",k="57ba663c95d2e961727cf6ce004e5886", r="user",e="mail@example.com"),
+  c(id=11,u="nik", l="f64609172efea86a5a6fbae12ab86d33",k="828901b64571475844eac292d78faa32", r="superuser",e="nikos.alexandris@unepgrid.ch")
   )
 mxData$pwd <- as.data.frame(mxData$pwd,stringsAsFactors=F)
 mxData$pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 

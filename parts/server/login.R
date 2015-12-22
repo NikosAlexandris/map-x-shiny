@@ -115,9 +115,7 @@ observeEvent(input$btnLogout,{
   mxUpdateValue(id="loginUser",value="")
   mxUpdateValue(id="loginKey",value="")
   mxSetCookie(cookie=list(t="",s="",l="",k=""),deleteAll=TRUE)
-  # location reloaded after cookie deletion
-#  session$sendCustomMessage("jsCode",list(code="location.reload(true);window.history.forward(1);"))
-#  session$sendCustomMessage("jsCode",list(code="location.reload(true);window.history.forward(1);"))
+  session$close() 
 })
 
 #
