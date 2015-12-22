@@ -31,6 +31,7 @@ library(xts)
 
 # data transfer
 library(base64enc)
+library(sendmailR)
 
 # story map
 library(knitr)

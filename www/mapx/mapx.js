@@ -2,6 +2,7 @@
 
 
 
+var storyMapLayer = {store:[]};
 
 
 // When document is ready
@@ -36,7 +37,8 @@ function readCookie()
 }
 
 
-function clearListCookies(){
+function clearListCookies()
+{
   var cookies = document.cookie.split(";");
   for (var i = 0; i < cookies.length; i++){   
     var spcook =  cookies[i].split("=");
@@ -163,6 +165,7 @@ function makeid(){
 
 // post proc functions
 function setUniqueItemsId(){
+   storyMapLayer = {store:[]};
   $(".mx-story-section").each(function(){ 
       $(this).attr('id',makeid());
   }
@@ -295,7 +298,6 @@ function updateMapElement(){
    });
 
 // story map handler
-var storyMapLayer = {store:[]};
 
 var checkStorySectionsPostion = function(){
 
@@ -830,113 +832,3 @@ LeafletWidget.methods.setZoomOptions = function(buttonOptions,removeButton){
 
 
 
-
-//
-//
-///
-//// Default style if no colors are needed. e.g. if we need to show a filtered views.
-////
-//
-//function applyStyleFilter(id,vtStyle,lay){
-//  console.log("Apply style")
-//  // shortcut to applied style
-//  leafletvtId[id].vtStyle = vtStyle;
-//  // create function to apply
-//  var sty = function(feature) {
-//    var style = {};
-//    var selected = style.selected = {};
-//    var  type = feature.type,
-//    defaultColor = 'rgba(0,0,0,0)',
-//    dataCol = defaultColor,
-//    val = feature.properties[vtStyle.dataColum[0]],
-//    dateStyleMin = vtStyle.mxDateMin[0],
-//    dateStyleMax = vtStyle.mxDateMax[0],
-//    dateFeatStart = feature.properties.mx_date_start,
-//    dateFeatEnd = feature.properties.mx_date_end,
-//    d = []; 
-//    // skip = set feature style to default(transparent)
-//    var skip = false ;
-//    // if 
-//    var hasDate = false ;
-//
-//    if( typeof(dateFeatEnd) != "undefined" && typeof(dateFeatStart) != "undefined" ){
-//      hasDate = true;
-//      d.push(
-//          dateStyleMin,
-//          dateStyleMax,
-//          dateFeatStart,
-//          dateFeatEnd
-//          );
-//      for(var i = 0; i<4; i++){
-//        if ( typeof(d[i]) == 'undefined' || d[i] === null){
-//          hasDate = false ;
-//        }
-//      }
-//      if(hasDate){
-//        if(d[2] < d[0] || d[3] > d[1]){
-//          skip = true ;
-//        }
-//      }
-//    }
-//
-//
-//
-//    if(skip){
-//      return;
-//    }else{
-//      if( typeof(val) != 'undefined'){ 
-//        dataCol = hex2rgb(vtStyle.colorsPalette[val][0],vtStyle.opacity[0]);
-//        if(typeof(dataCol) == 'undefined'){
-//          dataCol = defaultColor;
-//        }
-//      }
-//    }
-//
-//
-//    switch (type) {
-//      case 1: //'Point'
-//        style.color = dataCol;
-//        style.radius = vtStyle.size[0];
-//        selected.color = 'rgba(255,255,0,0.5)';
-//        selected.radius = 6;
-//        break;
-//      case 2: //'LineString'
-//        style.color = dataCol;
-//        style.size = vtStyle.size[0];
-//        selected.color = 'rgba(255,25,0,0.5)';
-//        selected.size = vtStyle.size[0];
-//        break;
-//      case 3: //'Polygon'
-//        style.color = dataCol;
-//        style.outline = {
-//          color: dataCol,
-//          size: 1
-//        };
-//        selected.color = 'rgba(255,0,0,0)';
-//        selected.outline = {
-//          color: 'rgba(255,0,0,0.9)',
-//          size: 1
-//        };
-//        break;
-//    }
-//    return style;
-//  }
-//
-//
-//  leafletvtId[id].setStyle(sty,lay+"_geom");
-//}
-//
-//
-////
-//// copy the original style of the layer, set min and max date and update style 
-////
-//function setRange(id,min,max){
-//  var leafletvtSty = leafletvtId[id].vtStyle;
-//  leafletvtSty.mxDateMin[0] = min;
-//  leafletvtSty.mxDateMax[0] = max;
-//  leafletvtId[id].setStyle(updateStyle);
-//}
-//
-//
-//
-//

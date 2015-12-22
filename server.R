@@ -11,6 +11,7 @@
 source("loadlib.R")
 # map-x functions (this will be transfered to a R package)
 source("helper/R/mapx.R")
+source("helper/R/leafletDraw.R")
 # handson table functions
 source('helper/R/handson.R')
 # general configuration, site independant.

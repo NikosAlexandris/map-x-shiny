@@ -66,12 +66,19 @@ observe({
 
 observeEvent(input$fileNewLayer,{
   if(mxReact$allowViewsCreator){
+
+
+
     dat = input$fileNewLayer
     nam = mxReact$newLayerName 
+  
+    
     if(noDataCheck(nam)){
       message(paste("New layer upload requested, but no name available"))
       return()
     }
+
+
 
     lInfo = ogrinfo(dat$datapath,ro=TRUE)
     if(length(grep("OGRGeoJSON",lInfo)[1]) < 1 ){
@@ -94,6 +101,8 @@ observeEvent(input$fileNewLayer,{
 
       # NOTE : no standard method worked.
       # rgdal::writeOGR (require loading in r AND did not provide options AND did not allow mixed geometry) or gdalUtils::ogr2ogr failed (did not set -f option!).
+
+
       cmd = sprintf(
         "ogr2ogr
         -t_srs 'EPSG:4326'
