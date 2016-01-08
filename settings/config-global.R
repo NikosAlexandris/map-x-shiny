@@ -36,23 +36,22 @@ dbInfo=list(host="",dbname="",port="",user="",password="")
 remoteInfo = list(host="",user="",port="")
 # In this case : Darwin = devel environment; linux = production environment
 mxConfig$os<-Sys.info()['sysname']
+mxConfig$hostname<-Sys.info()['nodename']
 # port depending on which plateform map-x shiny is launched
+
 switch(
-  mxConfig$os,
-  'Darwin'={
+  mxConfig$hostname,
+  "MacBook-Pro.local"={
     mxConfig$portVt <- 8080
     mxConfig$portVtPublic <- 8080
     mxConfig$hostVt <- "localhost"
-    print("map-x launched on MAC OX X")
   },
-  "Linux"={
+  "map-x-full"={
     mxConfig$portVt <- 80
     mxConfig$portVtPublic <- 8080
     mxConfig$hostVt <- "localhost"
-    print("map-x launched on LINUX")
   } 
-  )
-
+)
 
 ##########################################################################
 #                                                                        #
