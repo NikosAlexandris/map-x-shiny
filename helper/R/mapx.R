@@ -82,21 +82,21 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
       )
 }
 
-
-#' Hide element by id with animation
-#' @param session Shiny session
-#' @param id Html id
-#' @param duration Duraiton in milisecond
-#' @export
-mxJsHide <- function(session=getDefaultReactiveDomain(),id="loading-content",duration=2000){ 
-  function(){
-  js=sprintf("var el = document.getElementById('%1$s'); el.style.opacity=0;",id)
-  session$sendCustomMessage(
-    type="jsCode",
-    list(code=js)
-    )
-  }
-}
+#
+##' Hide element by id with animation
+##' @param session Shiny session
+##' @param id Html id
+##' @param duration Duraiton in milisecond
+##' @export
+#mxJsHide <- function(session=getDefaultReactiveDomain(),id="loading-content",duration=2000){ 
+#  function(){
+#  js=sprintf("var el = document.getElementById('%1$s'); el.style.opacity=0;",id)
+#  session$sendCustomMessage(
+#    type="jsCode",
+#    list(code=js)
+#    )
+#  }
+#}
 
 
 
@@ -1815,9 +1815,9 @@ setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){
 #' @export
 mxLoadingPanel <- function(session=getDefaultReactiveDomain(),enable=FALSE){
     if(isTRUE(enable)){ 
-      js <- "$('#loading-content').fadeIn(1500);"
+      js <- "$('#loading-content').css({display:'block'});"
     }else{
-      js <- "$('#loading-content').fadeOut(1500);"
+      js <- "$('#loading-content').css({display:'none'});"
     }
     session$sendCustomMessage(
       type="jsCode",

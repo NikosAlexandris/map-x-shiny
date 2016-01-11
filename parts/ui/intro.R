@@ -7,7 +7,7 @@
 #                 |_|           
 # Header
 
-tags$section(id="sectionTop",class="intro container-fluid background-triangles",
+tags$section(id="sectionTop",class="sectionTop",class="container-fluid",
   div(class="col-md-8 col-md-offset-2",
    h1("MAP-X"),
     hr(),

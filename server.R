@@ -79,7 +79,7 @@ shinyServer(function(input, output, session) {
     #
     # Output ui
     #
-    output$mapxUi <- renderUI(ui)
+     output$mapxUi <- renderUI(ui)
     #
     # Load server parts
     #
