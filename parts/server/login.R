@@ -19,7 +19,6 @@ observeEvent(input$documentIsReady,{
   mxReact$userName <- character(0)
   mxReact$userId <- integer(0)
   mxReact$sessionToken <- session$token
-  mxLoadingPanel(enable=FALSE) 
 })
 
 
@@ -111,7 +110,6 @@ observeEvent(input$readCookie,{
 
 
 observeEvent(input$btnLogout,{
-  mxLoadingPanel(enable=T)
   mxUpdateValue(id="loginUser",value="")
   mxUpdateValue(id="loginKey",value="")
   mxSetCookie(cookie=list(t="",s="",l="",k=""),deleteAll=TRUE)
