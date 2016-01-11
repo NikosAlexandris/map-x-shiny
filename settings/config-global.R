@@ -39,19 +39,17 @@ mxConfig$os<-Sys.info()['sysname']
 mxConfig$hostname<-Sys.info()['nodename']
 # port depending on which plateform map-x shiny is launched
 
-switch(
-  mxConfig$hostname,
-  "MacBook-Pro.local"={
-    mxConfig$portVt <- 8080
-    mxConfig$portVtPublic <- 8080
-    mxConfig$hostVt <- "localhost"
-  },
-  "map-x-full"={
-    mxConfig$portVt <- 80
-    mxConfig$portVtPublic <- 8080
-    mxConfig$hostVt <- "localhost"
-  } 
-)
+
+if ( mxConfig$hostname == "map-x-full" ) {
+  mxConfig$portVt <- 80
+  mxConfig$portVtPublic <- 8080
+  mxConfig$hostVt <- "localhost"
+}else{
+  mxConfig$portVt <- 8080
+  mxConfig$portVtPublic <- 8080
+  mxConfig$hostVt <- "localhost"
+} 
+
 
 ##########################################################################
 #                                                                        #
