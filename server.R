@@ -19,12 +19,6 @@ source("settings/config-global.R")
 # configuration specific to the host on wich map-x is launched
 source("settings/config-local.R")
 
-s <- function(port=4848){
-  library(shiny)
-  runApp('.',port=port,launch.browser=FALSE)
-}
-
-
 #
 # Define main user interface
 #
