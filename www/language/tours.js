@@ -1,10 +1,19 @@
+/*                             
+  _ __ ___   __ _ _ __   __  __
+ | '_ ` _ \ / _` | '_ \  \ \/ /
+ | | | | | | (_| | |_) |  >  < 
+ |_| |_| |_|\__,_| .__/  /_/\_\
+                 | |           
+                 |_|           
+ mapx guided tour using bootstrapTour
+ http://bootstraptour.com/api/
+
+*/
 
 
 
 var tours = {};
 var txt = {};
-
-
 
 
 
@@ -37,7 +46,7 @@ txt = {
 
 
 
-/* steps */
+/*  Populate steps */
 
 
 stepsIntro = [];
@@ -52,10 +61,13 @@ for(var el in txt){
  stepsIntro.push(res);
 }
 
+/* Tour creation */
+
 tours.intro =  new Tour({
   steps : stepsIntro
 });
 
+/* Initiat tour*/
 
 tours.intro.init();
 
