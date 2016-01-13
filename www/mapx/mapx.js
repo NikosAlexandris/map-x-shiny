@@ -5,10 +5,16 @@
 var storyMapLayer = {store:[]};
 
 
+
+
+
 // When document is ready
 $( document ).ready(function() {
 // read cookie at start
 //readCookie();
+// remove loading screen
+  $("#sectionLoading").css({display:'none'});
+
 Shiny.onInputChange("documentIsReady",new Date());
 // shiny binding to set cookie. After cookie set, read it again.
 Shiny.addCustomMessageHandler("mxSetCookie",
@@ -20,7 +26,15 @@ Shiny.addCustomMessageHandler("mxSetCookie",
 });
 
 
-
+// decode b64 and keep utf8 formating
+// taken from http://stackoverflow.com/questions/30106476/using-javascripts-atob-to-decode-base64-doesnt-properly-decode-utf-8-strings
+function b64_to_utf8( str ) {
+    str = str.replace(/\s/g, '');    
+    return decodeURIComponent(escape(window.atob( str )));
+}
+function utf8_to_b64( str ) {
+    return window.btoa(unescape(encodeURIComponent( str )));
+}
 
 
 // Generic read cookie function and send result to shiny
@@ -151,6 +165,22 @@ Shiny.addCustomMessageHandler("jsCode",
 
 
 
+Shiny.addCustomMessageHandler("addCss",
+    function(fileName) {
+      $("head").append("<link>");
+      var css = $("head").children(":last");
+      css.attr({
+        rel:  "stylesheet",
+        type: "text/css",
+        href: fileName
+      });
+    }
+    );
+
+
+
+
+
         // http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript
 function makeid(){
   var text = "";
@@ -177,18 +207,12 @@ function setUniqueItemsId(){
 Shiny.addCustomMessageHandler("updateText",
     function(m) {
       el = document.getElementById(m.id);
-      el.innerHTML=atob(m.txt);
+      el.innerHTML=b64_to_utf8(m.txt.toString());
       if(m.addId){
         setUniqueItemsId();
       }
     }
     );
-
-
-
-
-
-
 
 
 
@@ -824,6 +848,7 @@ LeafletWidget.methods.setZoomOptions = function(buttonOptions,removeButton){
       z.parentNode.removeChild(z);
     }
     if(!removeButton){
+      debugger;
       zC = L.control.zoom(buttonOptions);
         zC.addTo(this);
     }
