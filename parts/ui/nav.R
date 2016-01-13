@@ -29,6 +29,7 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
             ),
           tags$li(
             tags$a(
+              id="btnNavHome",
               mx_set_lang="title.navBar.home",
               class="page-scroll btn btn-circle",
               href="#sectionTop",
@@ -82,8 +83,16 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
               href="#sectionContact",
               tags$i(class="fa fa-comment-o animated")
               )
+            ),
+          tags$li(
+            tags$a(
+              mx_set_lang="title.navBar.tour",
+              id="btnNavTour",
+              class="btn btn-circle",
+              onclick="mxStartTour(mxTour)",
+              tags$i(class="fa fa-question animated")
+              )
             )
-
           ) 
         )
       )

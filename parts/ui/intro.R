@@ -45,16 +45,8 @@ tags$section(id="sectionTop",class="mx-section-container mx-section-top containe
                 choices=c("fre","eng"),
                 selected="fre"),
               onchange="updateTitlesLang()"
-            ),
-          tags$li(
-            tags$button( 
-              id="btnTourIntro",
-              class="btn btn-default",
-              icon("question"),
-              onclick="tours.intro.end();tours.intro.restart()"
-              )
             )
-          )
+            )
         )
       ),
     div(class="col-xs-12",
