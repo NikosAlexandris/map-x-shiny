@@ -1434,7 +1434,6 @@ mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text=NULL,u
     return(NULL)
   }else{
     if(is.null(ui)){
-
     textb64 <- mxEncode(text)
       val=list(
         id = id,
@@ -1799,7 +1798,7 @@ mxGetWdiIndicators <- function(){
 #' @param removeButton Boolean. Remove the zoom button.
 #' @param
 setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){ 
-     invokeMethod(map,getMapData(map),'setZoomOptions',buttonOptions,removeButton)
+  invokeMethod(map,getMapData(map),'setZoomOptions',buttonOptions,removeButton)
    }
 
 

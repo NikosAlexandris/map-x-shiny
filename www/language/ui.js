@@ -6,19 +6,30 @@ function updateTitlesLang(){
   var lang = $("#selectLanguage").val();
   $("[mx_set_lang]").each(
       function(){
+        var text = "";
         var a = $(this).attr("mx_set_lang").split(".");
         var attribute = a[0];
         var group = a[1];
         var key = a[2]; 
-        var text = loc[a[1]][a[2]][lang];
-        if(typeof text == "undefined")text= "NO TRANSLATION";
-        if(a[0]=="html"){
-          $(this).html(text);
-        }else{
-          $(this).attr(attribute, text);
+
+        if(
+            typeof attribute == "undefined" ||
+            typeof group == "undefined" ||
+            typeof key == "undefined" ||
+            typeof loc[a[1]][a[2]] == "undefined"
+          ){
+          console.log("no translation for key " + key + "; group " + group + "; attribute " + attribute );
+        }else{ 
+
+          text = loc[a[1]][a[2]][lang];
+          if(a[0]=="html"){
+            $(this).html(text);
+          }else{
+            $(this).attr(attribute, text);
+          }
         }
       }
-      );
+  );
 }
 
 
@@ -70,7 +81,7 @@ loc = {
       "eng": "Display the map views explorer",
       "fre": "Afficher l'explorateur de vues"
     },
-    "storyCreator": {
+    "storyEdit": {
       "eng": "Display story map creator",
       "fre": "Afficher le createur de story map"
     },

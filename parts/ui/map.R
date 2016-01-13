@@ -276,26 +276,26 @@ uiLeftNav <- tagList(
   #
   # NAV MENU
   #
-  tags$ul(class="nav",
+#  tags$ul(class="nav",
     #
     # UI BUTTONS
     #
+  #  tags$li(
+  #    tags$button(
+  #      mx_set_lang="title.mapLeft.lock",
+  #      #id="btnStopMapScroll",
+  #      class="btn-icon btn-stop-map-scroll",
+  #      icon("unlock")
+  #      )
+  #    ),
     tags$li(
       tags$button(
-        mx_set_lang="title.mapLeft.lock",
-        #id="btnStopMapScroll",
-        class="btn-icon btn-stop-map-scroll",
-        icon("unlock")
+        mx_set_lang="title.mapLeft.hide",
+        id='btnViewsCollapse',
+        class="btn-icon",
+        icon("angle-double-left")
         )
       ),
-    #tags$li(
-    #  tags$button(
-    #    mx_set_lang="title.mapLeft.hide",
-    #    id='btnViewsCollapse',
-    #    class="btn-icon",
-    #    icon("angle-double-left")
-    #    )
-    #  ),
     tags$li(
       tags$button(
         mx_set_lang="title.mapLeft.info",
@@ -402,51 +402,70 @@ uiLeftNav <- tagList(
       )
 
     )
-  )
 
 
 
 
-tags$section(id="sectionMap",class="mx-hide",
-  div(class="map-wrapper col-xs-12", 
-    #
-    # LEAFLET PART
-    #
-    leafletOutput("mapxMap",width="100%",height="100%"),
-    #
-    # INFO BOX
-    #
-    div(id="info-box",
-      div(id="info-box-container",
-        uiOutput("info-box-content")
-        )
-      ),
-    #
-    # UI STORY MODAL
-    #
-    div(id="storyMapModal",style="position:fixed",class="mx-story-modal mx-hide",
-      uiMapStoryModal
-      ),
-    #
-    # MAP LEFT PANEL
-    #
-    div(id="map-left-panel", class="map-left-panel-default",
-      span(id="titlePanelMode","Views explorer"),
-      div(class="map-left-nav",
-        uiLeftNav
-        ),
-      div(class="hide-scroll",
-        div(class="viewport",
-          div(class="map-left-content",
-            uiMapList,
-            uiMapCreator,
-            uiMapToolbox,
-            uiMapConfig,
-            #uiMapStoryCreator,
-            uiMapStoryReader
-            )
+
+tags$section(id="sectionMap",class="mx-section-container mx-hide",
+    div(class="map-wrapper col-xs-12", 
+      #
+      # LEAFLET PART
+      #
+      leafletOutput("mapxMap",width="100%",height="100%"),
+      #
+      # INFO BOX
+      #
+      div(id="info-box",
+        div(id="info-box-container",
+          uiOutput("info-box-content")
           )
-      )
+        ),
+      #
+      # UI STORY MODAL
+      #
+      div(id="storyMapModal",style="position:fixed",class="mx-story-modal mx-hide",
+        uiMapStoryModal
+        ),
+      #
+      # MAP LEFT PANEL
+      #
+      div(id="map-left-panel", class="map-left-panel-default",
+        #
+        # TITLE + TOOL BUTTON
+        #
+        div(id="map-left-panel-head",  
+
+          # button dropdown
+          tags$div(
+            tags$div(class="dropdown map-tool-box-container",
+              tags$span(
+                id='btnMapTools',
+                class="dropdown-toggle map-tool-button",
+                icon("bars")
+                ),
+              tags$ul(class="dropdown-menu map-tool-box-items",
+                `aria-labelledby`="btnMapTools",
+                uiLeftNav
+                )
+              )
+            ),
+          # title
+          tags$div(
+            span(id="titlePanelMode","Views explorer")
+            )
+          ),
+        div(class="map-left-content",
+          uiMapList,
+          uiMapCreator,
+          uiMapToolbox,
+          uiMapConfig,
+          uiMapStoryReader
+          )
+        )
+      #   div(class="map-left-nav",
+      #     )
       )
     )
-  )
+
+

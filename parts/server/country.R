@@ -5,21 +5,17 @@
 # |_| |_| |_|\__,_| .__/  /_/\_\
 #                 | |           
 #                 |_|           
-# country server
+# country section server
+
+mxUiEnable(id="sectionCountry",enable=TRUE) 
 
 # Country selection
 observe({
-#  if(mxReact$allowCountry){
     selCountry = input$selectCountry
     if(!noDataCheck(selCountry) && mxReact$userLogged){
       mxReact$selectCountry = selCountry
     }
- # }
 })
-
-#observe({
-  mxUiEnable(id="sectionCountry",enable=TRUE) 
-#})
 
 
 #
@@ -28,6 +24,7 @@ observe({
 
 observe({
   cSelect <- mxReact$selectCountry
+
   if(!noDataCheck(cSelect)){
     if(cSelect %in% names(mxData$countryStory)){
       cInfo  <- mxData$countryStory[[cSelect]]
@@ -112,14 +109,30 @@ observe({
     names(cListChoice) <- c(as.character(mxConfig$countryListChoices$potential),as.character(mxConfig$countryListChoices$pending))
     countryNameNav <- cListChoice[[cSelect]]
 
-    navCountryName <- tagList(
-      tags$img(src="img/logo_white.svg"),
-      tags$span(countryNameNav)
-      )
 
+    navLogo <- img(src="img/logo_white.svg",style="height:16px;vertical-align:middle")
+   
+
+    cL <- as.character(div(navLogo,countryNameNav))
+    cM <- as.character(div(navLogo,countryName))
+    cS <- as.character(div(navLogo,cSelect))
+
+    mxUpdateText(id="countryTitleLarge",text=cL)
+    mxUpdateText(id="countryTitleMedium",text=cM)
+    mxUpdateText(id="countryTitleSmall",text=cM)
+    mxUpdateText(id="countryTitleMini",text=cS)
+    
+    
     output$countryName <- renderText(countryName)
-    output$countryNameNav <- renderUI(navCountryName)
+    
+   # output$countryNameNav <- renderUI(navCountryName)
+
+
+
     output$countryMetrics <- renderUI(countryMetrics)
+    
+
+
     output$countryNarrative <- renderUI(countryNarrative)
   }
 })

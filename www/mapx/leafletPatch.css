@@ -1,0 +1,29 @@
+/*
+leaflet modification
+ */
+.legend svg text {
+  fill: #FFF;
+}
+.leaflet-right {
+  padding-top: 70px;
+}
+
+.leaflet-tile-loaded {
+  z-index:10;
+}
+
+.info {
+  border-radius: 0px;
+  transition: background 0.5s ease;
+  background: rgba(47, 47, 47, 0.6);
+  color: white;
+  font-weight: 100;
+  width: 250px;
+  overflow-x: hidden;
+  right: 0px;
+
+}
+
+.info:hover {
+  background: rgba(47, 47, 47, 0.92);
+}

@@ -151,18 +151,34 @@ observeEvent(input$btnViewsCreator,{
 #
 output$mapxMap <- renderLeaflet({
   if(mxReact$allowMap){
-    map <- leaflet()
-    if(noDataCheck(mxReact$selectCountry))return()
-    group = "main"
-    iso3 <- mxReact$selectCountry
-    if(!noDataCheck(iso3)){
-      center <- mxConfig$countryCenter[[iso3]] 
-      map <- mxConfig$baseLayerByCountry(iso3,group,center)
+    if(!noDataCheck(mxReact$selectCountry)){
+      group = "main"
+      iso3 <- mxReact$selectCountry
+      if(!noDataCheck(iso3)){
+        center <- mxConfig$countryCenter[[iso3]] 
+        map <- mxConfig$baseLayerByCountry(iso3,group,center)
+      }
+      map  
     }
-    map %>% setZoomOptions(buttonOptions=list(position="topright")) 
+  }else{
+    # fallback
+    map <- leaflet()
   }
+
+   map %>% setZoomOptions(buttonOptions=list(position="topright")) 
+  return(map)
 })
 
+
+
+observeEvent(mxReact$selectCountry,{
+  # send ui after leaflet is loaded
+
+  session$sendCustomMessage(
+      type="addCss",
+    "mapx/leafletPatch.css"
+      )
+})
 
 
 
