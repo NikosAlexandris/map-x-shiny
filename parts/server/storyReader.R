@@ -81,7 +81,6 @@ observe({
 observeEvent(input$selectStoryId,{
 mxCatch(title="Select story id",{
   storyId <- input$selectStoryId
-  mxDebugMsg(paste("Select story id=",storyId))
   if(!noDataCheck(storyId,noDataVal="NA")){
     storyMap <- mxData$storyMaps()
     storyMap <- mxDecode(storyMap[storyMap$id==storyId,"content_b64"])
