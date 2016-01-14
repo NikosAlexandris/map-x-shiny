@@ -337,13 +337,13 @@ function updateMapElement(){
   // add a click function to btn collapse views 
   $(idBtnViews).click(function(){
     if(toggleCollapseViews){
-      $(idViews).animate({left:"-360px"},500);
+      $(idViews).animate({left:"-510px"},500);
       $(idInfo).animate({left:"90px"},500);
       $(idBtnViews).html("<i class='fa fa-angle-double-right'>");
       $(idTitlePanel).css({opacity:"0"});
     }else{ 
       $(idViews).animate({left:"0px"},500);
-      $(idInfo).animate({left:"450px"},500);
+      $(idInfo).animate({left:"600px"},500);
       $(idBtnViews).html("<i class='fa fa-angle-double-left'>");
       $(idTitlePanel).css({opacity:"1"});
     }
