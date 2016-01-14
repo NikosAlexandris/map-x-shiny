@@ -241,9 +241,11 @@ function setUniqueItemsId(){
 Shiny.addCustomMessageHandler("updateText",
     function(m) {
       el = document.getElementById(m.id);
-      el.innerHTML=b64_to_utf8(m.txt.toString());
-      if(m.addId){
-        setUniqueItemsId();
+      if( typeof el != "undefined" && el !== null ){
+        el.innerHTML=b64_to_utf8(m.txt.toString());
+        if(m.addId){
+          setUniqueItemsId();
+        }
       }
     }
     );
@@ -337,8 +339,8 @@ function updateMapElement(){
   // add a click function to btn collapse views 
   $(idBtnViews).click(function(){
     if(toggleCollapseViews){
-      $(idViews).animate({left:"-510px"},500);
-      $(idInfo).animate({left:"90px"},500);
+      $(idViews).animate({left:"-530px"},500);
+      $(idInfo).animate({left:"70px"},500);
       $(idBtnViews).html("<i class='fa fa-angle-double-right'>");
       $(idTitlePanel).css({opacity:"0"});
     }else{ 

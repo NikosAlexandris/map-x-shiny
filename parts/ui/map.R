@@ -238,13 +238,6 @@ uiMapStoryModal <- tagList(
         div(class="btn-close",
           tags$i(class="fa fa-times"),
           onclick="$('#storyMapModal').addClass('mx-hide')"
-          ),
-        tags$li(
-          div(class="",
-            mx_set_lang="title.mapLeft.lock",
-            class="btn-xs btn-stop-map-scroll",
-            icon("unlock")
-            )
           )
         )
       )
