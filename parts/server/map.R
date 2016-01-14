@@ -238,7 +238,7 @@ observeEvent(input$leafletDrawGeoJson,{
 
 observe({
 
-  # inptuts
+  # intuts
   em <- input$txtDrawEmail
   sl <- input$selDrawLayer
   sa <- input$selDrawAction
@@ -284,17 +284,21 @@ observe({
   )
 
 
-
-
-
-
-
-
-
-
  
 observeEvent(input$btnDrawActionConfirm,{
+
+ 
+
+
   mxCatch(title="Polygon of interest : processing",{
+
+ # inputs
+  em <- input$txtDrawEmail
+  sl <- input$selDrawLayer
+  sa <- input$selDrawAction
+  un <- mxReact$userName
+
+
   gj <- mxReact$drawActionGeoJson 
   tm <- randomName("tmp")
  
