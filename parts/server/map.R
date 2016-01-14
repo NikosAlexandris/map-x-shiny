@@ -207,7 +207,8 @@ observeEvent(input$leafletDrawGeoJson,{
     ui <- tagList(
       selectInput("selDrawLayer","Select a layer",choices=layers),
       selectInput("selDrawAction","Select an action",choices=actions),
-      textInput("txtDrawEmail","Enter your email",value=mxReact$userEmail)
+      textInput("txtDrawEmail","Enter your email",value=mxReact$userEmail),
+      div(id="txtValidationDraw")
       )
 
     bnts <- tagList(
@@ -228,6 +229,66 @@ observeEvent(input$leafletDrawGeoJson,{
         })
 })
 
+
+
+#
+# Validation
+#
+
+
+observe({
+
+
+  em <- input$txtDrawEmail
+  sl <- input$selDrawLayer
+  sa <- input$selDrawAction
+  un <- mxReact$userName
+
+
+  #validation
+  err = character(0)
+
+  #
+  # email
+  #
+
+  validEmail <- isTRUE(grep("(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)",em,perl=T) > 0)
+  validLayer <- isTRUE(sl != mxConfig$noData )
+  validAction <- isTRUE(sa != mxConfig$noData)
+
+  if(!validEmail) err <- c(err,"Please enter a valid email")
+  if(!validLayer) err <- c(err,"Plase select a layer")
+  if(!validAction) err <- c(err,"Please select an action (only 'Get current attributes works in the prototype')")
+
+
+ if(length(err)>0){
+    err<-tags$ul(
+      HTML(paste("<li>",icon('exclamation-triangle'),err,"</li>",collapse=""))
+      )
+    disBtn=TRUE
+  }else{
+    err=""
+    disBtn=FALSE
+  }
+
+
+ mxUpdateText(id="txtValidationDraw",text=err)
+
+
+  mxActionButtonState("btnDrawActionConfirm",disable=disBtn) 
+
+}
+  )
+
+
+
+
+
+
+
+
+
+
  
 observeEvent(input$btnDrawActionConfirm,{
   mxCatch(title="Polygon of interest : processing",{
@@ -239,10 +300,6 @@ observeEvent(input$btnDrawActionConfirm,{
   stopifnot(tm %in% mxDbListTable(dbInfo))
 
 
-  em <- input$txtDrawEmail
-  sl <- input$selDrawLayer
-  sa <- input$selDrawAction
-  un <- mxReact$userName
 
 
   q <- sprintf("SELECT * FROM %1$s INNER JOIN %2$s ON ST_Intersects(%1$s.geom, %2$s.geom);"

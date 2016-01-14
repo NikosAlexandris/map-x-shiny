@@ -178,8 +178,6 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
     )
   }
 
-
-
   if(addCancelButton){
   listActionButton <- tagList(
     listActionButton, 
