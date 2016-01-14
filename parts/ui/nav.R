@@ -59,6 +59,7 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
           tags$li(
             tags$a(
               mx_set_lang="title.navBar.about",
+              id="btnNavAbout",
               class="page-scroll btn btn-circle",
               href="#sectionAbout",
               tags$i(
