@@ -266,10 +266,12 @@ padding: 0px;
 }
 */
 .map-left-content {
-max-width: 520px;
+  max-width: 520px;
     min-width: 520px;
     min-width: 449;
     float: left;
+    height: 100%;
+    overflow-y: scroll;
 }
 .map-left-nav {
   float: right;

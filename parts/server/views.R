@@ -358,7 +358,7 @@ observe({
                   palFun <- sty$paletteFun
                   proxyMap %>%
                   showGroup(as.character(vToShow)) %>%
-                  addLegend(position="topright",layerId=legendId,class=legendClass,pal=palFun,values=val,title=tit)
+                  addLegend(position="bottomright",layerId=legendId,class=legendClass,pal=palFun,values=val,title=tit)
                 }else{
                   proxyMap %>%
                   showGroup(as.character(vToShow))

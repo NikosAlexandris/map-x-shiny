@@ -1284,25 +1284,6 @@ mxToggleMapPanels <- function(modeSelected){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #' Set a checkbox button with custom icon.
 #' 
 #' Create a checkbox input with a select icon.
