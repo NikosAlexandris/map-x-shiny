@@ -8,4 +8,4 @@
 # shortcut to launch map-x
 
 library(shiny)
-runApp('.',port = 4545, launch.browser = F)
+runApp('.',port = 4848, launch.browser = F)

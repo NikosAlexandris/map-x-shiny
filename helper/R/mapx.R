@@ -1950,3 +1950,22 @@ dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableNa
 
 
 
+
+#' function to read json and save as an object
+
+mxSendJson <- function(pathToJson,objName,session=getDefaultReactiveDomain()){
+  stopifnot(!is.null(pathToJson))
+  stopifnot(!is.null(objName))
+  if(file.exists(pathToJson)){
+    res <- list()
+    json <- readChar(pathToJson, file.info(pathToJson)$size)
+    res$json <- json
+    res$name <- objName
+    session$sendCustomMessage(
+      type="jsonToObj",
+      message=res
+      )
+  }
+}
+
+

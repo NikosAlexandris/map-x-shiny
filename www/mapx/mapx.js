@@ -23,6 +23,18 @@ Shiny.addCustomMessageHandler("mxSetCookie",
       readCookie();  
     }
     );
+
+
+
+Shiny.addCustomMessageHandler("jsonToObj",
+    function(jsonRaw) {
+      console.log("testjsontoobj");
+      window[jsonRaw.name] = JSON.parse(jsonRaw.json);
+    }
+    );
+
+
+
 });
 
 
@@ -35,6 +47,11 @@ function b64_to_utf8( str ) {
 function utf8_to_b64( str ) {
     return window.btoa(unescape(encodeURIComponent( str )));
 }
+
+function toggleDropDown(id) {
+      document.getElementById(id).classList.toggle("mx-dropdown-show");
+}
+
 
 
 // Generic read cookie function and send result to shiny
@@ -176,6 +193,7 @@ Shiny.addCustomMessageHandler("addCss",
       });
     }
     );
+
 
 
 

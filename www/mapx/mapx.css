@@ -521,16 +521,14 @@ theme modification
   transition: background .3s ease-in-out;
 }
 
-
-
 .btn-circle i.animated {
   -webkit-transition-property: -webkit-transform;
   -webkit-transition-duration: 1s;
   -moz-transition-property: -moz-transform;
   -moz-transition-duration: 1s;
+  transition-property: transform;
+  transition-duration: 1s;
 }
-
-
 
 .btn-circle:hover,
 .btn-circle:focus {
@@ -539,19 +537,42 @@ theme modification
   background: rgba(255,255,255,.1);
 }
 
-
-
 .btn-circle:hover i.animated {
   -webkit-animation-name: pulse;
   -moz-animation-name: pulse;
+  animation-name: pulse;
   -webkit-animation-duration: 1.5s;
   -moz-animation-duration: 1.5s;
+  animation-duration: 1.5s;
   -webkit-animation-iteration-count: infinite;
   -moz-animation-iteration-count: infinite;
+  animation-iteration-count: infinite;
   -webkit-animation-timing-function: linear;
   -moz-animation-timing-function: linear;
+  animation-timing-function: linear;
 }
 
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+
+.btn-empty {
+
+
+}
 
 .btn {
   border-radius: 0;
@@ -1447,10 +1468,45 @@ height: 80%;
 /* map tools */
 
 
+/* taken from http://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_dropdown*/
 
-.dropdown:hover .dropdown-menu {
-  display: block;
+.mx-btn-dropown {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
 }
+
+.mx-btn-dropown:hover, .dropbtn:focus {
+    background-color: #3e8e41;
+}
+
+.mx-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.mx-dropdown-content {
+    visibility: hidden;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+.mx-dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.mx-dropdown a:hover {background-color: #f1f1f1}
+
+.mx-dropdown-show {visibility:visible;}
 
 .map-tool-button {
   width: 60px;
@@ -1458,16 +1514,14 @@ height: 80%;
   text-align: center;
 
 }
+
 .map-tool-box-items {
-    border-radius: 0px;
-    min-width: 0px;
-    width: 60px;
-    padding: 5px;
-    background: rgba(47,47,47,0.8);
-    border: none;
-    border-radius: 0px;
-    -webkit-box-shadow: none;
-    box-shadow: none;
+  padding: 0;
+  list-style-type: none;
+  min-width: 0px;
+  background: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 
 .map-tool-box-container {
@@ -1478,11 +1532,11 @@ height: 80%;
 /* bootstrap tour */
 .popover[class*=tour-], .popover-title {
     z-index: 1100;
-    background: rgba(47,47,47,0.8);
-    color:white;
+    min-width: 350px;
+    background: white; 
     border: none;
     border-radius: 0px;
-
+  }
     
 .disabled {
     background: rgba(47,47,47,0.8);
@@ -1490,3 +1544,5 @@ height: 80%;
     border: none;
     border-radius: 0px;
 }
+
+

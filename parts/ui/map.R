@@ -438,14 +438,15 @@ tags$section(id="sectionMap",class="mx-section-container mx-hide",
 
           # button dropdown
           tags$div(
-            tags$div(class="dropdown map-tool-box-container",
-              tags$span(
+            tags$div(class="mx-dropdown map-tool-box-container",
+              tags$button(
+                onclick="toggleDropDown('mapToolsMenu')",
                 id='btnMapTools',
-                class="dropdown-toggle map-tool-button",
-                icon("bars")
+                class="btn btn-icon mx-btn-dropdown",
+                tags$span(class='caret')
                 ),
-              tags$ul(class="dropdown-menu map-tool-box-items",
-                `aria-labelledby`="btnMapTools",
+              tags$ul(class="mx-dropdown-content map-tool-box-items",
+                id="mapToolsMenu",
                 uiLeftNav
                 )
               )
