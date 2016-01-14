@@ -238,30 +238,33 @@ observeEvent(input$leafletDrawGeoJson,{
 
 observe({
 
-
+  # inptuts
   em <- input$txtDrawEmail
   sl <- input$selDrawLayer
   sa <- input$selDrawAction
   un <- mxReact$userName
 
 
-  #validation
+  # errory message
   err = character(0)
 
-  #
   # email
-  #
-
   validEmail <- isTRUE(grep("(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)",em,perl=T) > 0)
+
+  # layer
   validLayer <- isTRUE(sl != mxConfig$noData )
+
+
+  # action
   validAction <- isTRUE(sa != mxConfig$noData)
 
+  # set messages
   if(!validEmail) err <- c(err,"Please enter a valid email")
   if(!validLayer) err <- c(err,"Plase select a layer")
   if(!validAction) err <- c(err,"Please select an action (only 'Get current attributes works in the prototype')")
 
-
- if(length(err)>0){
+  # validation action
+  if(length(err)>0){
     err<-tags$ul(
       HTML(paste("<li>",icon('exclamation-triangle'),err,"</li>",collapse=""))
       )
@@ -271,10 +274,10 @@ observe({
     disBtn=FALSE
   }
 
+  # update issues text
+  mxUpdateText(id="txtValidationDraw",text=err)
 
- mxUpdateText(id="txtValidationDraw",text=err)
-
-
+  # change button state
   mxActionButtonState("btnDrawActionConfirm",disable=disBtn) 
 
 }
