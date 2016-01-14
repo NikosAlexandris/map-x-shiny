@@ -28,14 +28,30 @@ Shiny.addCustomMessageHandler("mxSetCookie",
 
 Shiny.addCustomMessageHandler("jsonToObj",
     function(jsonRaw) {
-      console.log("testjsontoobj");
       window[jsonRaw.name] = JSON.parse(jsonRaw.json);
     }
     );
 
 
-
 });
+
+
+LeafletWidget.methods.setZoomOptions = function(buttonOptions,removeButton){
+  console.log(buttonOptions);
+  z = document.querySelector(".leaflet-control-zoom");
+  if( typeof buttonOptions !== "undefined" ){
+    if( typeof(z) !== "undefined" && z !== null){
+      z.parentNode.removeChild(z);
+    }
+    if(!removeButton){
+      zC = L.control.zoom(buttonOptions);
+        zC.addTo(this);
+    }
+  }
+};
+
+
+
 
 
 // decode b64 and keep utf8 formating
@@ -859,19 +875,7 @@ function defaultStyle(feature) {
 
 
 
-LeafletWidget.methods.setZoomOptions = function(buttonOptions,removeButton){
-  z = document.querySelector(".leaflet-control-zoom");
-  if( typeof buttonOptions !== "undefined" ){
-    if( typeof(z) !== "undefined" && z !== null){
-      z.parentNode.removeChild(z);
-    }
-    if(!removeButton){
-      debugger;
-      zC = L.control.zoom(buttonOptions);
-        zC.addTo(this);
-    }
-  }
-};
+
 
 
 

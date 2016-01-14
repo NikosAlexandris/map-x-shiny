@@ -55,29 +55,29 @@ LeafletWidget.methods.toggleDraw = function(options){
     });
     this.on('draw:drawstart', function ( e ) {
       //e.layerType String The type of layer this is. One of: polyline...
-      Shiny.onInputChange( "leafletDrawStart" , new Date().getTime() );
+      Shiny.onInputChange( "leafletDrawStart" , (new Date()).getTime() );
     });
     this.on('draw:drawstop', function ( e ) {
       //e.layerType String The type of layer this is. One of: polyline...
       var layerType = e.layerType;
-      Shiny.onInputChange( "leafletDrawStop", new Date().getTime() );
+      Shiny.onInputChange( "leafletDrawStop", (new Date()).getTime() );
     });
     this.on('draw:editstart', function ( e ) {
       //e.handler String The type of edit this is. One of: edit
-      Shiny.onInputChange("leafletDrawEditStart", new Date().getTime() );
+      Shiny.onInputChange("leafletDrawEditStart", (new Date()).getTime() );
     });
     this.on('draw:editstop', function ( e ) {
       //e.handler String The type of edit this is. One of: edit
-      Shiny.onInputChange("leafletDrawEditStop" , new Date().getTime() );
+      Shiny.onInputChange("leafletDrawEditStop" , (new Date()).getTime() );
     });
 
     this.on('draw:deletestart', function ( e ) {
       //e.handler String The type of edit this is. One of: remove
-        Shiny.onInputChange( "leafletDrawDeleteStart" , new Date().getTime() );
+        Shiny.onInputChange( "leafletDrawDeleteStart" , (new Date()).getTime() );
     });
     this.on('draw:deletestop', function (e) {
       //e.handler String The type of edit this is. One of: remove
-      Shiny.onInputChange( "leafletDrawDeleteStop" , new Date.getTime() );
+      Shiny.onInputChange( "leafletDrawDeleteStop" , (new Date()).getTime() );
     });
   }
 };

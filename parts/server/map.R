@@ -158,39 +158,34 @@ output$mapxMap <- renderLeaflet({
         center <- mxConfig$countryCenter[[iso3]] 
         map <- mxConfig$baseLayerByCountry(iso3,group,center)
       }
-      map  
+      mxReact$mapInitDone<- runif(1)
+      return(map)
     }
-  }else{
-    # fallback
-    map <- leaflet()
   }
-
-   map %>% setZoomOptions(buttonOptions=list(position="topright")) 
-  return(map)
 })
 
+#
+# Map custom style
+#
 
-
-observeEvent(mxReact$selectCountry,{
-  # send ui after leaflet is loaded
-
+observeEvent(mxReact$mapInitDone,{
+  map <- leafletProxy("mapxMap")
+  map %>% setZoomOptions(buttonOptions=list(position="topright")) 
   session$sendCustomMessage(
-      type="addCss",
+    type="addCss",
     "mapx/leafletPatch.css"
-      )
+    )
 })
 
 
+#
+# Leaflet draw
+#
 
 observeEvent(input$btnDraw,{
-pMap <- leafletProxy("mapxMap")
-pMap %>% addDraw(options=list(position="topright"))
+  pMap <- leafletProxy("mapxMap")
+  pMap %>% addDraw(options=list(position="topright"))
 })
-
-
-
-
-
 
 
 

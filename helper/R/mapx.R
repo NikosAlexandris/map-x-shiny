@@ -1798,8 +1798,9 @@ mxGetWdiIndicators <- function(){
 #' @param removeButton Boolean. Remove the zoom button.
 #' @param
 setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){ 
-  invokeMethod(map,getMapData(map),'setZoomOptions',buttonOptions,removeButton)
-   }
+  stopifnot(require(leaflet))
+  invokeMethod(map,NULL,'setZoomOptions',buttonOptions,removeButton)
+}
 
 
 
