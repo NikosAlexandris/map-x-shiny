@@ -1137,7 +1137,7 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
       labFor<-labelFormat()
     }
     proxyMap %>%
-    addLegend(position="topright",labFormat=labFor,pal=pal,values=val,layerId=legendId,class=legendClass,title=tit)
+    addLegend(position="bottomright",labFormat=labFor,pal=pal,values=val,layerId=legendId,class=legendClass,title=tit)
   }
 
   names(col) <- val
