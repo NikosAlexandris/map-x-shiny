@@ -46,6 +46,13 @@ ui <- tagList(
 shinyServer(function(input, output, session) {
   mxCatch(title="Main server function",{
     #
+    # parse additional json data
+    #
+    observeEvent(input$documentIsReady,{
+      mxDebugMsg("document is ready")
+      mxSendJson("data/tour.json","mxTour")
+      })
+    #
     # Initial reactive values
     #
     mxReact <- reactiveValues()
