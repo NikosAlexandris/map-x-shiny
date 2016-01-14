@@ -1314,7 +1314,7 @@ mxCheckboxIcon <- function(id,idLabel,icon,display=TRUE){
   visible <- "display:inline-block"
   if(!display)visible <- "display:none"
   tagList(
-    div(id=idLabel,class="checkbox",style=visible,
+    div(id=idLabel,class="checkbox",style=paste(visible,';float:right;'),
       tags$label(
         tags$input(type="checkbox",class="vis-hidden",id=id),
         tags$span(icon(icon))

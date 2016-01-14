@@ -145,7 +145,7 @@ observe({
             onChange=toggleOptions),
           div(class="map-views-item",
             tags$span(class="map-views-selector",itName),
-            mxCheckboxIcon(itIdCheckOption,itIdCheckOptionLabel,"bars",display=FALSE)
+            mxCheckboxIcon(itIdCheckOption,itIdCheckOptionLabel,"cog",display=FALSE)
             ) 
           ),
         conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),

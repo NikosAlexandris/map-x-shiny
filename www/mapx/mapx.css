@@ -1439,12 +1439,13 @@ width:100%;
 
 #mxStoryContainerPreview {
 height: 80%;
-    width: 100%;
+    width: 520px;
     text-align: center;
     position: absolute;
     overflow-y: scroll;
     /* margin-right: auto; */
     margin-top: 20px;
+    margin-left: 10px;
     padding-right: 60px;
     padding-left: 60px;
     border-top: 1px solid white;
@@ -1517,6 +1518,7 @@ height: 80%;
 
 .map-tool-box-items {
   padding: 0;
+  z-index:1000;
   list-style-type: none;
   min-width: 0px;
   background: transparent;

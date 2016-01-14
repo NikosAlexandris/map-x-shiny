@@ -270,7 +270,7 @@ function updateMapElement(){
  //
   // Panel animation
   //
-  var idViews = "#map-left",
+  var idViews = "#map-left-panel",
   idBtnViews = "#btnViewsCollapse",
   idInfo = "#info-box" ,
   idBtnInfo = "#btnInfoClick",
