@@ -19,7 +19,7 @@ mxTour = {
   "btnLogin":{
     eng:{
       title:"Authentication",
-      content:"Button to confirm credentials and launch MAP-X"
+      content:"Click here to confirm user credentials and launch the application"
     },
     fre:{
       title:"Authentification",
@@ -29,7 +29,7 @@ mxTour = {
   "btnLogout":{
     eng:{
       title:"Sign out",
-      content:"Button to sign out"
+      content:"Click here to sign out"
     },
     fre:{
       title:"Quitter",
@@ -39,7 +39,7 @@ mxTour = {
   "btnNavHome":{
     eng:{
       title:"Home",
-      content:"Button leading to the top section"
+      content:"This button will be always visible and lead to the top section/frontpage"
     },
     fre:{
       title:"Accueil",
@@ -49,7 +49,7 @@ mxTour = {
   "btnNavMap":{
     eng:{
       title:"Map",
-      content:"Button leading to the Map section"
+      content:"Follow this link to access the Map section"
     },
     fre:{
       title:"Carte",
@@ -59,7 +59,7 @@ mxTour = {
   "btnNavCountry":{
     eng:{
       title:"Country Profile",
-      content:"Link to section with country statistics"
+      content:"This button links to a section with information and statistics about the selected country"
     },
     fre:{
       title:"Profil Pays",
@@ -69,7 +69,7 @@ mxTour = {
   "btnNavAdmin":{
     eng:{
       title:"Administration Panel",
-      content:"Link to the application's administration panel"
+      content:"From here, you can access the application's administration panel"
     },
     fre:{
       title:"Panneau d'administration",
@@ -79,7 +79,7 @@ mxTour = {
   "btnNavAbout":{
     eng:{
       title:"About",
-      content:"Background information about the project"
+      content:"Read background information about the project"
     },
     fre:{
       title:"À propos",
@@ -99,7 +99,7 @@ mxTour = {
   "btnMapTools":{
     eng:{
       title:"Map Tools",
-      content:"Hovering over this icon, reveals a toolbar related to the Map section. Click on it once to activate it."
+      content:"Hover over this icon to reveal a toolbar related to the Map section. Click on it once to activate it."
     },
     fre:{
       title:"Map Tools",
@@ -109,7 +109,7 @@ mxTour = {
   "btnViewsExplorer":{
     eng:{
       title:"Views Explorer",
-      content:"Activate the Views Explorer inside the (left) sidebar"
+      content:"Open the Views Explorer inside the (left) sidebar"
     },
     fre:{
       title:"Explorateur des Vues",
@@ -149,7 +149,7 @@ mxTour = {
   "btnViewsToolbox":{
     eng:{
       title:"Views Toolbox",
-      content:"+++"
+      content:"Activate a toolbox to perform spatial analysis for the map layers of interest"
     },
     fre:{
       title:"Views Toolbox",
@@ -158,14 +158,45 @@ mxTour = {
   },
   "btnDraw":{
     eng:{
-      title:"Draw",
-      content:"+++"
+      title:"Spatial Toolbox",
+      content:"Activate a spatial toolbox to draw points, lines or polygons of interest. Optionally, notifications regarding changes that occur inside the spatial entity of interest "
     },
     fre:{
       title:"Draw",
       content:"+++"
     }
+  },
+  "btnMapCreatorSave":{
+    eng:{
+      title:"Save Map ...",
+      content:"+++"
+    },
+    fre:{
+      title:"Save Map ...",
+      content:"+++"
+    }
+  },
+  "btnZoomToLayer":{
+    eng:{
+      title:"Zoom to Layer",
+      content:"Zoom in to the active layer's entire extent"
+    },
+    fre:{
+      title:"Zoom to Layer",
+      content:"Zoom in to the active layer's entire extent"
+    }
+  },
+  "btnViewsRefresh":{
+    eng:{
+      title:"Refresh View",
+      content:"+++"
+    },
+    fre:{
+      title:"Refresh View",
+      content:"+++"
+    }
   }
+
 };
 
 
