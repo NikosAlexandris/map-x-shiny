@@ -51,11 +51,6 @@ Version: 0.4
 Hash: 058b28d752fb52d9c1dfdc2b21d0b5e5
 Requires: DBI
 
-Package: RSQLite
-Source: CRAN
-Version: 1.0.0
-Requires: DBI
-
 Package: Rcpp
 Source: CRAN
 Version: 0.12.2
@@ -376,16 +371,6 @@ GithubRepo: shinyAce
 GithubUsername: trestletech
 GithubRef: master
 GithubSha1: ba38a4d2dd56f3cf7161a5802d4659df13d74473
-
-Package: shinyTour
-Source: github
-Version: 0.1
-Hash: c3796ac9531d1da581cf7f063e24d026
-Requires: R6, RSQLite, base64enc, markdown, shiny, shinyAce
-GithubRepo: shinyTour
-GithubUsername: fxi
-GithubRef: master
-GithubSha1: dc710e3ef2c7e42ec3e7dbad5f8a46c0a8054130
 
 Package: sp
 Source: CRAN
