@@ -152,6 +152,10 @@ observe({
   if(!noDataCheck(idx) && !noDataCheck(cnt)){
 
     mxCatch("Plot WDI data",{
+     
+      mxDebugMsg("Try to reach world bank")
+      if(!mxCanReach("data.worldbank.org"))stop("Map-x can't connect to worldbank development index.")
+
       dat <- WDI(
         indicator = idx, 
         country = countrycode(cnt,'iso3c','iso2c'), 
@@ -172,6 +176,8 @@ observe({
         output$dyGraphWdi <- renderDygraph({
           graphIndicator
         })
+
+
       }
 
       })

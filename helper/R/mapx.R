@@ -24,6 +24,39 @@ noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
   any(c(isTRUE(is.null(val)),isTRUE(is.na(val)),isTRUE(nchar(val)==0),isTRUE(length(val)==0),noData))
 }
 
+
+
+#' Test for internet connection. 
+#' The idea is to reach google with a ping and determine if there is a full packet response without loss
+#' 
+#' @param host String. Host name to ping
+#' @export
+mxCanReach<- function(host="google.com"){
+
+
+  req <- sprintf(
+      "ping -c1 %s 2>/dev/null | grep '1 packets received' | wc -l",
+      host  
+      )
+
+  res <- as.numeric(system(
+    req,
+    intern=T
+      )
+    )
+
+
+
+  return(
+    isTRUE(res > 0)
+    )
+}
+
+
+
+
+
+
 #' Create a chartRadar in a canvas element.
 #'
 #' Search the dom for an id a get drawing context, create a new chart object and config it with data.

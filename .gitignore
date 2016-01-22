@@ -1,6 +1,7 @@
 # settings
 settings/config-local.R
 settings/sshConfig
+settings/mapx-gmail.json
 figure
 cache
 # History files
