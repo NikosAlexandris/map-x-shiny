@@ -200,8 +200,9 @@ observeEvent(input$leafletDrawGeoJson,{
     layers <- c(mxConfig$noData,unlist(layers))
     actions <- c(
       mxConfig$noData,
-      "Observe for changes over time"="changes",
-      "Get current attributes"="summary" 
+      "Get current attributes"="summary",
+      "Observe for changes over time"="changeOverTime",
+      "Observe location change"="changeOverLocation"
       )
 
     ui <- tagList(
@@ -297,6 +298,7 @@ observeEvent(input$btnDrawActionConfirm,{
   sl <- input$selDrawLayer
   sa <- input$selDrawAction
   un <- mxReact$userName
+  gm <- mxConfig$defaultGeomCol
 
 
   gj <- mxReact$drawActionGeoJson 
@@ -307,11 +309,12 @@ observeEvent(input$btnDrawActionConfirm,{
   stopifnot(tm %in% mxDbListTable(dbInfo))
 
 
+#  q <- sprintf("SELECT %1$s from %2$s INNER JOIN %3$s ON ST_Intersects(%2$s.%1$s, %2$s.%1$s)")
 
-
-  q <- sprintf("SELECT * FROM %1$s INNER JOIN %2$s ON ST_Intersects(%1$s.geom, %2$s.geom);"
+  q <- sprintf("SELECT * FROM %1$s INNER JOIN %2$s ON ST_Intersects(%1$s.%3$s, %2$s.%3$s);"
     ,sl
     ,tm
+    ,gm
     )
  
   rs <- mxDbGetQuery(dbInfo,q)
@@ -360,17 +363,40 @@ observeEvent(input$btnDrawActionConfirm,{
 
 
   body <- list(msg, mime_part(rs))
- 
 
-  mxDebugMsg("send the message")
-  sendmail(
-    from, 
-    to, 
-    subject, 
-    body,
-    control=list(smtpServer="smtp.unige.ch")
-    )
+
+  #library(gmailr)
+  #gmail_auth("settings/mapx-gmail.json", scope = 'compose')
+
+
+
+  #
+#
+#  mxDebugMsg("send the message")
+#  sendmail(
+#    from, 
+#    to, 
+#    subject, 
+#    body,
+#    control=list(
+#      smtpPortSMTP="25",
+#      #smtpServer="smtp.unige.ch" 
+#      smtpServer="aspmx.l.google.com" 
+#      )
+#    )
   })
+
+  output$panelAlert <- renderUI( mxPanelAlert(
+        title="message",
+        subtitle="Email sent !",
+        message=msg
+        )
+    )
+
+
+
+
+
 
 })
 
