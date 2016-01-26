@@ -91,6 +91,7 @@ function clearListCookies()
     var spcook =  cookies[i].split("=");
     document.cookie = spcook[0] + "=;expires=Thu, 21 Sep 1979 00:00:01 UTC;";                                
   }
+window.location.reload();
 }
 
 
