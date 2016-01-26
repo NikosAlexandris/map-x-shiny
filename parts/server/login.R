@@ -112,8 +112,8 @@ observeEvent(input$readCookie,{
 observeEvent(input$btnLogout,{
   mxUpdateValue(id="loginUser",value="")
   mxUpdateValue(id="loginKey",value="")
-  mxSetCookie(cookie=list(t="",s="",l="",k=""),deleteAll=TRUE)
-  session$close() 
+  mxSetCookie(deleteAll=TRUE)
+  session$reload() 
 })
 
 #
