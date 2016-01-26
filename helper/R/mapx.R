@@ -31,25 +31,16 @@ noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
 #' 
 #' @param host String. Host name to ping
 #' @export
-mxCanReach<- function(host="google.com"){
-
+mxCanReach<- function(server="google.com",port=80){
 
   req <- sprintf(
-      "ping -c1 %s 2>/dev/null | grep '1 packets received' | wc -l",
-      host  
+      "if nc -z %1$s %2$s; then echo '1'; else echo '0';fi;",
+      server,
+      port
       )
 
-  res <- as.numeric(system(
-    req,
-    intern=T
-      )
-    )
+  any( system(req,intern=T) == "1")
 
-
-
-  return(
-    isTRUE(res > 0)
-    )
 }
 
 
