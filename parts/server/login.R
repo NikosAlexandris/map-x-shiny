@@ -58,6 +58,8 @@ observeEvent(input$btnLogin,{
 # read the cookie and check if everything is ok
 observeEvent(input$readCookie,{
   mxDebugMsg("Read cookies in server")
+
+  mxCatch(title="Read cookie",{
   val <- input$readCookie 
   if( isTRUE( noDataCheck(val) || length(val) ==0) ) return()
 
@@ -107,6 +109,7 @@ observeEvent(input$readCookie,{
 
   output$loginValidation <- renderText(msg)   
       })
+  })
 
 
 
