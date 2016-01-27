@@ -59,7 +59,7 @@ observeEvent(input$btnLogin,{
 observeEvent(input$readCookie,{
   mxDebugMsg("Read cookies in server")
   val <- input$readCookie 
-  if(noDataCheck(val) || length(val)==0)return()
+  if( isTRUE( noDataCheck(val) || length(val) ==0) ) return()
 
   nVal = names(val)
   msg =  "Please enter user name and key"
