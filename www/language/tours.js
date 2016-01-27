@@ -80,11 +80,11 @@ function mxStartTour(mxTour,language){
     template : template,
     backdrop: false,
     steps : steps,
-    storage : false,
+    storage :  false,
     autoscroll: false
   });
 
-  tour.init();
+  tour.init(); 
   tour.end();
   tour.start(true);
 

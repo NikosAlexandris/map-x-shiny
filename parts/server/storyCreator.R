@@ -45,13 +45,23 @@ observeEvent(input$btnSaveNewStory,{
 })
 
 
+#observe({
+#    bnd <- input$mapxMap_bounds
+#    browser()
+#    bnd <- lapply(bnd,floor)
+#    nms <- sapply(names(bnd),substr,1,1)
+#    res <- paste(nms,bnd,sep=":",collapse=",")
+#    mxUpdateText(id="txtLiveCoordinate",text=res)
+#})
 observe({
-    bnd <- input$mapxMap_bounds
-    bnd <- lapply(bnd,round,digits=4) # ~ 11 m
-    nms <- sapply(names(bnd),substr,1,1)
-    res <- paste(nms,bnd,sep=":",collapse=",")
+    cen <- sapply(input$mapxMap_center,round,digit=4)
+    zoo <- input$mapxMap_zoom
+    dat <- c(cen,zoo)
+    nms <- c("lng","lat","zoom")
+    res <- paste(nms,dat,sep=":",collapse=",")
     mxUpdateText(id="txtLiveCoordinate",text=res)
 })
+
 
 
 
@@ -68,7 +78,7 @@ observeEvent(input$btnStoryMapEditorUpdate,{
             id = storyId,
             value = mxEncode(storyText) 
             )
-          mxUpdateText(id="mxStoryContainerPreview",text=mxParseStory(storyText))
+          mxUpdateText(id="mxStoryText",text=mxParseStory(storyText))
          mxReact$storyMap <- mxParseStory(storyText) 
         })
     }

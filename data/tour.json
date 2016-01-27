@@ -117,6 +117,9 @@
     }
   },
   "btnViewsExplorer":{
+    "opt":{
+      "placement":"bottom"
+    },
     "eng":{
       "title":"Views Explorer",
       "content":"Open the Views Explorer inside the (left) sidebar"
@@ -127,6 +130,10 @@
     }
   },
   "btnViewsCreator":{
+    "opt":{
+      "placement":"bottom"
+    },
+
     "eng":{
       "title":"Views Creator",
       "content":"Use this tool to create a custom view of a map layer."
@@ -137,6 +144,10 @@
     }
   },
   "btnStoryReader":{
+    "opt":{
+      "placement":"bottom"
+    },
+
     "eng":{
       "title":"Story Reader",
       "content":"This opens the Story Reader inside the side panel. "
@@ -147,6 +158,10 @@
     }
   },
   "btnViewsConfig":{
+    "opt":{
+      "placement":"bottom"
+    },
+
     "eng":{
       "title":"Views Configurator",
       "content":"Access the Views Configurator and customise the way map layers appear."
@@ -157,6 +172,10 @@
     }
   },
   "btnViewsToolbox":{
+    "opt":{
+      "placement":"bottom"
+    },
+
     "eng":{
       "title":"Views Toolbox",
       "content":"Activate a toolbox to perform spatial analysis for the map layers of interest"
@@ -167,6 +186,10 @@
     }
   },
   "btnDraw":{
+    "opt":{
+      "placement":"bottom"
+    },
+
     "eng":{
       "title":"Spatial Toolbox",
       "content":"Activate a spatial toolbox to draw points, lines or polygons of interest. Optionally, notifications regarding changes that occur inside the spatial entity of interest "
@@ -177,6 +200,10 @@
     }
   },
   "btnMapCreatorSave":{
+    "opt":{
+      "placement":"bottom"
+    },
+
     "eng":{
       "title":"Save Map ...",
       "content":"+++"
@@ -187,6 +214,10 @@
     }
   },
   "btnZoomToLayer":{
+    "opt":{
+      "placement":"bottom"
+    },
+
     "eng":{
       "title":"Zoom to Layer",
       "content":"Zoom in to the active layer's entire extent"
@@ -197,6 +228,10 @@
     }
   },
   "btnViewsRefresh":{
+    "opt":{
+      "placement":"bottom"
+    },
+
     "eng":{
       "title":"Refresh View",
       "content":"+++"

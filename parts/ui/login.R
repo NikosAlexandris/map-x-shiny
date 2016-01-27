@@ -16,25 +16,6 @@ tags$section(id="sectionLogin",class="container-fluid",
           h2(mx_set_lang="html.login.title","User authentication")
           ),
         div(class="col-lg-8 col-md-6 col-xs-12"
-       #   h6(textOutput("loginValidation")),
-       #   div(class="col-lg-4 col-md-12 col-xs-12",
-       #     usrInput("loginUser", "User name")
-       #     ),
-       #   div(class="col-lg-4 col-md-12 col-xs-12",
-       #     pwdInput("loginKey", "Key")
-       #     ),
-       #   div(class="col-lg-4 col-md-12 col-xs-12",
-       #   tags$ul(class="list-inline",
-       #     tags$li(actionButton("btnLogin", icon("sign-in"))),
-       #     tags$li(actionButton("btnLogout", icon("sign-out"))),
-       #     tags$li( 
-       #     mxSelectInput(
-       #       inputId="selectLanguage",
-       #       choices=c("fre","eng"),
-       #       selected="fre"),
-       #       onchange="updateTitlesLang()")
-       #     )
-       #   )
           )
         )
       )

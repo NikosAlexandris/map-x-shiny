@@ -7,13 +7,13 @@
 #                 |_|           
 # map content
 
-uiMapCreator <-tagList(
+uiMapCreator <- tagList(
   #
   # MAP CREATOR
   #
   tags$section(id="sectionMapcreator",class="section-map-creator mx-mode-creator container-fluid mx-hide",
     div(class="row",
-      div(class="col-lg-12",
+      div(
         mxAccordionGroup(id="mapCreator",
           itemList=list(
             "data"=list("title"="Data upload",content=tagList(
@@ -102,9 +102,6 @@ uiMapConfig <- tagList(
         mxAccordionGroup(id="mapConfig",show=1,
           itemList=list(
             "baseMap"=list("title"="Additional maps",content=tagList(
-                h4('Add tools'),
-                checkboxInput("checkRemoveZoom","Zoom button",value=T),
-                checkboxInput("checkAddControlMeasure","Measure widget",value=T),
                 h4('Set base map'),
                 selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
                 tags$ul(class="list-inline banner-social-buttons",
@@ -255,8 +252,13 @@ uiMapStoryReader <- tagList(
   #
   # STORY MAP PREVIEW / READER
   #
-  tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",style="width:100%",
-    div(id="mxStoryContainerPreview")
+  tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",
+    div(class="no-scroll-container",
+    div(id="mxStoryContainer",class="no-scroll-content",  
+      div(id="mxStoryLimitTrigger"),
+      div(id="mxStoryText")
+      )
+    )
     )
   )
 
@@ -289,17 +291,17 @@ uiLeftNav <- tagList(
         icon("angle-double-left")
         )
       ),
-    tags$li(
-      tags$button(
-        mx_set_lang="title.mapLeft.info",
-        id='btnInfoClick',
-        class="btn-icon",
-        icon("info")
-        )
-      ),
-    tags$li(
-      hr()
-      ),
+   # tags$li(
+   #   tags$button(
+   #     mx_set_lang="title.mapLeft.info",
+   #     id='btnInfoClick',
+   #     class="btn-icon",
+   #     icon("info")
+   #     )
+   #   ),
+  #  tags$li(
+  #    hr()
+  #    ),
     #
     # PANEL BUTTON
     #
@@ -432,11 +434,11 @@ tags$section(id="sectionMap",class="mx-section-container mx-hide",
           # button dropdown
           tags$div(
             tags$div(class="mx-dropdown map-tool-box-container",
-              tags$button(
+              tags$div(
                 onclick="toggleDropDown('mapToolsMenu')",
                 id='btnMapTools',
-                class="btn btn-icon mx-btn-dropdown",
-                tags$span(class='caret')
+                class="mx-btn-dropdown",
+                tags$span(class='fa fa-bars')
                 ),
               tags$ul(class="mx-dropdown-content map-tool-box-items",
                 id="mapToolsMenu",

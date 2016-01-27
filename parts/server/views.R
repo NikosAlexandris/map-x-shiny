@@ -113,6 +113,7 @@ observe({
             tags$script(
               sprintf(" $('#%1$s').selectize({
                 maxItems:null,
+                placeholder:'Search for parties',
                 onChange: function(value){
                   mxSetFilter('%2$s','%3$s','%4$s',value)
                 },
@@ -221,20 +222,19 @@ observe({
 
       observe({
         storyView <- input$storyMapData
-        if(!noDataCheck(storyView$view)){
-          mxReact$viewsFromStory <- storyView$view
-        }
+#        if(!noDataCheck(storyView$view)){
+#          mxReact$viewsFromStory <- storyView$view
+#        }
+#
         if(!noDataCheck(storyView$extent)){
           ext <- storyView$extent
-
+        
           proxyMap <- leafletProxy("mapxMap")
-          proxyMap %>% fitBounds(
-            ext[[4]],
-            ext[[1]],
-            ext[[2]],
-            ext[[3]]
-            ) 
-
+          proxyMap %>% setView(
+            lng=ext[[1]],
+            lat=ext[[2]],
+            zoom=ext[[3]]
+            )
         }
 
       })
@@ -342,26 +342,49 @@ observe({
               vToShow <- mxReact$vToShow
               vData <- mxReact$views
               if(!noDataCheck(vToShow)){
-                legendId <- sprintf("%s_legends",vToShow)
-                legendClass <- sprintf("info legend %s",legendId)
+
                 proxyMap <- leafletProxy("mapxMap")
-                sty <- vData[[vToShow]]$style
-                hasLegend <- ! isTRUE(sty$hideLegends)
 
-                # compute legend if necessary
-                if(hasLegend){
-                  tit <- sty$title
-                  pal <- sty$palette
-                  val <- sty$values
+                for(vId in vToShow){
 
-                  sty <- addPaletteFun(sty,pal)
-                  palFun <- sty$paletteFun
-                  proxyMap %>%
-                  showGroup(as.character(vToShow)) %>%
-                  addLegend(position="bottomright",layerId=legendId,class=legendClass,pal=palFun,values=val,title=tit)
-                }else{
-                  proxyMap %>%
-                  showGroup(as.character(vToShow))
+                  legendId <- sprintf("%s_legends",vId)
+                  legendClass <- sprintf("info legend %s",legendId)
+
+                  res <- try(
+                    sty <- vData[[vId]]$style
+                    )
+
+                  if(class(res) == "try-error") browser()
+
+
+
+
+
+                    hasLegend <- ! isTRUE(sty$hideLegends)
+
+                    # compute legend if necessary
+                    if(hasLegend){
+                      tit <- sty$title
+                      pal <- sty$palette
+                      val <- sty$values
+
+                      sty <- addPaletteFun(sty,pal)
+                      palFun <- sty$paletteFun
+                      proxyMap %>%
+                      showGroup(as.character(vToShow)) %>%
+                      addLegend(
+                        position="bottomright",
+                        layerId=legendId,
+                        class=legendClass,
+                        pal=palFun,
+                        values=val,
+                        title=tit
+                        )
+                    }else{
+                      proxyMap %>%
+                      showGroup(as.character(vToShow))
+                    }
+
                 }
               }
 

@@ -422,7 +422,6 @@ setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtId
 #' @export
 pwdInput <- function(inputId, label) {
     tagList(
-#    tags$label(label),
     tags$input(id = inputId,placeholder=label,class="mxLoginInput",type="password", value="")
     )
 }
@@ -436,7 +435,6 @@ pwdInput <- function(inputId, label) {
 #' @export
 usrInput <- function(inputId, label) {
   tagList(
-    #tags$label(label),
     tags$input(id = inputId, placeholder=label,class="mxLoginInput usernameInput", value="")
     )
 }
@@ -1092,7 +1090,8 @@ dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, over
 #' @param pal name of palette to use
 #' @export
 addPaletteFun <- function(sty,pal){
-  if(sty$scaleType=="continuous") { 
+  res <- try(silent=TRUE,{
+  if( sty$scaleType == "continuous" ) { 
     sty$paletteFun <- colorNumeric(
       palette = sty$palette,
       domain = sty$values
@@ -1103,8 +1102,11 @@ addPaletteFun <- function(sty,pal){
       sty$values
       )
   }
+    })
+  if(class(res) == "try-error" ){
+    stop(res)
+  }
   return(sty)
-
 }
 
 #' Apply map-x style to existing vector tiles
@@ -1161,22 +1163,40 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
       labFor<-labelFormat()
     }
     proxyMap %>%
-    addLegend(position="bottomright",labFormat=labFor,pal=pal,values=val,layerId=legendId,class=legendClass,title=tit)
+    addLegend(position="bottomright",
+      labFormat=labFor,
+      pal=pal,
+      values=val,
+      layerId=
+      legendId,
+      class=legendClass,
+      title=tit
+      )
   }
 
   names(col) <- val
-  sList = jsonlite::toJSON(list(
+  sList = list(
     colorsPalette = as.list(col),
     dataColum = var,
     opacity = opa,
     size = sze,
     mxDateMin = as.numeric(as.POSIXlt(mnd)),
     mxDateMax = as.numeric(as.POSIXlt(mxd))
-    ))
+    )
 
   # Apply style
-  jsSty <- sprintf("mxSetStyle('%1$s',%2$s,'%3$s',false)",grp,sList,lay)
-  session$sendCustomMessage(type="jsCode",list(code=jsSty))
+  #jsSty <- sprintf("mxSetStyle('%1$s',%2$s,'%3$s',false)",grp,sList,lay)
+
+
+
+  session$sendCustomMessage(
+    type="setStyle",
+    list(
+      group=grp,
+      layer=lay,
+      style=sList
+      )
+    )
   # print timing
   stop <- Sys.time() - start
   mxDebugMsg(paste("End style. Timing=",stop))
@@ -1378,7 +1398,7 @@ mxSliderOpacity <- function(id,opacity){
 #' @param max Maxmimum js unix date in milisecond 
 #' @param lay Layer name
 #' @export 
-mxTimeSlider <-function(id,min,max,lay){
+mxTimeSliderDouble <-function(id,min,max,lay){
   tagList(
     tags$div(class="slider-date-container",
       tags$input(type="text",id=sprintf("slider-for-%s",id)),
@@ -1410,6 +1430,50 @@ mxTimeSlider <-function(id,min,max,lay){
       )
     ) 
 }
+
+#' Set ioRange slider for time slider
+#' 
+#' @param id Id of the slider
+#' @param min Minimum js unix date in milisecond 
+#' @param max Maxmimum js unix date in milisecond 
+#' @param lay Layer name
+#' @export 
+mxTimeSlider <- function(id,min,max,lay){
+  tagList(
+    tags$div(class="slider-date-container",
+      tags$div(type="text",id=sprintf("slider-for-%s",id)),
+      tags$script(sprintf(
+          "
+          $slider = $('#slider-for-%3$s');
+          $slider.ionRangeSlider({
+            /*type: 'double',*/
+            min: %1$s,
+            max: %2$s,
+            from: %1$s,
+            to: %2$s,
+            step:1000*60*60*24 ,
+            prettify: function (num) {
+              var m = moment(num)
+              return m.format('YYYY-MM-DD');
+            },
+            onChange: function (data) {
+              //setRange('%3$s',data.from/1000,data.to/1000)
+              mxFilterDate('%3$s',data.from/1000,'%4$s')
+            }
+          });",
+          min,
+          max,
+          id,
+          lay
+          )
+        )
+      )
+    ) 
+}
+
+
+
+
 
 
 #' encode in base64
@@ -1649,36 +1713,18 @@ mxCreateSecret =  function(n=20){
 #' @return NULL
 #' @export
 mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpires=NULL,deleteAll=FALSE){
-  cmd=character(0)
-  if(deleteAll){
-    cmd = "clearListCookies()"
-  }else{
-    stopifnot(!is.null(cookie) | is.list(cookie))
-    if(is.numeric(nDaysExpires) ){
-      exp <- as.numeric(as.POSIXlt(Sys.time()+nDaysExpires*3600*24,tz="gmt"))
-      cmd <- sprintf("document.cookie='expires='+(new Date(%s*1000)).toUTCString();",exp)
-      # if no date are visible, add one.
-      addDate <- ";if(document.cookie.indexOf('d=')==-1){document.cookie='d='+new Date();}"
-      cmd <- paste(cmd,addDate)
-    }
 
-    for(i in 1:length(cookie)){
-      val <- cookie[i]
-      if(names(val)=="d")stop('mxSetCookie:d is a reserved name')
-      if(!is.na(val) && !is.null(val)){
-        str <- sprintf("document.cookie='%s=%s';",names(val),val)
-        cmd <- paste0(cmd,str,collapse="")
-      }
-    }
-    }
-  # execute command
-  if(length(cmd)>0){
-    #Add date 
-    session$sendCustomMessage(
-      type="mxSetCookie",
-      list(code=cmd)
-      )
-  }
+  cmd = list()
+  cmd$domain <- session$url_hostname
+  cmd$path <- session$url_pathname
+  cmd$deleteAll <- deleteAll
+  cmd$cookie <- cookie
+  cmd$expiresInSec <- nDaysExpires * 86400
+ 
+  session$sendCustomMessage(
+    type="mxSetCookie",
+    cmd
+    )
 }
 
 
@@ -1883,25 +1929,88 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
 # story map functions
 #
 
-  #gsub('\\[(.*?)\\]\\((.*?)\\)','<a href="\\2">\\1</a>',test,perl=T)
 
 
+
+#' Parse vimeo string 
+#' @param text Story map text with @vimeo( id ; desc ) tag
+#' @return html enabled version
+#' @export
+mxParseVimeo <- function(text){
+
+  # remplacement string
+  html <- tags$div(
+  tags$iframe(
+    src=sprintf("https://player.vimeo.com/video/%1$s?autoplay=0&color=ff0179",'\\1'),
+    width="300",
+    frameborder="0",
+    webkitallowfullscreen="",
+    mozallowfullscreen="",
+    allowfullscreen=""
+    ),
+  span(style="font-size=10px",'\\2')
+  )
+
+  # regular expression
+  expr <- "@vimeo\\(\\s*([ 0-9]+?)\\s+[;]+\\s*([ a-zA-Z0-9,._-]*?)\\s*\\)"
+
+  # substitute
+  gsub(
+    expr,
+    html,
+    text
+    )
+
+}
+
+#' Parse view string
+#' @param test Story map text with @view_start( name ; id ; extent ) ... @view_end tags
+#' @return parsed html 
+#' @export
+mxParseView <- function(text){
+
+  html <- tags$div(
+    class="mx-story-section mx-story-dimmed",
+    `mx-map-title`="\\1",
+    `mx-map-id`="\\2",
+    `mx-map-extent`="[\\3]",
+    "\\4"
+    )
+
+
+ # regular expression
+  expr <- "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*([ 0-9,\\.\\-]+?)\\s*\\)(.*?)@view_end"
+
+  # substitute
+  gsub(
+    "(lng):|(lat):|(zoom):",
+    "",
+    text
+    ) %>%
+  gsub(
+    expr,
+    html,
+    .
+    )
+ 
+
+}
+
+#' Parse story map : markdown, R, view and video
+#' @param test Story map text
+#' @return parsed html 
+#' @export
 mxParseStory <- function(txtorig,knit=T,toc=F){
 
+  # Parse knitr with options from markdownHTMLoptions()
   txt <- knitr::knit2html(text=txtorig,quiet = TRUE, 
-    #NOTE: options from markdownHTMLoptions()
     options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
-    ) %>% gsub(
-    "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*(.*?)\\s*\\)(.*?)@view_end",
-    "<div class='mx-story-section' mx-map-title='\\1' mx-map-id='[\"\\2\"]' mx-map-extent='[\\3]'>\\4</div>",
-    .
-    )%>%
-  gsub("([nesw]):","",.)
+    ) %>%
+    mxParseView() %>%
+    mxParseVimeo() 
 
-
-
-  return(txt)
-
+    return(txt)
+    
 }
 
 #' Add geojson list or file to db postgis
