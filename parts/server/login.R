@@ -24,10 +24,13 @@ observeEvent(input$documentIsReady,{
 
 
 # Language selection
-observe({
+observeEvent(input$selectLanguage,{
   selLanguage = input$selectLanguage
   if(!noDataCheck(selLanguage)){
     mxReact$selectLanguage = selLanguage
+    mxSetCookie(
+      cookie=list(lang=selLanguage)
+      )
   } 
 })
 
@@ -77,7 +80,7 @@ observeEvent(input$readCookie,{
     if(val$s==mxReact$tempSecret){
       # delete the secret
       mxReact$tempSecret <- NULL
-      msg = character(0)
+      msg <- character(0)
       idUser <- which(pwd$l==val$l)
       idKey <- which(pwd$k==val$k) 
       match <- isTRUE(idUser == idKey)
@@ -90,7 +93,7 @@ observeEvent(input$readCookie,{
         mxReact$userId <- pwd[idKey,'id']
         mxReact$userLastLogin <- pwd[idKey,'d']
         mxReact$userEmail <- pwd[idKey,'e']
-        msg= paste("ACCESS GRANTED FOR:",
+        msg <- paste("ACCESS GRANTED FOR:",
           mxReact$userName,
           "with email",mxReact$userEmail,
           "logged as", mxReact$userRole,
@@ -112,8 +115,7 @@ observeEvent(input$readCookie,{
 observeEvent(input$btnLogout,{
   mxUpdateValue(id="loginUser",value="")
   mxUpdateValue(id="loginKey",value="")
-  mxSetCookie(deleteAll=TRUE)
- # session$reload() 
+  mxSetCookie(cookie=list(s="",k="",l=""),deleteAll=TRUE)
 })
 
 #

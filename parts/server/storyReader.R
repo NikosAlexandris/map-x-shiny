@@ -98,7 +98,7 @@ observe({
     txt <- mxParseStory(storyMarkdown)
     r <- paste(rep(" ",1000),collapse="")
     txt <- paste(txt,r,sep="")
-    mxUpdateText(id="mxStoryContainerPreview",text=txt,addId=T)
+    mxUpdateText(id="mxStoryText",text=txt,addId=T)
   }
 })
 

@@ -132,6 +132,15 @@ observeEvent(input$btnZoomToLayer,{
 })
 
 
+
+#
+# Add label map
+#
+
+observe
+
+
+
 #
 # Additional base map
 #

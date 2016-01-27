@@ -193,7 +193,6 @@ observeEvent(input$leafletDrawGeoJson,{
 
   mxCatch(title="Polygon of interest",{
 
-
     v = mxReact$views
     layers = lapply(v,function(x){x$layer})
     names(layers) = lapply(v,function(x){x$title})

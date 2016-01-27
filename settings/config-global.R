@@ -268,6 +268,9 @@ mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
     "COD"={
       proxyMap %>%
       clearGroup(group) %>%
+   #   addProviderTiles("Stamen.TonerHybrid")
+      #addTiles("http://korona.geog.uni-heidelberg.de/tiles/adminb/x={x}&y={y}&z={z}")
+      #addProviderTiles("OpenMapSurfer.AdminBounds")
       addTiles(
         paste0(
           "http://",
