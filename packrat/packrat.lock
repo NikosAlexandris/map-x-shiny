@@ -53,8 +53,8 @@ Requires: DBI
 
 Package: Rcpp
 Source: CRAN
-Version: 0.12.2
-Hash: 1928c2b7372e3f033217335f3fad25a3
+Version: 0.12.3
+Hash: 11ace6a9a186c17a42e0fa2c49af1223
 
 Package: WDI
 Source: CRAN
@@ -94,8 +94,8 @@ Hash: 71771ef2ee8e27d4aa46babd7163dac5
 
 Package: curl
 Source: CRAN
-Version: 0.9.3
-Hash: 44fef64a3205c6e327a11a1a721da9b0
+Version: 0.9.5
+Hash: 03562aad7537914f516bd67e9bba28b1
 
 Package: data.table
 Source: CRAN
@@ -110,13 +110,13 @@ Hash: 08eed0c80510af29bb15f840ccfe37ce
 
 Package: digest
 Source: CRAN
-Version: 0.6.8
-Hash: de202f956596a476d09304e3a2ebf1e5
+Version: 0.6.9
+Hash: fd55d5a024f160fc001a5ece1e27782d
 
 Package: dplyr
 Source: CRAN
 Version: 0.4.2
-Hash: 51bd475dc0d7e8c5d0a5f70c235c1d35
+Hash: 0983569c676c2950a4b8e9965a72caab
 Requires: BH, DBI, R6, Rcpp, assertthat, lazyeval, magrittr
 
 Package: dygraphs
@@ -155,7 +155,7 @@ Requires: R.utils, foreach, sp
 Package: haven
 Source: CRAN
 Version: 0.2.0
-Hash: 249b534d6b4bf2daddfd5781fc2bdc06
+Hash: c29766d29f12ae71fff109c7f3c42585
 Requires: BH, Rcpp
 
 Package: highr
@@ -165,8 +165,8 @@ Hash: 25f9c02030b94c8154273699a7df9cf8
 
 Package: htmltools
 Source: CRAN
-Version: 0.2.6
-Hash: 595e7dea94f5f049dfc1ed739f5161af
+Version: 0.3
+Hash: 7ccc01f4d22d73d0d9b0d2a7781e7ff6
 Requires: digest
 
 Package: htmlwidgets
@@ -182,7 +182,7 @@ GithubSha1: e1537847ca22a4d1b72a1f2309c177af9e459e46
 Package: httpuv
 Source: CRAN
 Version: 1.3.3
-Hash: ad41c96192683a69d291a45192ec8e2b
+Hash: d440b2e539ccef77b9105051291a7628
 Requires: Rcpp
 
 Package: httr
@@ -198,8 +198,8 @@ Hash: 5b4df529141f993389b8fb24d56fe531
 
 Package: jsonlite
 Source: CRAN
-Version: 0.9.17
-Hash: d44b8f8c89ff794d6ec8a07dde103d24
+Version: 0.9.19
+Hash: 4a983f753b6e88ae0f5a6ac152d8cc32
 
 Package: knitr
 Source: CRAN
@@ -231,12 +231,12 @@ GithubSha1: f89f66d19149ead272952de8de808f7127fe4a14
 Package: leafletvt
 Source: github
 Version: 0.0.2
-Hash: fe2df34758475b6a17a57b8f7cb3acee
+Hash: d1d176fdbd234549728acd6b1bd2f07a
 Requires: RPostgreSQL, curl, jsonlite, leaflet
 GithubRepo: leafletvt
 GithubUsername: fxi
 GithubRef: master
-GithubSha1: 1c4ec5a6c273d4b102fe709631d86173f10fc308
+GithubSha1: 24f6bd3b70ae05f0cfd6bd78dcb0a1d75776b731
 
 Package: longurl
 Source: CRAN
@@ -269,7 +269,7 @@ Requires: colorspace
 Package: openxlsx
 Source: CRAN
 Version: 3.0.0
-Hash: 70c3bba189749c8f9d4531c186e02cb5
+Hash: dce62aa8ac31196ecfc432219c4938c3
 Requires: Rcpp
 
 Package: packrat
@@ -285,7 +285,7 @@ Hash: f0b18e97bff7c5301b6bb3fa2f93aa29
 Package: plyr
 Source: CRAN
 Version: 1.8.3
-Hash: 5cf4672c5940e265f2602d5d806d303d
+Hash: e38fe93fa50135fac98421abb43bbfea
 Requires: Rcpp
 
 Package: png
@@ -295,8 +295,8 @@ Hash: 421d7d6e0fb4bd885ecbd909b6456b8b
 
 Package: raster
 Source: CRAN
-Version: 2.4-20
-Hash: e1889a0d09a4ad457de35c3c8d17f2d7
+Version: 2.5-2
+Hash: 7c987fa9a9f0cd92593e0855cb7b6cea
 Requires: Rcpp, sp
 
 Package: readODS
@@ -308,13 +308,13 @@ Requires: XML
 Package: readxl
 Source: CRAN
 Version: 0.1.0
-Hash: 8df3f6219de96ff895cfc250476f778a
+Hash: bcb377dc996ddef153e1b4359190fae7
 Requires: Rcpp
 
 Package: reshape2
 Source: CRAN
 Version: 1.4.1
-Hash: 193899598711fc9776f383bbdf266118
+Hash: 55963009094746c3aef64bfbf9eb4731
 Requires: Rcpp, plyr, stringr
 
 Package: rgdal
@@ -343,7 +343,7 @@ GithubSha1: f278e545752c78143216ac955c25b204559fbf0b
 Package: scales
 Source: CRAN
 Version: 0.3.0
-Hash: 323f8f5a7f2823f19bd3fd3c15fc196a
+Hash: 9c140be1bda3cf690f8714cfc810aa45
 Requires: RColorBrewer, Rcpp, dichromat, labeling, munsell, plyr
 
 Package: sendmailR
