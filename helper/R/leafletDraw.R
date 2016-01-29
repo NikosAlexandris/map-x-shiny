@@ -5,14 +5,14 @@ leafletDrawDependencies <- function() {
     htmltools::htmlDependency(
       "leaflet-draw",
       "0.2.3", 
-      src =normalizePath("www/leafletDraw"),
+      src =normalizePath("www/src/leafletDraw"),
       script = "leaflet.draw.js",
       stylesheet = "leaflet.draw.css"
       ),
     htmltools::htmlDependency(
       "leaflet-draw-plugin",
       "0.0.1",
-      src=normalizePath("www/leafletDraw"),
+      src=normalizePath("www/src/leafletDraw"),
       script = "bindings.js"
       )
     )

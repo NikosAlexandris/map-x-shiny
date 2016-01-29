@@ -36,9 +36,8 @@ ui <- tagList(
   loadUi("parts/ui/footer.R"),
   # Scripts loaded after ui parts
   tags$footer(
-    # TODO: uglify and concat js files OR load with singleton when needed.
     tagList(
-      tags$script(src="mapx/mapx.js")
+      tags$script(src="src/mapx/js/mapxInit.js")
       )
     )
   )

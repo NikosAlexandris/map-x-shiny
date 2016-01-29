@@ -173,7 +173,7 @@ observeEvent(mxReact$mapInitDone,{
   map %>% setZoomOptions(buttonOptions=list(position="topright")) 
   session$sendCustomMessage(
     type="addCss",
-    "mapx/leafletPatch.css"
+    "src/mapx/css/leafletPatch.css"
     )
 })
 
