@@ -119,7 +119,7 @@ observe({
 
     mxUpdateText(id="countryTitleLarge",text=cL)
     mxUpdateText(id="countryTitleMedium",text=cM)
-    mxUpdateText(id="countryTitleSmall",text=cM)
+    mxUpdateText(id="countryTitleSmall",text=cS)
     mxUpdateText(id="countryTitleMini",text=cS)
     
     

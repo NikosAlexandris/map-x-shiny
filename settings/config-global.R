@@ -128,7 +128,7 @@ mxConfig$viewsListTableName = "mx_views"
 mxConfig$storyMapsTableName = "mx_story_maps"
 # Command to restart pgrestapi
 # NOTE: touch "restart.txt" reactivate nodejs application launched by NGINX + passenger.
-mxConfig$restartPgRestApi = "touch /home/vagrant/tools/PGRestAPI/tmp/restart.txt"
+mxConfig$restartPgRestApi = "touch /home/vagrant/tools/pgrestapi/tmp/restart.txt"
 # set palette colors
 mxConfig$colorPalettes <- mxCreatePaletteList(RColorBrewer::brewer.pal.info)
 # country data

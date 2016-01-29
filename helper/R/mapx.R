@@ -151,10 +151,12 @@ cat(out)
 
 mxDebugToJs<-function(text,session=getDefaultReactiveDomain()){
   js <- jsonlite::toJSON(text)
-  js <- sprintf("console.log(%s);",js)
+  res <- list(
+    msg=text
+    )
   session$sendCustomMessage(
-    type="jsCode",
-    list(code=js)
+    type="jsDebugMsg",
+    res
     )
 }
 
@@ -371,48 +373,6 @@ mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),
   })   
 }
 
-#' Set opacity.
-#'
-#' Set given layer opacity.
-#' 
-#' @param session Shiny session
-#' @param layer Leaflet.MapboxVectorTile layer group object name
-#' @param group Group
-#' @param opacity Opacits
-#' @export
-setLayerOpacity <- function(session=shiny:::getDefaultReactiveDomain(),layer="leafletvtId",group=NULL,opacity=1){
-  if(!noDataCheck(group)){
-    jsCode = sprintf("if(typeof %s !== 'undefined'){%s.%s.setOpacity(%s)};",layer,layer,group,opacity)
-    mxDebugMsg(jsCode)
-    session$sendCustomMessage(
-      type="jsCode",
-      list(code=jsCode)
-      )
-  }
-}
-
-#' Set zIndex.
-#' 
-#' Set zIndex on a leafletvt layer. NOTE: leaflet seems to reset this after layer changes.
-#'
-#' @param session Shiny session
-#' @param layer Leaflet.MapboxVectorTile layer group object name
-#' @param zIndex zIndex of the group
-#' @export
-setLayerZIndex <- function(session=getDefaultReactiveDomain(),layer="leafletvtId",group=NULL,zIndex=15){
-  if(!is.null(group)){
-    jsCode <- sprintf("if(typeof %s !== 'undefined'){%s.%s.setZIndex(%s)};",layer,layer,group,zIndex)
-  }else{ 
-    jsCode <- sprintf("for(key in %s){%s[key].setZIndex(%s)};",layer,layer,zIndex)
-  }
-  if(!noDataCheck(group)){
-    session$sendCustomMessage(
-      type="jsCode",
-      list(code=jsCode)
-      )
-  }
-}
-
 #' Password input
 #'
 #' Create a password input.
@@ -439,21 +399,7 @@ usrInput <- function(inputId, label) {
     )
 }
 
-#' Toggle html element by class.
-#'
-#' Toggle html hide parameter by class.
-#' 
-#' @param session Shiny session
-#' @param class CSS class to hide
-#' @export 
-toggleClass <- function(session=shiny:::getDefaultReactiveDomain(),class=''){
-  if(!is.null(session)){
-    session$sendCustomMessage(
-      type="jsCode",
-      list(code=sprintf("$('.test').hide()"))
-      )
-  }
-}
+
 
 #' Random name generator
 #' 
@@ -983,15 +929,13 @@ mxFileInput<-function (inputId, label, fileAccept=NULL, multiple=FALSE){
 #' @param disable State of the button
 #' @export
 mxActionButtonState <- function(id,session=shiny:::getDefaultReactiveDomain(),disable=TRUE) {
-  # set Jquery
-  addDefault<-paste0("$('#",id,"').addClass('btn-default').removeClass('btn-danger').attr('disabled',false);")
-  addDanger<-paste0("$('#",id,"').addClass('btn-danger').removeClass('btn-default').attr('disabled',true);")
-  # toggle based on disable parameter
-  val<-ifelse(disable,addDanger,addDefault)
-  # send js code
+  res <- list(
+    id = id,
+    disable = disable 
+    )
   session$sendCustomMessage(
-    type="jsCode",
-    list(code=val)
+    type="mxSetButonState",
+    res
     )
 }
 
@@ -1274,16 +1218,15 @@ mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,class=NU
   } 
 
   element <- paste(paste0(prefix,element),collapse=",")
-  
-  if(!enable){
-    js <- sprintf("$('%1$s').addClass('%2$s')",element,classToRemove)
-  }else{
-    js <- sprintf("$('%1$s').removeClass('%2$s')",element,classToRemove)
-  }
-    session$sendCustomMessage(
-      type="jsCode",
-      list(code=js)
-      )
+  res = list(
+    enable=enable,
+    element=element,
+    classToRemove=classToRemove
+    )
+  session$sendCustomMessage(
+    type="mxUiEnable",
+    res
+    )
 }
 
 
@@ -1356,11 +1299,16 @@ mxCheckboxIcon <- function(id,idLabel,icon,display=TRUE){
 mxRemoveEl <- function(session=getDefaultReactiveDomain(),class=NULL,id=NULL){
  if(is.null(class) && is.null(id))return()
 sel <-ifelse(is.null(class),paste0('#',id),paste0('.',class))
-cod <- sprintf("$('%1$s').remove()",sel)
+
+res <- list(
+  element = sel
+  )
+
 session$sendCustomMessage(
-      type="jsCode",
-      list(code=cod)
-      )
+  type="mxRemoveEl",
+  res
+  )
+
 }
 
 #' Set ioRange slider for opacity
@@ -1530,10 +1478,14 @@ mxUpdateValue <- function(session=shiny:::getDefaultReactiveDomain(),id,value){
   if(is.null(value)){
     return(NULL)
   }else{
-    val <- sprintf("el = document.getElementById('%1$s');el.value='%2$s'",id,value)
+
+    res <- list(
+      id=id,
+      val=value
+      )
     session$sendCustomMessage(
-      type="jsCode",
-      list(code=val)
+      type="mxUpdateValue",
+      res
       )
   }
 }
@@ -1852,27 +1804,6 @@ setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){
 }
 
 
-
-
-
-
-
-
-#' Enable or disable loading panel
-#' @param session Shiny reactive domain
-#' @param enable Boolean activate or disable panel
-#' @export
-mxLoadingPanel <- function(session=getDefaultReactiveDomain(),enable=FALSE){
-    if(isTRUE(enable)){ 
-      js <- "$('#loading-content').css({display:'block'});"
-    }else{
-      js <- "$('#loading-content').css({display:'none'});"
-    }
-    session$sendCustomMessage(
-      type="jsCode",
-      list(code=js)
-      )
-  }
 
 #' Test if a text exists, update a output ui item
 #' @param textTotest text to test against rules
