@@ -95,19 +95,20 @@ observeEvent(input$readCookie,{
         mxReact$userId <- pwd[idKey,'id']
         mxReact$userLastLogin <- pwd[idKey,'d']
         mxReact$userEmail <- pwd[idKey,'e']
-        msg <- paste("ACCESS GRANTED FOR:",
+
+        msg <- sprintf(
+          "Access granted for %1$s. \n Email : %2$s  \n Role : %3$s \n Since : %4$s",
           mxReact$userName,
-          "with email",mxReact$userEmail,
-          "logged as", mxReact$userRole,
-          "since",val$d
+          mxReact$userEmail,
+          mxReact$userRole,
+          date() # THIS WILL BE STORED IN DB
           )
-      } else  {
+        } else  {
         msg=paste("ACCESS DENIED",msg,collapse="")
       }
     }
   }
-
-  output$loginValidation <- renderText(msg)   
+ mxUpdateText("loginValidation",msg)
       })
   })
 
@@ -118,7 +119,7 @@ observeEvent(input$readCookie,{
 observeEvent(input$btnLogout,{
   mxUpdateValue(id="loginUser",value="")
   mxUpdateValue(id="loginKey",value="")
-  mxSetCookie(cookie=list(s="",k="",l=""),deleteAll=TRUE)
+  mxSetCookie(cookie=list(s="",k="",l="",d=""),deleteAll=TRUE)
 })
 
 #

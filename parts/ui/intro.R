@@ -50,7 +50,7 @@ tags$section(id="sectionTop",class="mx-section-container mx-section-top containe
           )
         ),
       div(class="col-xs-12",
-        h6(textOutput("loginValidation"))
+        p(id="loginValidation")
         )
       )
     )
