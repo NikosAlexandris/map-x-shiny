@@ -11,10 +11,10 @@ mxUiEnable(id="sectionCountry",enable=TRUE)
 
 # Country selection
 observe({
-    selCountry = input$selectCountry
-    if(!noDataCheck(selCountry) && mxReact$userLogged){
-      mxReact$selectCountry = selCountry
-    }
+  selCountry = input$selectCountry
+  if(!noDataCheck(selCountry) && mxReact$userLogged){
+    mxReact$selectCountry = selCountry
+  }
 })
 
 
@@ -111,7 +111,7 @@ observe({
 
 
     navLogo <- img(src="img/logo_white.svg",style="height:16px;vertical-align:middle")
-   
+
 
     cL <- as.character(div(navLogo,countryNameNav))
     cM <- as.character(div(navLogo,countryName))
@@ -121,16 +121,16 @@ observe({
     mxUpdateText(id="countryTitleMedium",text=cM)
     mxUpdateText(id="countryTitleSmall",text=cS)
     mxUpdateText(id="countryTitleMini",text=cS)
-    
-    
+
+
     output$countryName <- renderText(countryName)
-    
-   # output$countryNameNav <- renderUI(navCountryName)
+
+    # output$countryNameNav <- renderUI(navCountryName)
 
 
 
     output$countryMetrics <- renderUI(countryMetrics)
-    
+
 
 
     output$countryNarrative <- renderUI(countryNarrative)
@@ -148,38 +148,38 @@ observe({
 observe({
   idx <- input$selectIndicator
   cnt <- mxReact$selectCountry
+  msg <- ""
 
   if(!noDataCheck(idx) && !noDataCheck(cnt)){
 
     mxCatch("Plot WDI data",{
-     
-      mxDebugMsg("Try to reach world bank")
-      if(!mxCanReach("data.worldbank.org"))stop("Map-x can't connect to worldbank development index.")
 
-      dat <- WDI(
-        indicator = idx, 
-        country = countrycode(cnt,'iso3c','iso2c'), 
-        start = 1980, 
-        end = 2015
-        )
+      if(!mxCanReach("data.worldbank.org")){
+        msg <- "No connection to worldbank development index."
+        mxUpdateText("wdiMsg",msg)
+      }else{
 
-      dat = na.omit(dat)
-      if(exists('dat') && nrow(dat)>0){
-        dat$year <- as.Date(paste0(dat$year,'-12-31'))
-        datSeries <- xts(dat[,idx],order.by=dat$year)
-        idxName = names(mxConfig$wdiIndicators[idx])
-        graphIndicator = dygraph(
-          data=datSeries,
-          main=idxName,
-          ylab=idxName) %>% 
-        dyRangeSelector()
-        output$dyGraphWdi <- renderDygraph({
-          graphIndicator
+        dat <- WDI(
+          indicator = idx, 
+          country = countrycode(cnt,'iso3c','iso2c'), 
+          start = 1980, 
+          end = 2016
+          )
+
+        dat = na.omit(dat)
+        if(exists('dat') && nrow(dat)>0){
+          dat$year <- as.Date(paste0(dat$year,'-12-31'))
+          datSeries <- xts(dat[,idx],order.by=dat$year)
+          idxName = names(mxConfig$wdiIndicators[idx])
+          graphIndicator = dygraph(
+            data=datSeries,
+            main=idxName,
+            ylab=idxName) %>% 
+          dyRangeSelector()
+          output$dyGraphWdi <- renderDygraph({
+            graphIndicator
+          })
+      }}
         })
-
-
-      }
-
-      })
   }
 })

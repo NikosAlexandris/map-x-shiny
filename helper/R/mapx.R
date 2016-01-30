@@ -1444,7 +1444,7 @@ mxDecode <- function(base64text){
 #' @param id Id of the element
 #' @param text New text
 #' @export
-mxUpdateText<-function(session=shiny:::getDefaultReactiveDomain(),id,text=NULL,ui=NULL,addId=FALSE){
+mxUpdateText<-function(id,text=NULL,ui=NULL,addId=FALSE,session=shiny:::getDefaultReactiveDomain()){
   if(is.null(text) && is.null(ui)){
     return(NULL)
   }else{

@@ -56,6 +56,7 @@ tags$section(id="sectionCountry",class="mx-section-container container-fluid mx-
                   selected="NY.GDP.PCAP.KD"
                   ),
                 dygraphOutput("dyGraphWdi"),
+                div(id="wdiMsg"),
                 p(class="cite","Data source:", tags$a(href="http://databank.worldbank.org/","WDI"))
                 )
               )
