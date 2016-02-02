@@ -6,16 +6,6 @@
 #                 | |           
 #                 |_|           
 # view creator management
-#
-#observe({
-#  if(mxReact$allowViewsCreator){
-#    bounds <- input$mapxMap_bounds
-#    output$txtLiveCoordinate <- renderText({
-#      paste(names(bounds),round(as.numeric(bounds),digits=3),collapse="; ")
-#    })
-#  } 
-#})
-#
 
 
 observe({
@@ -152,7 +142,7 @@ observeEvent(input$fileNewLayer,{
           if(!exists("remoteInfo"))stop("No remoteInfo found in /settings/settings.R")
           r <- remoteInfo 
           mxDebugMsg("Command remote server to restart app")
-          remoteCmd(host=r$host,port=r$port,user=r$user,cmd=mxConfig$restartPgRestApi)
+          remoteCmd(host="map-x-full",cmd=mxConfig$restartPgRestApi)
         }else{
           system(mxConfig$restartPgRestApi)
         }

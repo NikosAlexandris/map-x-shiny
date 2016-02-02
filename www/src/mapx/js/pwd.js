@@ -51,6 +51,7 @@ jQuery(function($) {
       return md5(el.value);
     },
     setValue: function(el, value) {
+      debugger;
       el.value = value;
     },
     subscribe: function(el, callback) {

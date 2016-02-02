@@ -28,18 +28,17 @@ observeEvent(input$selectLanguage,{
   selLanguage = input$selectLanguage
   if(!noDataCheck(selLanguage)){
     mxReact$selectLanguage = selLanguage
-    mxSetCookie(
-      cookie=list(lang=selLanguage)
-      )
+    # TODO: update 
   } 
 })
 
 # if the user press the login button and is not yet logged, write a cookie
 # the cookie will be read again server side.
 observeEvent(input$btnLogin,{
-  if (mxReact$userLogged == FALSE) {
+  if ( mxReact$userLogged == FALSE ) {
     lUser <- input$loginUser
     lKey <- input$loginKey
+
     if (!noDataCheck(lUser) && !noDataCheck(lKey)) {
       if (input$btnLogin > 0) {
         lSec <- mxCreateSecret() # send a temp secret, only for this request.
@@ -55,60 +54,69 @@ observeEvent(input$btnLogin,{
   }
   })
 
-# read the cookie and check if everything is ok
-observeEvent(input$readCookie,{
-  mxDebugMsg("Read cookies in server")
+# read the cookie and check that everything is ok
+# NOTE: Doing this each time we want to read cookie is not very conveniant..
+observeEvent(input$readCookie,
+  {
+    mxCatch(title="Read cookie",
+      {
+        msg <-"Please enter user name and key"
+        val <- input$readCookie 
+        if( 
+          isTRUE( noDataCheck(val) ) ||
+          isTRUE( length(val) == 0 ) 
+          )  return()
 
-  mxCatch(title="Read cookie",{
-  val <- input$readCookie 
-  if( isTRUE( noDataCheck(val) || length(val) ==0) ) return()
+        nVal <- names(val)
+        pwd <- mxData$pwd
+        # check if login and key are in given cookie values
+        if(
+          isTRUE( mxReact$tempSecret == val$s )
+          ){
+            if(
+              isTRUE( "l" %in% nVal ) && 
+              isTRUE( "k" %in% nVal )
+              ){
+              # change the secret
+              mxReact$tempSecret <- mxCreateSecret()
+              # get row id for login and key
+              idUser <- which(pwd$l==val$l)
+              idKey <- which(pwd$k==val$k) 
+              # check for match
+              if( isTRUE( idUser == idKey ) ){
+                # retrieve info about the user
+                mxReact$userLogged <- TRUE
+                mxReact$userRole <- pwd[idKey,'r']
+                mxReact$userName <- pwd[idKey,'u']
+                mxReact$userId <- pwd[idKey,'id']
+                mxReact$userEmail <- pwd[idKey,'e']
+                # set info message
+                msg <- sprintf(
+                  "Access granted for %1$s. \n Email : %2$s  \n Role : %3$s \n Since : %4$s",
+                  mxReact$userName,
+                  mxReact$userEmail,
+                  mxReact$userRole,
+                  date() # THIS WILL BE STORED IN DB
+                  )
+              } else  {
 
-  nVal = names(val)
-  msg =  "Please enter user name and key"
-  # NOTE: initialisation s already done before.
-  mxReact$userLogged <- FALSE
-  mxReact$userRole <- NULL
-  mxReact$userName <- NULL
-  mxReact$userId <- NULL
-  mxReact$userLastLogin <- NULL
-  mxReact$userEmail <- NULL
-  pwd <- mxData$pwd
-  # check if login and key are in given cookie values
-  if(isTRUE("l" %in% nVal && "k" %in% nVal)){
-    # Check for secret and session token.
-    # if the secret does not match : not done after btnLogin pressed.
-  
+                notUser <- ifelse(
+                  length( idUser ) < 1,
+                  "Wrong username. ",
+                  ""
+                  )
+                notKey <- ifelse(
+                  length( idKey ) < 1,
+                  "Wrong key. ",
+                  ""
+                  )
+                # Warning : wrong pass
+                msg=paste("Access denied. ",notUser,notKey,sep="",collapse="")
+              }
+            }
+          }
 
-    if(val$s==mxReact$tempSecret){
-      # delete the secret
-      mxReact$tempSecret <- NULL
-      msg <- character(0)
-      idUser <- which(pwd$l==val$l)
-      idKey <- which(pwd$k==val$k) 
-      match <- isTRUE(idUser == idKey)
-      if(isTRUE(match)){
-      mxDebugToJs(sprintf("user %s will be loged in ",val$l))  
-        # retrieve info about the user
-        mxReact$userLogged <- TRUE
-        mxReact$userRole <- pwd[idKey,'r']
-        mxReact$userName <- pwd[idKey,'u']
-        mxReact$userId <- pwd[idKey,'id']
-        mxReact$userLastLogin <- pwd[idKey,'d']
-        mxReact$userEmail <- pwd[idKey,'e']
-
-        msg <- sprintf(
-          "Access granted for %1$s. \n Email : %2$s  \n Role : %3$s \n Since : %4$s",
-          mxReact$userName,
-          mxReact$userEmail,
-          mxReact$userRole,
-          date() # THIS WILL BE STORED IN DB
-          )
-        } else  {
-        msg=paste("ACCESS DENIED",msg,collapse="")
-      }
-    }
-  }
- mxUpdateText("loginValidation",msg)
+          mxUpdateText("loginValidation",msg)
       })
   })
 
@@ -117,10 +125,21 @@ observeEvent(input$readCookie,{
 
 
 observeEvent(input$btnLogout,{
+  mxReact$userLogged <- FALSE
+  mxReact$userRole <- character(0)
+  mxReact$userName <- character(0)
+  mxReact$userId <- integer(0)
   mxUpdateValue(id="loginUser",value="")
   mxUpdateValue(id="loginKey",value="")
-  mxSetCookie(cookie=list(s="",k="",l="",d=""),deleteAll=TRUE)
+  mxSetCookie(cookie=list(s="",k="",l="",d="",t=""),deleteAll=TRUE)
+  mxReact$tempSecret <- mxCreateSecret()
 })
+
+
+observe({
+  paste("user input=", mxDebugMsg(input$loginUser),sep="")
+})
+
 
 #
 # ALLOW PARTS

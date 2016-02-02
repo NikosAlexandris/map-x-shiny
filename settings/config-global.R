@@ -160,7 +160,8 @@ mxConfig$class = list(
   "Development" = "dev",
   "Environment" = "env",
   "Extractives" = "ext",
-  "Stresses" = "str"
+  "Stresses" = "str",
+  "Tradition" = "trad"
   )
 # Set data subclasses
 mxConfig$subclass = list(
@@ -172,7 +173,8 @@ mxConfig$subclass = list(
   "env" = list(
     "Forest cover" = "forest",
     "Deforestation" = "deforest",
-    "Biodiversity" = "biodiversity"
+    "Biodiversity" = "biodiversity",
+    "Contamination" = "contamination"
     ),
   "ext" = list(
     "Mineral" = "mineral",
@@ -182,6 +184,9 @@ mxConfig$subclass = list(
     ),
   "str" = list(
     "Conflict" = "conflict" 
+    ),
+ "trad" = list(
+    "Tribs" = "tribs" 
     )
   )
 # Set default years avaiable for date inputs

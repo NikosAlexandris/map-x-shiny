@@ -3,12 +3,10 @@
 
 
 
-/* collapse top nav if dist to section > 50 */
+/* collapse top nav if href is not section top */
 $(function() {
   $('a.page-scroll').bind('click', function(event) {
-    var $anchor = $(this);
-    var dist = $($anchor.attr('href')).offset().top - $(".navbar-fixed-top").height();
-    if (dist > 50) {
+    if (  $(this).attr('href') != "#sectionTop" ) {
       $(".navbar-fixed-top").addClass("top-nav-collapse");
     } else {
       $(".navbar-fixed-top").removeClass("top-nav-collapse");
@@ -18,7 +16,7 @@ $(function() {
 
 // Closes the Responsive Menu on Menu Item Click
 $('.navbar-collapse ul li a').click(function() {
-    $('.navbar-toggle:visible').click();
+  $('.navbar-toggle:visible').click();
 });
 
 
@@ -126,8 +124,8 @@ Shiny.addCustomMessageHandler("mxRemoveEl",
 
 Shiny.addCustomMessageHandler("mxUpdateValue",
     function(e) {
-      el = document.getElementById(e.id);
-      el.value=e.val;
+      el = document.getElementById( e.id );
+      el.value = e.val;
     }
     );
 
