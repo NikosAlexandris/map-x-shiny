@@ -67,7 +67,9 @@ observe({
 })
 
 observe({
-  mxUiEnable(class="mx-allow-story-edit",enable=mxReact$allowStoryCreator)
+  allowStoryCreator = mxReact$allowStoryCreator
+  mxUiEnable(class="mx-allow-story-edit",enable=allowStoryCreator)
+  mxUiEnable(id="btnStoryCreator",enable=allowStoryCreator)
 })
 
 
@@ -97,18 +99,11 @@ observeEvent(input$btnViewsCreator,{
   mxReact$mapPanelMode="mapViewsCreator"
   mxUpdateText(id="titlePanelMode",text="Views creator")
 })
-#observeEvent(input$btnStoryCreator,{
-#  mxToggleMapPanels("mx-mode-story-creator")
-#  mxReact$mapPanelMode="mapStoryCreator"
-#  mxUpdateText(id="titlePanelMode",text="Story map creator")
-#})
+
 observeEvent(input$btnStoryReader,{
   mxToggleMapPanels("mx-mode-story-reader")
   mxReact$mapPanelMode="mapStoryReader"
   mxUpdateText(id="titlePanelMode",text="Story map")
-
-  # hide some buttons
-#  mxUiEnable(id="btnStoryCreator",enable=mxReact$allowStoryCreator) 
 })
 
 #

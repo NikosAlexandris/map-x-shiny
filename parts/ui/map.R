@@ -171,7 +171,7 @@ uiStorySelect <- tagList(
   #
   # Story selection
   #
-  selectInput("selectStoryId","Select a story",choices="")
+  #selectInput("selectStoryId","Select a story",choices="")
   )
 
 uiStoryNew <- tagList(
@@ -323,7 +323,12 @@ uiLeftNav <- tagList(
       actionButton('btnStoryReader',
         mx_set_lang="title.mapLeft.storyReader",
         class="btn-icon mx-hide mx-allow-story-reader",
+        `data-toggle`="collapse",
+        `data-target`="#mxStorySelectorBox",
         label=icon("book")
+        ),
+      div(id="mxStorySelectorBox",class="collapse",
+        selectizeInput("selectStoryId","Select a story",choices="")
         )
       ),
     tags$li(

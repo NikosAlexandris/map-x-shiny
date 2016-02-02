@@ -1100,7 +1100,9 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   proxyMap %>% removeControl(layerId=legendId)
   # sometimes this does not work. Double removal.
   mxRemoveEl(class=legendClass)
+  
   if(isTRUE(!leg)){
+    
     if(!noDataCheck(unt)){
       labFor<-labelFormat(suffix=unt)
     }else{
@@ -1474,11 +1476,10 @@ mxUpdateText<-function(id,text=NULL,ui=NULL,addId=FALSE,session=shiny:::getDefau
 #' @param id Id of the element
 #' @param  value New text value
 #' @export
-mxUpdateValue <- function(session=shiny:::getDefaultReactiveDomain(),id,value){
-  if(is.null(value)){
-    return(NULL)
+mxUpdateValue <- function(id,value,session=shiny:::getDefaultReactiveDomain()){
+  if(is.null(value) || is.null(id)){
+    return()
   }else{
-
     res <- list(
       id=id,
       val=value

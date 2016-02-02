@@ -104,6 +104,10 @@ loc = {
     "toolbox": {
       "eng": "Display spatial toolbox panel",
       "fre": "Afficher la boîte à outils spatiale"
+    },
+ "draw": {
+      "eng": "Display the drawing toolbar",
+      "fre": "Afficher les outils de dessin"
     }
   },
   "login":{
