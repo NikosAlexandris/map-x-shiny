@@ -160,7 +160,6 @@ output$mapxMap <- renderLeaflet({
 
 observeEvent(mxReact$mapInitDone,{
   map <- leafletProxy("mapxMap")
-  browser()
   map %>% 
   addGlLayer(
       styleId=mxConfig$mapboxStyle,

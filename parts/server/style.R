@@ -149,16 +149,22 @@ observe
 observe({
   mxCatch(title="Additional base map",{
     layId = "basemap"
-    selBaseMap <- mxStyle$basemap 
-    selBaseMapGlobal <- input$selectConfigBaseMap
-    if(isTRUE(!selBaseMapGlobal == mxConfig$noLayer)) selBaseMap = selBaseMapGlobal
-    if(noDataCheck(selBaseMap)) return()
+
+
+    selBaseMap <- input$selectConfigBaseMap
+    
+   
     proxyMap <- leafletProxy("mapxMap")
 
-    if(selBaseMap==mxConfig$noLayer){
+    if( selBaseMap == mxConfig$noLayer ){
       mxDebugMsg("Remove additional base layer if needed")
       proxyMap %>%
-      removeTiles(layerId=layId)
+  addGlLayer(
+      styleId=mxConfig$mapboxStyle,
+      token=mxConfig$mapboxToken,
+      id = layId
+      ) 
+
     }else{
       switch(selBaseMap,
         "mapbox"={
@@ -186,14 +192,6 @@ observe({
         )
     }
 })
-})
-
-
-
-observeEvent(input$btnRemoveBaseMap,{
-  layerId <- "basemap"
-  proxyMap <- leafletProxy("mapxMap")
-  proxyMap %>% removeTiles(layerId)
 })
 
 
