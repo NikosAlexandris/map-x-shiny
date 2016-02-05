@@ -95,9 +95,6 @@ uiMapCreator <- tagList(
                 "baseMap"=list("title"="Additional maps",content=tagList(
                     h4('Set base map'),
                     selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
-                    tags$ul(class="list-inline banner-social-buttons",
-                      tags$li(actionButton("btnRemoveBaseMap",icon("times")))
-                      ),
                     h4('Add wms'),
                     selectInput("selectWmsServer","Select a predefined WMS server",choices=list(
                         "forestCover"="http://50.18.182.188:6080/arcgis/services/ForestCover_lossyear/ImageServer/WMSServer",

@@ -44,15 +44,6 @@ observeEvent(input$btnSaveNewStory,{
   }
 })
 
-
-#observe({
-#    bnd <- input$mapxMap_bounds
-#    browser()
-#    bnd <- lapply(bnd,floor)
-#    nms <- sapply(names(bnd),substr,1,1)
-#    res <- paste(nms,bnd,sep=":",collapse=",")
-#    mxUpdateText(id="txtLiveCoordinate",text=res)
-#})
 observe({
     cen <- sapply(input$mapxMap_center,round,digit=4)
     zoo <- input$mapxMap_zoom

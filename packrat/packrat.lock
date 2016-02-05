@@ -201,12 +201,12 @@ GithubSha1: f89f66d19149ead272952de8de808f7127fe4a14
 Package: leafletvt
 Source: github
 Version: 0.0.3
-Hash: 1314d8fb2788c9bb63af6c99966ad6f1
+Hash: 266096516339232237bdd2f63905195b
 Requires: RPostgreSQL, curl, jsonlite, leaflet
 GithubRepo: leafletvt
 GithubUsername: fxi
 GithubRef: master
-GithubSha1: f7415450b736640c2f9aa5083a398ca967b2dd90
+GithubSha1: cb27d10fddb311d95d6d44e62602c5feac45ec6e
 
 Package: magrittr
 Source: CRAN
