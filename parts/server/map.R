@@ -186,17 +186,15 @@ observe({
     id = "overlay"
     center <- mxConfig$countryCenter[[iso3]] 
     proxymap <- leafletProxy("mapxMap")
+
+
+
     #
-    # Get mapx map
+    # Set view and add country overlay
     #
+    
     proxymap %>%
-    #
-    # Set extent
-    #
     setView(center$lng,center$lat,center$zoom) %>%
-    #
-    # Add country overlay
-    #
     addVectorCountries(
       url            = mxConfig$hostVt,
       port           = mxConfig$portVtPublic,
@@ -207,6 +205,9 @@ observe({
       idColumn       = "gid",
       id             =  id
       )  
+
+
+
   }
 })
 
