@@ -148,15 +148,9 @@ observeEvent(input$btnViewsCreator,{
 
 output$mapxMap <- renderLeaflet({
   if(mxReact$allowMap){    
-    map <- leaflet() %>%
-    addGlLayer(
-      styleId=mxConfig$mapboxStyle,
-      token=mxConfig$mapboxToken,
-      id = "basemap"
-      )
-
-      mxReact$mapInitDone<- runif(1)
-      return(map)
+    map <- leaflet() 
+    mxReact$mapInitDone<- runif(1)
+    return(map)
   }
 })
 
@@ -166,7 +160,14 @@ output$mapxMap <- renderLeaflet({
 
 observeEvent(mxReact$mapInitDone,{
   map <- leafletProxy("mapxMap")
-  map %>% setZoomOptions(buttonOptions=list(position="topright")) 
+  browser()
+  map %>% 
+  addGlLayer(
+      styleId=mxConfig$mapboxStyle,
+      token=mxConfig$mapboxToken,
+      id = "basemap"
+      ) %>%
+  setZoomOptions(buttonOptions=list(position="topright")) 
   session$sendCustomMessage(
     type="addCss",
     "src/mapx/css/leafletPatch.css"
