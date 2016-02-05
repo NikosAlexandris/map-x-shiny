@@ -144,18 +144,19 @@ observeEvent(input$btnViewsCreator,{
 #
 # Main map
 #
+
+
 output$mapxMap <- renderLeaflet({
-  if(mxReact$allowMap){
-    if(!noDataCheck(mxReact$selectCountry)){
-      group = "main"
-      iso3 <- mxReact$selectCountry
-      if(!noDataCheck(iso3)){
-        center <- mxConfig$countryCenter[[iso3]] 
-        map <- mxConfig$baseLayerByCountry(iso3,group,center)
-      }
+  if(mxReact$allowMap){    
+    map <- leaflet() %>%
+    addGlLayer(
+      styleId=mxConfig$mapboxStyle,
+      token=mxConfig$mapboxToken,
+      id = "basemap"
+      )
+
       mxReact$mapInitDone<- runif(1)
       return(map)
-    }
   }
 })
 
@@ -170,6 +171,43 @@ observeEvent(mxReact$mapInitDone,{
     type="addCss",
     "src/mapx/css/leafletPatch.css"
     )
+})
+
+
+#
+# Map set center and overlay
+#
+
+observe({
+  initOk <- mxReact$mapInitDone > 0
+  iso3 <- mxReact$selectCountry
+
+  if(!noDataCheck( iso3 ) && isTRUE( initOk ) ){
+    id = "overlay"
+    center <- mxConfig$countryCenter[[iso3]] 
+    proxymap <- leafletProxy("mapxMap")
+    #
+    # Get mapx map
+    #
+    proxymap %>%
+    #
+    # Set extent
+    #
+    setView(center$lng,center$lat,center$zoom) %>%
+    #
+    # Add country overlay
+    #
+    addVectorCountries(
+      url            = mxConfig$hostVt,
+      port           = mxConfig$portVtPublic,
+      table          = "mx_country_un",
+      iso3column     = "iso3code",
+      iso3select     = iso3,
+      geomColumn     = "geom",
+      idColumn       = "gid",
+      id             =  id
+      )  
+  }
 })
 
 

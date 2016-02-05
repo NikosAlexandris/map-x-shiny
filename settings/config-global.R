@@ -153,7 +153,8 @@ mxConfig$tileProviders = list(
   "Acetate" = "Acetate.terrain",
   "Satellite I" = "HERE.satelliteDay",
   "Satellite II" = "MapQuestOpen.Aerial",
-  "MapBox Satellite" = "mapbox"
+  "MapBox Satellite" = "mapbox",
+  "Nasa" = "nasa"
   )
 # Set data classes
 mxConfig$class = list(
@@ -209,116 +210,26 @@ mxData$rgi_score_2013 <- na.omit(import('data/rgi_2013-compscores.csv'))
 mxData$rgi_score_2013$iso3 <- countrycode(mxData$rgi_score_2013$Country,'country.name','iso3c')
 
 
-
-
-
+mxConfig$mapboxToken = "pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
+mxConfig$mapboxStyle = "mapbox://styles/helsinki/cik9kvy2d0023b6m40iq3dhwe"  
 
 # Default base layer for testing
 mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,lat=0,zoom=5)){
-  switch(iso3,
-    "COD"={
-      leaflet() %>%
-      clearGroup(group) %>%
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/cod_base_layer_0_6/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=-5,
-          "minZoom"=0,
-          "maxZoom"=6)
-        ) %>%  
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/cod_base_layer_7_10/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=-5,
-          "minZoom"=7,
-          "maxZoom"=10)
-        ) %>%
-      setView(center$lng,center$lat,center$zoom)
-    },
-    "AFG"={
-      leaflet() %>%
-      clearGroup(group) %>%
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/afg_base_layer/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=-5
-          )
-        )%>% setView(center$lng,center$lat,center$zoom)
-    } 
-    )
-}
-
-
-# Default label layer for testing
-mxConfig$labelLayerByCountry=function(iso3,group,proxyMap){
-  switch(iso3,
-    "COD"={
-      proxyMap %>%
-      clearGroup(group) %>%
-   #   addProviderTiles("Stamen.TonerHybrid")
-      #addTiles("http://korona.geog.uni-heidelberg.de/tiles/adminb/x={x}&y={y}&z={z}")
-      #addProviderTiles("OpenMapSurfer.AdminBounds")
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/cod_labels_0_6/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=30,
-          "minZoom"=0,
-          "maxZoom"=6)
-        ) %>%  addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/cod_labels_7_10/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          "zIndex"=30,
-          "minZoom"=7,
-          "maxZoom"=10)
-        )
-    },
-    "AFG"={
-      proxyMap %>%
-      clearGroup(group) %>%
-      addTiles(
-        paste0(
-          "http://",
-          mxConfig$hostVt,":",
-          mxConfig$portVtPublic,
-          "/services/tiles/afg_labels/{z}/{x}/{y}.png"
-          ),
-        group=group,
-        options=list(
-          zIndex=30
-          )
-        )
-    }
-    )
+   leaflet() %>%
+  clearGroup(group) %>%
+  #addVectorBase(layerId="basemap_back") %>%
+  addGlLayer() %>%
+ addVectorCountries(
+          url            = mxConfig$hostVt,
+          port           = mxConfig$portVtPublic,
+          table          = "mx_country_un",
+          iso3column     = "iso3code",
+          iso3select     = iso3,
+          geomColumn     = "geom",
+          idColumn       = "gid",
+          id             = group
+          ) %>% 
+  setView(center$lng,center$lat,center$zoom)
 }
 
 

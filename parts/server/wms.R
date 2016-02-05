@@ -32,7 +32,6 @@ mxGetWmsLayers <- function(getCapabilitiesList){
   
   }
 
-
   nLayer <- length(layers)
   res <- list()
   for(i in 1:nLayer){
