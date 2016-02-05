@@ -76,13 +76,6 @@ a {
 }
 
 
-/*used in ace editor*/
-pre {
-  border: 0px ;
-  border-radius: 0px; 
-}
-
-
 #loading-image {
     margin-left: auto;
     margin-right: auto;

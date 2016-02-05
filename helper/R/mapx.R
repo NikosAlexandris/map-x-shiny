@@ -329,33 +329,51 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
 #' @param debug Boolean. Return also message as alert.
 #' @param panelId Id of the output element
 #' @export
-mxCatch <- function(title,expression,session=shiny:::getDefaultReactiveDomain(),debug=TRUE,panelId="panelAlert",...){
+mxCatch <- function(
+  title,
+  expression,
+  session=shiny:::getDefaultReactiveDomain(),
+  debug=TRUE,
+  logToJs=TRUE,
+  panelId="panelAlert",...){
   tryCatch({
     eval(expression)
   },error = function(e){
-    session$output[[panelId]]<-renderUI({
-      mxPanelAlert(
-        "error",
-        title,
-        message=tagList(
-          p(e$message),
-          p(style="", paste("(",paste(e$call,collapse=" "),")"))
-          ),
-        ...
-        )
-    })
-  },warning = function(w){
+    emsg <- as.character(e$message)
+    ecall <- as.character(e$call)
+    if(logToJs){
+      mxDebugToJs(list(type="error",msg=emsg,call=ecall))
+    }else{
+      session$output[[panelId]]<-renderUI({
+        mxPanelAlert(
+          "error",
+          title,
+          message=tagList(
+            p(emsg),
+            p(style="", paste("(",paste(ecall,collapse=" "),")"))
+            ),
+          ...
+          )
+      })
+    }
+  },warning = function(e){
+    emsg <- as.character(e$message)
+    ecall <- as.character(e$call)
+  if(logToJs){
+      mxDebugToJs(list(type="warning",msg=emsg,call=ecall))
+    }else{
     session$output[[panelId]]<-renderUI({
       mxPanelAlert(
         "warning",
         title,
         message=tagList(
-          p(w$message),
-          p(style="",paste("(",paste(w$call,collapse=" "),")"))
+          p(emsg),
+          p(style="",paste("(",paste(ecall,collapse=" "),")"))
           ),
         ...
         )
     })
+  }
   },message = function(m){
     if(debug){
       session$output[[panelId]]<-renderUI({

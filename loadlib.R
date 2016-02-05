@@ -22,7 +22,6 @@ library(RPostgreSQL)
 library(rio)
 library(gdalUtils) 
 library(rgdal)
-library(shinyAce)
 
 # Graphs 
 library(dygraphs)

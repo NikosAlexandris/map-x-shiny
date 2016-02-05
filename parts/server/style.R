@@ -160,17 +160,30 @@ observe({
       proxyMap %>%
       removeTiles(layerId=layId)
     }else{
-      if(! selBaseMap == "mapbox"){
-        proxyMap %>%
-        removeTiles(layId) %>%
-        addProviderTiles(selBaseMap,layerId=layId,options=list('zIndex'=0))
-      }else{
-        proxyMap %>%
-        removeTiles(layId) %>%
-        addTiles(
-          "https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
-          ,layerId=layId,options=list('zIndex'=-4))
-      }
+      switch(selBaseMap,
+        "mapbox"={
+          proxyMap %>%
+          removeTiles(layId) %>%
+          addTiles(
+            "https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
+            ,layerId=layId,options=list('zIndex'=-4)
+            )
+        },
+        "nasa"={
+          proxyMap %>%
+          removeTiles(layId) %>%
+          addTiles(
+            "http://map1.vis.earthdata.nasa.gov/wmts-webmerc/MODIS_Terra_Aerosol/default/2014-04-09/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png",
+            layerId=layId,
+            options=list('zIndex'=-5)
+            )
+        },{
+          proxyMap %>%
+          removeTiles(layId) %>%
+          addProviderTiles(selBaseMap,layerId=layId,options=list('zIndex'=-5)
+            )
+        }
+        )
     }
 })
 })
