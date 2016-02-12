@@ -439,15 +439,7 @@ observe({
               legendId <- sprintf("%s_legends",vId)
               legendClass <- sprintf("info legend %s",legendId)
 
-              res <- try(
-                sty <- vData[[vId]]$style
-                )
-
-              if(class(res) == "try-error") browser()
-
-
-
-
+              sty <- vData[[vId]]$style
 
               hasLegend <- ! isTRUE(sty$hideLegends)
 
@@ -456,7 +448,6 @@ observe({
                 tit <- sty$title
                 pal <- sty$palette
                 val <- sty$values
-                browser()
 
                 sty <- addPaletteFun(sty,pal)
                 palFun <- sty$paletteFun

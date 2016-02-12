@@ -949,10 +949,11 @@ mxFileInput<-function (inputId, label, fileAccept=NULL, multiple=FALSE){
 #' @param session Shiny session object.
 #' @param disable State of the button
 #' @export
-mxActionButtonState <- function(id,session=shiny:::getDefaultReactiveDomain(),disable=TRUE) {
+mxActionButtonState <- function(id,disable=FALSE,warning=FALSE,session=shiny:::getDefaultReactiveDomain()) {
   res <- list(
     id = id,
-    disable = disable 
+    disable = disable,
+    warning = warning
     )
   session$sendCustomMessage(
     type="mxSetButonState",
@@ -1876,7 +1877,7 @@ setZoomOptions <- function(map,buttonOptions=list(),removeButton=FALSE){
 #' @param displayNameInValidation Boolean add text in validation text
 #' @return boolean : valid or not
 #' @export
-mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5,testForDuplicate=TRUE,testForMinChar=TRUE,displayNameInValidation=TRUE){
+mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5,testForDuplicate=TRUE,testForMinChar=TRUE,displayNameInValidation=TRUE,existsText="taken",errorColor="#FF0000"){
 
   if(isTRUE(length(textToTest)>1)){
     stop("mxTextValidation only validate one input item")
@@ -1895,7 +1896,7 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
   }
 
 
-  err <- ifelse(itemExists,"taken",character(0))
+  err <- ifelse(itemExists,existsText,character(0))
   err <- c(err,ifelse(itemTooShort,sprintf("too short. Min %s letters",minChar),character(0)))
   err <- na.omit(err)
 
@@ -1904,7 +1905,7 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
   }
 
   if(length(err)>0){
-    outTxt = (sprintf("<b style=\"color:#FF0000\">(%1$s)</b> %2$s",err,textToTest))
+    outTxt = (sprintf("<b style=\"color:%1$s\">(%2$s)</b> %3$s",errorColor,err,textToTest))
     isValid = FALSE
   }else{
     outTxt = (sprintf("<b style=\"color:#00CC00\">(ok)</b> %s",textToTest))

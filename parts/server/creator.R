@@ -26,23 +26,56 @@ observe({
     err = character(0)
     info = character(0)
     out  = character(0)
+    valid = FALSE
     msgList = character(0)
 
+
+    #
+    # Layer name warning
+    #
     cty <- mxReact$selectCountry
-    ymn <- input$selNewLayerStartYear
-    ymx <- input$selNewLayerStopYear
+    yea <- input$selNewLayerYear
     cla <- input$selNewLayerClass
-    sub <- input$selNewLayerSubClass
+    sub <- subPunct(input$txtNewLayerTags)
+    atr <- input$txtNewLayerAttribution
+    des <- input$txtNewLayerDescription
 
-    newLayerName <- tolower( paste0(cty,"__",ymn,"_",ymx,"__",cla,"__",sub))
+    newLayerName <- tolower( paste0(cty,"__",yea,"__",cla,"__",sub))
 
-    valid <- mxTextValidation(
+    exist <- mxTextValidation(
       textToTest = newLayerName,
       existingTexts = mxReact$layerList,
-      idTextValidation = "newLayerNameValidation"
+      idTextValidation = "outNewLayerNameValidation",
+      existsText = "overwrite",
+      errorColor = "#ff9900"
       )
 
-    mxActionButtonState(id="fileNewLayer",disable=!valid) 
+    #
+    # other validation
+    #
+
+
+    tagMissing <- nchar(sub) < 2
+    attrMissing <-  nchar(atr) < 2
+    descMissing <-  nchar(des) < 10
+
+    if(tagMissing) err <- c(err,"Tag(s) missing")
+    if(attrMissing) err <- c(err,"Source(s) missing")
+    if(descMissing) err <- c(err,"Description missing")
+
+
+ if(length(err)>0){
+    outTxt = sprintf("<b style=\"color:%1$s\">(%2$s)</b> %3$s","#FF0000","Issue: ",err,"</br>")
+    outTxt = paste("<ul class='nav'>",paste("<li>",outTxt,"</li>"),"</ul>")
+    valid = FALSE
+  }else{
+    outTxt = ""
+    valid = TRUE
+  }
+
+  mxUpdateText(id="outNewLayerErrors",text=HTML(outTxt))
+
+    mxActionButtonState(id="fileNewLayer",disable=!valid, warning=!exist) 
 
     mxReact$newLayerName <- ifelse(valid,newLayerName,"")
   }

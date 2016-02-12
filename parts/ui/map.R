@@ -16,17 +16,20 @@ uiMapCreator <- tagList(
           itemList=list(
             "data"=list("title"="Data upload",content=tagList(
                 selectInput("selNewLayerClass","Select layer class",choice=mxConfig$class),
-                selectInput("selNewLayerSubClass","Select layer subclass",choice=""),
-                fluidRow(
-                  column(width=6,
-                    selectInput("selNewLayerStartYear","Layer min year",choices=mxConfig$yearsAvailable)
-                    ),
-                  column(width=6,
-                    selectInput("selNewLayerStopYear","Layer max year",choices=mxConfig$yearsAvailable)
-                    )
+                textInput("txtNewLayerTags","Write additional tags","default"),
+                selectInput("selNewLayerYear","Layer year",choices=mxConfig$yearsAvailable),
+                textInput("txtNewLayerAttribution","Attribution/Sources"),
+                tags$textarea(
+                  id="txtNewLayerDescription",
+                  rows=3,
+                  cols=30,
+                  placeholder="Description...",
+                  spellcheck="false"
                   ),
+                 hr(),
+                div(id="outNewLayerNameValidation"),
                 hr(),
-                div(id="newLayerNameValidation"),
+                div(id="outNewLayerErrors"),
                 hr(),
                 mxFileInput("fileNewLayer",
                   label="Choose a file (geojson)",
@@ -55,7 +58,7 @@ uiMapCreator <- tagList(
                 tags$textarea(
                   id="txtViewDescription",
                   rows=3,
-                  cols=50,
+                  cols=30,
                   placeholder="Description...",
                   spellcheck="false"
                   )
