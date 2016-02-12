@@ -36,7 +36,7 @@ source("settings/config-local.R")
 # Define main user interface
 #
 ui <- tagList(
-  # error panels
+  # alert panels
   uiOutput('panelAlert'),
   # sections
   loadUi("parts/ui/nav.R"),
@@ -56,14 +56,7 @@ ui <- tagList(
 
 shinyServer(function(input, output, session) {
   mxCatch(title="Main server function",{
-    #
-    # parse additional json data : will be transfered to mongodb/nosql 
-    #
-    observeEvent(input$documentIsReady,{
-      mxDebugMsg("document is ready")
-      mxSendJson("data/tour.json","mxTour")
-      })
-    #
+     #
     # Initial reactive values
     #
     mxReact <- reactiveValues()
@@ -72,18 +65,30 @@ shinyServer(function(input, output, session) {
     # Output ui
     #
     output$mapxUi <- renderUI(ui)
+
+    #
+    # Load when "document is ready is called"
+    #
+
+    observeEvent(input$documentIsReady,{
+      mxConsoleText("")
+      mxConsoleText(" map-x is launched ")
+      mxConsoleText("")
+      mxSendJson("data/tour.json","mxTour")
+      source("parts/server/login.R",local=TRUE)
+      source("parts/server/nav.R",local=TRUE)
+      source("parts/server/urlParsing.R",local=TRUE)
+      })
     #
     # Load server parts
     #
     # Navigation and login
-    source("parts/server/login.R",local=TRUE)
-    source("parts/server/nav.R",local=TRUE)
-    source("parts/server/urlParsing.R",local=TRUE)
+   
     #
     # Country panel
     #
     observe({
-      if(mxReact$allowCountry){
+      if(isTRUE(mxReact$allowCountry)){
         source("parts/server/country.R",local=TRUE)
       }
     })
@@ -91,7 +96,7 @@ shinyServer(function(input, output, session) {
     # Map panel
     #
     observe({
-      if(mxReact$allowMap){
+      if(isTRUE(mxReact$allowMap)){
         mxDebugMsg("map module loading")
         source("parts/server/map.R",local=TRUE)
         source("parts/server/wms.R",local=TRUE)
@@ -102,7 +107,7 @@ shinyServer(function(input, output, session) {
     # Administration panel
     #
     observe({
-      if(mxReact$allowAdmin){
+      if(isTRUE(mxReact$allowAdmin)){
         source("parts/server/admin.R",local=TRUE)
       }
     })

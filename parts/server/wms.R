@@ -73,6 +73,7 @@ observeEvent(input$selectWmsLayer,{
   mxCatch(title="Add wms layer",{
     layerId = "wmslayer"
     lay <- input$selectWmsLayer
+    wms <- input$selec
     url <- input$txtWmsServer
     if(!noDataCheck(lay) && !noDataCheck(url)){
 
@@ -84,8 +85,9 @@ observeEvent(input$selectWmsLayer,{
         options=list(
           "transparent"="true",
           "format"="image/png8",
-          "zIndex"=-1
-          )
+          "zIndex"=10
+          ),
+        attribution = sprintf("<a href=%1$s>%2$s</a>",url,"WMS layer")
         )
 
     }

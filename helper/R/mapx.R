@@ -124,9 +124,6 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
 
 
 
-
-
-
 #' Print debug message
 #'
 #' Print a defaut debug message with date as prefix. NOTE: this function should take a global parameter "debug" and a log file.
@@ -337,12 +334,14 @@ mxCatch <- function(
   logToJs=TRUE,
   panelId="panelAlert",...){
   tryCatch({
-    eval(expression)
+    expression
   },error = function(e){
     emsg <- as.character(e$message)
     ecall <- as.character(e$call)
     if(logToJs){
-      mxDebugToJs(list(type="error",msg=emsg,call=ecall))
+      call = head(tail(sys.calls(),11),1)[[1]]
+      call = as.character(call)
+      mxDebugToJs(list(type="error",msg=emsg,call=ecall,context=call))
     }else{
       session$output[[panelId]]<-renderUI({
         mxPanelAlert(
@@ -590,6 +589,7 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
   }else{
 
     timing<-system.time({
+
       sqlPoint <- sprintf("'SRID=%s;POINT(%s %s)'",srid,lng,lat)
       sqlWhere <- sprintf(
         paste(
@@ -598,7 +598,10 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
           ),
         geomColumn,sqlPoint,column,table,geomColumn,sqlPoint,column
         )
+      suppressWarnings({
       res <- mxDbGetQuery(dbInfo,sqlWhere)
+      })
+      
     })
     return(
       list(
@@ -1192,6 +1195,9 @@ mxSelectInput<-function(inputId,choices=NULL,selected=NULL){
 }
 
 
+
+
+
 #' Control ui access
 #'  
 #' UI  manager based on login info
@@ -1223,11 +1229,9 @@ mxUiAccess <- function(logged,roleNum,roleLowerLimit,uiDefault,uiRestricted){
 #' @export
 mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,class=NULL,enable=TRUE,classToRemove="mx-hide"){
 
-
   if(noDataCheck(enable)){
     enable <- FALSE
   }
-
 
   prefix <- ifelse(is.null(id),".","#")
 
@@ -1237,18 +1241,46 @@ mxUiEnable<-function(session=shiny:::getDefaultReactiveDomain(),id=NULL,class=NU
     element <- id
   } 
 
-  element <- paste(paste0(prefix,element),collapse=",")
+  elements <- paste(paste0(prefix,element),collapse=",")
+
+
   res = list(
-    enable=enable,
-    element=element,
-    classToRemove=classToRemove
+    enable = enable,
+    element = elements,
+    classToRemove = classToRemove
     )
   session$sendCustomMessage(
-    type="mxUiEnable",
+    type = "mxUiEnable",
     res
     )
+
 }
 
+#' remove element by class or id
+#' @param session default shiny session
+#' @param class class name to remove
+#' @param id id to remove
+#' @export
+mxRemoveEl <- function(session=getDefaultReactiveDomain(),class=NULL,id=NULL){
+
+  if(is.null(class) && is.null(id)) return()
+
+sel <- ifelse(
+  is.null(class),
+  paste0('#',id),
+  paste0('.',class)
+  )
+
+res <- list(
+  element = sel
+  )
+
+session$sendCustomMessage(
+  type="mxRemoveEl",
+  res
+  )
+
+}
 
 #' Control ui access
 #' 
@@ -1311,25 +1343,7 @@ mxCheckboxIcon <- function(id,idLabel,icon,display=TRUE){
     )
 }
 
-#' remove element by class or id
-#' @param session default shiny session
-#' @param class class name to remove
-#' @param id id to remove
-#' @export
-mxRemoveEl <- function(session=getDefaultReactiveDomain(),class=NULL,id=NULL){
- if(is.null(class) && is.null(id))return()
-sel <-ifelse(is.null(class),paste0('#',id),paste0('.',class))
 
-res <- list(
-  element = sel
-  )
-
-session$sendCustomMessage(
-  type="mxRemoveEl",
-  res
-  )
-
-}
 
 #' Set ioRange slider for opacity
 #' 
@@ -1681,9 +1695,16 @@ mxCreateSecret =  function(n=20){
 #' @param session Shiny session object. By default: default reactive domain.
 #' @param cookie Named list holding paired cookie value. e.g. (list(whoAteTheCat="Alf"))
 #' @param nDaysExpires Integer of days for the cookie expiration
+#' @param read Boolean. Read written cookie
 #' @return NULL
 #' @export
-mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpires=NULL,deleteAll=FALSE){
+mxSetCookie <- function(
+  session=getDefaultReactiveDomain(),
+  cookie=NULL,
+  nDaysExpires=NULL,
+  deleteAll=FALSE,
+  read=TRUE
+  ){
 
   cmd = list()
   cmd$domain <- session$url_hostname
@@ -1691,12 +1712,33 @@ mxSetCookie <- function(session=getDefaultReactiveDomain(),cookie=NULL,nDaysExpi
   cmd$deleteAll <- deleteAll
   cmd$cookie <- cookie
   cmd$expiresInSec <- nDaysExpires * 86400
+  cmd$read <- read
  
   session$sendCustomMessage(
     type="mxSetCookie",
     cmd
     )
 }
+
+#' Get cookie from session HTTP request
+
+mxGetCookies <- function(
+  session=getDefaultReactiveDomain()  
+  ){
+  val = list()
+  ck <- unlist(strsplit(session$request$HTTP_COOKIE,"; "))
+  if(!noDataCheck(ck)){
+    ck <- read.table(text=ck,sep="=",stringsAsFactor=FALSE)
+    val <- as.list(ck$V2)
+    names(val) <- ck$V1
+  }
+
+  return(val)
+}
+
+
+
+
 
 
 

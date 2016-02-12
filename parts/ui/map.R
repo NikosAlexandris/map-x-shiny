@@ -87,16 +87,32 @@ uiMapCreator <- tagList(
       #
       # MAP CONFIG
       #
-      tags$section(id="sectionMapConfig",class="mx-mode-config mx-hide container-fluid",
+      tags$section(
+        id="sectionMapConfig",
+        class="mx-mode-config mx-hide container-fluid",
         div(class="row",
           div(class="col-lg-12", 
             mxAccordionGroup(id="mapConfig",show=1,
               itemList=list(
                 "baseMap"=list("title"="Additional maps",content=tagList(
                     h4('Set base map'),
-                    selectInput('selectConfigBaseMap','Replace base map',choices=mxConfig$tileProviders),
+                    selectInput(
+                      "selectConfigBaseMap",
+                      "Select a satellite imagery source",
+                      choices=list(
+                        mxConfig$noLayer,
+                        `MapBox satellite`="mapboxsat"
+                        )
+                      ),
+                    #selectInput(
+                    #  'selectConfigBaseMap',
+                    #  'Replace base map',
+                    #  choices=mxConfig$tileProviders
+                    #  ),
                     h4('Add wms'),
-                    selectInput("selectWmsServer","Select a predefined WMS server",choices=list(
+                    selectInput("selectWmsServer",
+                      "Select a predefined WMS server",
+                      choices=list(
                         "forestCover"="http://50.18.182.188:6080/arcgis/services/ForestCover_lossyear/ImageServer/WMSServer",
                         "columbia.edu"="http://sedac.ciesin.columbia.edu/geoserver/wms",
                         "preview.grid.unep.ch"="http://preview.grid.unep.ch:8080/geoserver/wms",
@@ -240,14 +256,26 @@ uiMapCreator <- tagList(
       #
       # STORY MAP PREVIEW / READER
       #
-      tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",
-      #div(class="no-scroll-container",
-       #   div(id="mxStoryContainer",class="no-scroll-content",  
-            div(id="mxStoryLimitTrigger"),
-            div(id="mxStoryText")
+      div(id="mxStorySelectorBox",class="collapse",
+        selectizeInput(
+          inputId="selectStoryId", 
+          label="", 
+          choices ="",
+          options = list(
+            placeholder = 'Select a story',
+            onInitialize = I('
+              function() {
+                this.setValue("");
+                this.on("change",function(){console.log("changed")})
+              }
+              ')
             )
-        #  )
-       # )
+          )
+        ),
+      tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",
+        div(id="mxStoryLimitTrigger"),
+        div(id="mxStoryText")
+        )
       )
 
     #
@@ -259,18 +287,9 @@ uiMapCreator <- tagList(
       #
       # NAV MENU
       #
-      #  tags$ul(class="nav",
       #
       # UI BUTTONS
-      #
-      #  tags$li(
-      #    tags$button(
-      #      mx_set_lang="title.mapLeft.lock",
-      #      #id="btnStopMapScroll",
-      #      class="btn-icon btn-stop-map-scroll",
-      #      icon("unlock")
-      #      )
-      #    ),
+      # 
       tags$li(
         tags$button(
           mx_set_lang="title.mapLeft.hide",
@@ -279,17 +298,6 @@ uiMapCreator <- tagList(
           icon("angle-double-left")
           )
         ),
-      # tags$li(
-      #   tags$button(
-      #     mx_set_lang="title.mapLeft.info",
-      #     id='btnInfoClick',
-      #     class="btn-icon",
-      #     icon("info")
-      #     )
-      #   ),
-      #  tags$li(
-      #    hr()
-      #    ),
       #
       # PANEL BUTTON
       #
@@ -314,9 +322,6 @@ uiMapCreator <- tagList(
           `data-toggle`="collapse",
           `data-target`="#mxStorySelectorBox",
           label=icon("book")
-          ),
-        div(id="mxStorySelectorBox",class="collapse",
-          selectizeInput("selectStoryId","Select a story",choices="")
           )
         ),
       tags$li(
@@ -335,7 +340,7 @@ uiMapCreator <- tagList(
         ),
       tags$li(
         actionButton('btnDraw',
-          mx_set_lang="title.mapLeft.toolbox",
+          mx_set_lang="title.mapLeft.draw",
           class="btn-icon",
           label=icon("pencil")
           )
@@ -350,9 +355,10 @@ uiMapCreator <- tagList(
         hr(class='mx-mode-story-reader mx-hide')
         ),
       tags$li(
+        div(class="mx-mode-story-reader mx-hide",
         actionButton('btnStoryCreator',
           mx_set_lang="title.mapLeft.storyEdit",
-          class="btn-icon mx-mode-story-reader mx-hide",
+          class="btn-icon mx-mode-story-edits mx-hide",
           label=icon("pencil-square-o")
           ),
         singleton(
@@ -368,6 +374,7 @@ uiMapCreator <- tagList(
             }
             );"
           )
+        )
         )
       ),
     tags$li(
@@ -416,14 +423,24 @@ uiMapCreator <- tagList(
         uiMapStoryModal
         ),
       #
-      # MAP LEFT PANEL
+      # LEFT PANEL
       #
-      div(id="map-left-panel", class="map-left-panel-default",
+      #div(id="map-left-container",class="",
         #
-        # HEADER
+        # TOOLBOX      
+        #      
+        div(class="mx-dropdown-content map-tool-box-items",
+          id="mapToolsMenu",
+          uiLeftNav
+          ),
         #
-        div(id="map-left-panel-head",  
-          tags$div(
+        # MENU 
+        #
+        div(id="map-left-panel", class="col-xs-7 col-sm-6 col-md-5 col-lg-4",
+          #
+          # HEADER
+          #
+          div(id="map-left-panel-head",  
             #
             # MENU
             #
@@ -433,35 +450,31 @@ uiMapCreator <- tagList(
                 id='btnMapTools',
                 class="mx-btn-dropdown",
                 tags$span(class='fa fa-bars')
-                ),
-              tags$ul(class="mx-dropdown-content map-tool-box-items",
-                id="mapToolsMenu",
-                uiLeftNav
                 )
+              ),
+            #
+            # TITLE
+            #
+            tags$div(
+              span(id="titlePanelMode","Views explorer")
               )
             ),
           #
-          # TITLE
+          # CONTENT
           #
-          tags$div(
-            span(id="titlePanelMode","Views explorer")
-            )
-          ),
-        #
-        # CONTENT
-        #
-        div(class="map-left-content",
-          div(class="no-scroll-container",
-            div(class="no-scroll-content", 
-              uiMapList,
-              uiMapCreator,
-              uiMapToolbox,
-              uiMapConfig,
-              uiMapStoryReader
+          div(class="map-left-content",
+            div(class="no-scrollbar-container",
+              div(class="no-scrollbar-content",id="mapLeftScroll", 
+                uiMapList,
+                uiMapCreator,
+                uiMapToolbox,
+                uiMapConfig,
+                uiMapStoryReader
+                )
               )
             )
           )
-        )
+        #)
       )
     )
 

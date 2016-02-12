@@ -9,18 +9,28 @@
 
 mxUiEnable(id="sectionCountry",enable=TRUE) 
 
+
+#
+# Update ui with country data
+#
+
+
 # Country selection
 observe({
   selCountry = input$selectCountry
   if(!noDataCheck(selCountry) && mxReact$userLogged){
     mxReact$selectCountry = selCountry
+    mxConsoleText(toupper(paste("country=",selCountry)))
+    mxSetCookie(
+      cookie=list("country"=selCountry),
+      read=FALSE
+      )
   }
 })
 
 
-#
-# Update ui with country data
-#
+
+
 
 observe({
   cSelect <- mxReact$selectCountry
@@ -150,7 +160,7 @@ observe({
   cnt <- mxReact$selectCountry
   msg <- ""
 
-  if(!noDataCheck(idx) && !noDataCheck(cnt)){
+  if(!noDataCheck(idx) && !noDataCheck(cnt) && FALSE){
 
     mxCatch("Plot WDI data",{
 

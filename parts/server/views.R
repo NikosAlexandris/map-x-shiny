@@ -99,39 +99,61 @@ observe({
           # which field contains company names ?
           fieldSelected <- "parties"
           # get distinct company names for this layer
+          #q <- sprintf(
+            #"SELECT array_to_json(array_agg(row_to_json(t))) 
+            #FROM ( SELECT DISTINCT(%1$s) 
+              #FROM  %2$s 
+              #ORDER BY %1$s) t",
+            #fieldSelected,
+            #v[[itId]]$layer
+            #)
+          #companies <- jsonlite::fromJSON(as.character(mxDbGetQuery(dbInfo,q)))
           q <- sprintf(
-            "SELECT array_to_json(array_agg(row_to_json(t))) 
-            FROM ( SELECT DISTINCT(%1$s) 
-              FROM  %2$s 
-              ORDER BY %1$s) t",
+            "SELECT DISTINCT(%1$s) FROM %2$s ORDER BY %1$s",
             fieldSelected,
             v[[itId]]$layer
             )
-          companies <- as.character(mxDbGetQuery(dbInfo,q))
+
+
+          updateSelectizeInput(session,
+            itIdFilterCompany,
+            choices = mxDbGetQuery(dbInfo,q)[[ fieldSelected ]],
+            server=TRUE
+            )
+
+
+
+          #mxReact$updateSelectInput = list(
+            #id = itIdFilterCompany,
+            #field = fieldSelected,
+            #query = q
+            #)
           # create selectize js code
-          filterSelect <- tagList(
-            tags$input(id=itIdFilterCompany,placeholder=sprintf("Search for '%s' ...",fieldSelected)),
-            tags$script(
-              sprintf(" $('#%1$s').selectize({
-                maxItems:null,
-                placeholder:'Search for parties',
-                onChange: function(value){
-                  mxSetFilter('%2$s','%3$s','%4$s',value)
-                },
-                valueField: '%4$s',
-                labelField: '%4$s',
-                searchField: '%4$s',
-                options:%5$s,
-                plugins: ['remove_button']
-        })",
-              itIdFilterCompany,#1
-              v[[itId]]$layer,#2
-              itId,#3
-              fieldSelected,#4
-              companies#5
+
+          filterSelect <- selectizeInput(
+            inputId=itIdFilterCompany, 
+            label="", 
+            choices = NULL,
+            options = list(
+              placeholder = 'Please select a company',
+              onInitialize = I(
+                sprintf('
+                  function() {
+                    this.setValue("");
+                    this.on("change",function(){
+                      val = this.getValue(); 
+                      mxSetFilter("%1$s","%2$s","%3$s",val)
+                      });
+                  }
+                  ',
+                  v[[itId]]$layer,#1
+                  itId,#2
+                  fieldSelected#3
+                  )
+                )
               )
             )
-          )
+
       }else{
         filterSelect <- tags$div()
       }
@@ -145,7 +167,7 @@ observe({
           id=itIdBtnReport,
           class="btn btn-default mx-hide",
           onclick="console.log('btnShowReport')",
-          "Report"),
+          "Display report"),
         tags$script(
           sprintf("
             $('#%1$s').on('click',function(){
@@ -226,8 +248,9 @@ observe({
   mxDebugMsg(paste("Time for generating views list=",Sys.time()-start))
 })
 
-
-
+   
+      
+      
 
       #
       # handle company filter
@@ -286,22 +309,40 @@ observe({
 
       observe({
         mxCatch(title="Views manager",{
+          #
+          # views from url
+          #
           vUrl <- mxReact$viewsFromUrl
-          #vMenu <- c(input$viewsFromMenu,input$viewsFromPreview)
-          vMenu <- c(input$viewsFromMenu,mxReact$viewsFromStory)
+          #
+          # views from menu and story
+          #
+          vMenu <- c(
+            input$viewsFromMenu
+            )
+          #
+          # Views available
+          #
           vAvailable <- names(mxReact$views) 
-          vToDisplay <- NULL
-          if(!noDataCheck(vAvailable)){  
-            if(noDataCheck(vMenu) && !noDataCheck(vUrl)){
+          #
+          # Reset view to display
+          #
+          vToDisplay <- ""
+
+          #
+          # Build list
+          #
+
+          if(noDataCheck(vMenu) && !noDataCheck(vUrl)){
               vToDisplay <- vUrl[vUrl %in% vAvailable]
             }else if(!noDataCheck(vMenu)){
               vToDisplay <-  vMenu[vMenu %in% vAvailable]
             }else{
               vToDisplay <- mxConfig$noData
             }
-            mxReact$viewsToDisplay <- vToDisplay
-            mxReact$viewsFromUrl <- NULL
-          }
+            
+          mxReact$viewsToDisplay <- vToDisplay
+            mxReact$viewsFromUrl <- ""
+          
             })
       })
 
@@ -311,6 +352,11 @@ observe({
       # views queuing system
       observeEvent(mxReact$viewsToDisplay,{
         mxCatch(title="Views queing system",{
+          mxDebugMsg(
+            paste("View to display =",
+              mxReact$viewsToDisplay
+              )
+            )
           # available views data
           vAll <- names(mxReact$views)
           # views list to render
@@ -410,6 +456,7 @@ observe({
                 tit <- sty$title
                 pal <- sty$palette
                 val <- sty$values
+                browser()
 
                 sty <- addPaletteFun(sty,pal)
                 palFun <- sty$paletteFun

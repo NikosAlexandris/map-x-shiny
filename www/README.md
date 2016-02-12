@@ -12,5 +12,6 @@ npm install uglify-js
 
 ### Usage
 
-
+node compileJs.js
+node compileCss.js
 
