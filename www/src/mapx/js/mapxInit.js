@@ -35,18 +35,19 @@ $("#sectionTop").addClass(bgClass);
 
 // When document is ready
 $( document ).ready(function() {
-// read cookie at start
-
+// change top section background
   changeBg();
-
 // remove loading screen
 $("#sectionLoading").css({display:'none'});
-
-// update map element
+// update map panel element
   updateMapElement();
-
-
+// update documentIsReady input
 Shiny.onInputChange("documentIsReady",new Date());
+
+// set language
+Shiny.onInputChange("cookiesLanguage",Cookies.get("lang"));
+// set country
+Shiny.onInputChange("cookiesCountry",Cookies.get("country"));
 // shiny binding to set cookie. After cookie set, read it again.
 Shiny.addCustomMessageHandler("mxSetCookie",
     function(e) {
