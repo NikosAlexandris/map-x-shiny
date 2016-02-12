@@ -3,11 +3,11 @@ var UglifyJS = require("uglify-js");
 var outFile = "dist/assets.js";
 var inFile = [
   "src/cookies/cookies.min.js",
-  "src/bootstrap/js/bootstrap.min.js",
   "src/chartjs/Chart.min.js",
   "src/handsontable/handsontable.full.min.js",
   "src/handsontable/shinyskyHandsonTable.js",
   "src/ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js",
+  "src/bootstrap/js/bootstrap.min.js",
   "src/bootstrapTour/js/bootstrap-tour.min.js",
   "src/mapx/js//mapxChartJsConf.js",
   "src/mapx/js/pwd.js",
@@ -15,6 +15,7 @@ var inFile = [
   "src/mapx/js/lang_ui.js",
   "src/mapx/js/base64.js",
   "src/mapx/js/lang_tours.js",
+  "src/jqueryUi/custom/jquery-ui.min.js",
   "src/mapx/js/mapx.js"
 ];
 

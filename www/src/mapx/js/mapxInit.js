@@ -57,20 +57,27 @@ Shiny.addCustomMessageHandler("mxSetCookie",
         exp = e.expiresInSec;
       }
 
-  
-     if(e.deleteAll){
-      exp = '01/01/2012';
-     }
 
-      for( var c  in e.cookie){
-             Cookies.set(c,e.cookie[c],{
-               'path':e.path,
-               'domain':e.domain,
-               'expires':exp}
-               );
+      if(e.deleteAll){
+        exp = '01/01/2012';
       }
 
-      readCookie();  
+      for( var c  in e.cookie){
+        Cookies.set(c,e.cookie[c],{
+          'path':e.path,
+          'domain':e.domain,
+          'expires':exp}
+          );
+      }
+
+      if(e.read){
+        readCookie(); 
+      }
+
+      if(e.deleteAll){
+        location.reload();
+      }
+
     }
 );
 

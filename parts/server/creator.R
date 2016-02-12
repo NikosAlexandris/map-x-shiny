@@ -55,6 +55,7 @@ observe({
 
 
 observeEvent(input$fileNewLayer,{
+
   if(mxReact$allowViewsCreator){
 
 
@@ -138,7 +139,7 @@ observeEvent(input$fileNewLayer,{
           )
 
 
-        if(mxConfig$os=="Darwin"){
+        if( mxConfig$hostname != "map-x-full" ){
           if(!exists("remoteInfo"))stop("No remoteInfo found in /settings/settings.R")
           r <- remoteInfo 
           mxDebugMsg("Command remote server to restart app")

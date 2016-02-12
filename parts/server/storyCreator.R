@@ -20,8 +20,12 @@ observeEvent(input$txtStoryName,{
 observeEvent(input$btnSaveNewStory,{
   if( isTRUE(mxReact$allowStoryCreator && mxReact$mapPanelMode=="mapStoryReader")){
     mxDebugMsg("New name requested")
+    
+
+    newId <- randomName()
+
     df <- data.frame(
-      id=randomName(),
+      id=newId,
       user=as.integer(mxReact$userId),
       country=mxReact$selectCountry,
       name=input$txtStoryName,
@@ -38,9 +42,12 @@ observeEvent(input$btnSaveNewStory,{
       dateValidated = date()
       )
 
-    mxReact$updateStoryMaps<-runif(1)
+    mxReact$newStoryId <- newId 
+
     mxDbAddData(dbInfo,table=mxConfig$storyMapsTableName, data=df )
+  
     updateTextInput(session,'txtStoryName',value="")
+ 
   }
 })
 

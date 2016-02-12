@@ -10,16 +10,22 @@
 #
 # initialise  session when document is ready
 #
-observeEvent(input$documentIsReady,{
+#observeEvent(input$documentIsReady,{
+  
   tempSecret <-  mxCreateSecret()
-  mxSetCookie(cookie=list(t=session$token,s=tempSecret))
+  
+  mxSetCookie(
+    cookie=list(t=session$token,s=tempSecret),
+    read=T
+    )
+  
   mxReact$tempSecret <- tempSecret
   mxReact$userLogged <- FALSE
   mxReact$userRole <- character(0)
   mxReact$userName <- character(0)
   mxReact$userId <- integer(0)
   mxReact$sessionToken <- session$token
-})
+#})
 
 
 
@@ -28,9 +34,15 @@ observeEvent(input$selectLanguage,{
   selLanguage = input$selectLanguage
   if(!noDataCheck(selLanguage)){
     mxReact$selectLanguage = selLanguage
-    # TODO: update 
+    mxSetCookie(
+      cookie=list("lang"=selLanguage),
+      read=FALSE
+      ) 
   } 
 })
+
+
+
 
 # if the user press the login button and is not yet logged, write a cookie
 # the cookie will be read again server side.
@@ -49,13 +61,17 @@ observeEvent(input$btnLogin,{
           )
         # NOTE: save the secret in reactive elemement
         mxReact$tempSecret <- lSec
-        mxSetCookie(cookie=res,nDaysExpires=10)
+        mxSetCookie(
+          cookie=res,
+          nDaysExpires=10,
+          read=TRUE
+          )
     }}
   }
   })
 
-# read the cookie and check that everything is ok
-# NOTE: Doing this each time we want to read cookie is not very conveniant..
+# If a read option was set during a mxSetCookie, this will be reevaluate.
+
 observeEvent(input$readCookie,
   {
     mxCatch(title="Read cookie",
@@ -67,6 +83,7 @@ observeEvent(input$readCookie,
           isTRUE( length(val) == 0 ) 
           )  return()
 
+ 
         nVal <- names(val)
         pwd <- mxData$pwd
         # check if login and key are in given cookie values
@@ -98,6 +115,8 @@ observeEvent(input$readCookie,
                   mxReact$userRole,
                   date() # THIS WILL BE STORED IN DB
                   )
+
+   
               } else  {
 
                 notUser <- ifelse(
@@ -118,6 +137,9 @@ observeEvent(input$readCookie,
 
           mxUpdateText("loginValidation",msg)
       })
+
+ 
+
   })
 
 
@@ -131,13 +153,12 @@ observeEvent(input$btnLogout,{
   mxReact$userId <- integer(0)
   mxUpdateValue(id="loginUser",value="")
   mxUpdateValue(id="loginKey",value="")
-  mxSetCookie(cookie=list(s="",k="",l="",d="",t=""),deleteAll=TRUE)
   mxReact$tempSecret <- mxCreateSecret()
-})
-
-
-observe({
-  paste("user input=", mxDebugMsg(input$loginUser),sep="")
+  mxSetCookie(
+    cookie=list(s="",k="",l="",d="",t=""),
+    deleteAll=TRUE,
+    read=FALSE
+    )
 })
 
 

@@ -7,6 +7,9 @@ var storyMapLayer = {store:[]};
 /* Object to hold ui and style state*/
 var leafletvtId = {};
 
+
+
+
 var mxConfig = {
   mapPanelMode : null,
   mapInfoBox : {
@@ -152,7 +155,6 @@ function  updateStoryMaps(){
 
             tDist = limitPos - $item.offset().top;
             bDist = limitPos - ($item.offset().top + $item.height());
-
 
             if ( tDist > 0 && bDist < 0){
               onView = true;
@@ -680,65 +682,68 @@ function updateMapElement(){
   idContainerStoryExpand = "#storyEditorContainer",
 
   // 
-  idSection = "#sectionMap",
-  idBody = $('body'),
+  //idSection = "#sectionMap",
+  //idBody = $('body'),
   //idBtn = $("#btnStopMapScroll");
-  idBtn = $(".btn-stop-map-scroll");
+  //idBtn = $(".btn-stop-map-scroll");
 
   // set default state
-  var toggleScrollMap = true,
+  toggleScrollMap = true,
   toggleCollapseViews = true,
   toggleCollapseInfoClick = true,
   toggleStoryEditorExpand = true;
   //
   //  map panel lock button 
   //
-  idBtn.click(function(){ 
-    if(toggleScrollMap){
-      idBtn.html("<i class='fa fa-lock'>");
-      $('html, body').stop().animate({
-        scrollTop: $(idSection).offset().top - $(".navbar-fixed-top").height() 
-      }, 100, 'easeOutQuad');
-      idBody.addClass('noscroll');
-    }else{
-      idBtn.html("<i class='fa fa-unlock'>");
-      idBody.removeClass('noscroll');
-    }
-    toggleScrollMap = !toggleScrollMap ;
-  });
+/*  idBtn.click(function(){ */
+    //if(toggleScrollMap){
+      //idBtn.html("<i class='fa fa-lock'>");
+      //$('html, body').stop().animate({
+        //scrollTop: $(idSection).offset().top - $(".navbar-fixed-top").height() 
+      //}, 100, 'easeOutQuad');
+      //idBody.addClass('noscroll');
+    //}else{
+      //idBtn.html("<i class='fa fa-unlock'>");
+      //idBody.removeClass('noscroll');
+    //}
+    //toggleScrollMap = !toggleScrollMap ;
+  //});
 
   // Story map editor expand
 
-  $(idBtnStoryExpand).click(function(){
-    if(toggleStoryEditorExpand){ 
-      $(idContainerStoryExpand).addClass("editor-full-width");
-      $(idContainerStoryExpand).draggable({ 
-        //handle: idContainerStoryExpand,
-        cancel: "#txtStoryMap",
-        containment: $(idSection),
-        cursor: "crosshair"
-      });
-      $(idBtnStoryExpand).html("<i class='fa fa-compress'></i>");
-      $('html, body').stop().animate({
-        scrollTop: $(idSection).offset().top - $(".navbar-fixed-top").height() 
-      }, 100, 'easeOutQuad');
-      idBody.addClass('noscroll');
-    }else{
-      $(idContainerStoryExpand).removeClass("editor-full-width");
-      $(idBtnStoryExpand).html("<i class='fa fa-expand'></i>");
-      if(toggleScrollMap){
-        idBody.removeClass('noscroll');
-      }
-    }
-    toggleStoryEditorExpand = !toggleStoryEditorExpand;
+/*  $(idBtnStoryExpand).click(function(){*/
+    //if(toggleStoryEditorExpand){ 
+      //$(idContainerStoryExpand).addClass("editor-full-width");
+      //$(idContainerStoryExpand).draggable({ 
+        ////handle: idContainerStoryExpand,
+        //cancel: "#txtStoryMap",
+        //containment: $(idSection),
+        //cursor: "crosshair"
+      //});
+      //$(idBtnStoryExpand).html("<i class='fa fa-compress'></i>");
+      //$('html, body').stop().animate({
+        //scrollTop: $(idSection).offset().top - $(".navbar-fixed-top").height() 
+      //}, 100, 'easeOutQuad');
+      //idBody.addClass('noscroll');
+    //}else{
+      //$(idContainerStoryExpand).removeClass("editor-full-width");
+      //$(idBtnStoryExpand).html("<i class='fa fa-expand'></i>");
+      //if(toggleScrollMap){
+        //idBody.removeClass('noscroll');
+      //}
+    //}
+    //toggleStoryEditorExpand = !toggleStoryEditorExpand;
 
-  });
+  /*});*/
 
 
   // add a click function to btn collapse views 
   $(idBtnViews).click(function(){
+
+     var  mapLeftWidth = $(idViews).width()*2;
+
     if(toggleCollapseViews){
-      $(idViews).animate({left:"-410px"},500);
+      $(idViews).animate({left: - mapLeftWidth },500);
       //$(idInfo).animate({left:"70px"},500);
       $(idBtnViews).html("<i class='fa fa-angle-double-right'>");
       $(idTitlePanel).css({opacity:"0"});
@@ -760,7 +765,7 @@ function updateMapElement(){
 
   /* add scroll listener to story map */
 
-  var storyCont = $("#mxStoryContainer");
+  var storyCont = $("#mapLeftScroll");
   storyCont.on("scroll",updateStoryMaps);
 
 }

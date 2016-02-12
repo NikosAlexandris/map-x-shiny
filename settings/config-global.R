@@ -58,8 +58,12 @@ if ( mxConfig$hostname == "map-x-full" ) {
 ##########################################################################
 # set general parameters. Modify with caution :)
 
-
+# default country code "ISO_3166-1_alpha-3"
 mxConfig$defaultCountry = "COD"
+# default language code "ISO 639-2"
+mxConfig$defaultLanguage = "eng"
+# available languages
+mxConfig$languageList = c("eng","fre")
 # no data string
 mxConfig$noData = "[ NO DATA ]"
 # Defaut value string
@@ -76,6 +80,7 @@ mxConfig$defaultZoom = 9
 mxConfig$defaultGroup = "G1"
 # column column used in postgis
 mxConfig$defaultGeomCol = "geom"
+# languages
 
 # roles
 mxConfig$rolesVal <- list(
@@ -119,7 +124,6 @@ mxConfig$mapPanelModeAvailable <- c(
   "mx-mode-toolbox",
   "mx-mode-creator",
   "mx-mode-story-reader"
-  #"mx-mode-story-creator"
   )
 
 # Name of the table containing the views data

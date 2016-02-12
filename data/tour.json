@@ -118,7 +118,7 @@
   },
   "btnViewsExplorer":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
     "eng":{
       "title":"Views Explorer",
@@ -131,7 +131,7 @@
   },
   "btnViewsCreator":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
 
     "eng":{
@@ -145,7 +145,7 @@
   },
   "btnStoryReader":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
 
     "eng":{
@@ -159,7 +159,7 @@
   },
   "btnViewsConfig":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
 
     "eng":{
@@ -173,7 +173,7 @@
   },
   "btnViewsToolbox":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
 
     "eng":{
@@ -187,7 +187,7 @@
   },
   "btnDraw":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
 
     "eng":{
@@ -201,7 +201,7 @@
   },
   "btnMapCreatorSave":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
 
     "eng":{
@@ -215,7 +215,7 @@
   },
   "btnZoomToLayer":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
 
     "eng":{
@@ -229,7 +229,7 @@
   },
   "btnViewsRefresh":{
     "opt":{
-      "placement":"left"
+      "placement":"right"
     },
 
     "eng":{

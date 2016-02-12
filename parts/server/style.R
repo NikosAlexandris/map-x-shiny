@@ -154,43 +154,70 @@ observe({
     selBaseMap <- input$selectConfigBaseMap
     
    
-    proxyMap <- leafletProxy("mapxMap")
+  initOk <- isTRUE(mxReact$mapInitDone > 0)
+  glOk <- isTRUE(input$glLoaded == "basemap")
 
-    if( selBaseMap == mxConfig$noLayer ){
-      mxDebugMsg("Remove additional base layer if needed")
-      proxyMap %>%
-  addGlLayer(
-      styleId=mxConfig$mapboxStyle,
-      token=mxConfig$mapboxToken,
-      id = layId
-      ) 
+  if(initOk && glOk ){
 
-    }else{
-      switch(selBaseMap,
-        "mapbox"={
-          proxyMap %>%
-          removeTiles(layId) %>%
-          addTiles(
-            "https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
-            ,layerId=layId,options=list('zIndex'=-4)
-            )
-        },
-        "nasa"={
-          proxyMap %>%
-          removeTiles(layId) %>%
-          addTiles(
-            "http://map1.vis.earthdata.nasa.gov/wmts-webmerc/MODIS_Terra_Aerosol/default/2014-04-09/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png",
-            layerId=layId,
-            options=list('zIndex'=-5)
-            )
-        },{
-          proxyMap %>%
-          removeTiles(layId) %>%
-          addProviderTiles(selBaseMap,layerId=layId,options=list('zIndex'=-5)
-            )
-        }
+
+    proxymap <- leafletProxy("mapxMap")
+
+    styleList = list(
+      mapboxsat  = list(
+        `id` = 'rasterOverlay',
+        `source` = 'mapboxsat',
+        `type`='raster',
+        `min-zoom`=0,
+        `max-zoom`=22
         )
+      )
+
+    if( selBaseMap != mxConfig$noLayer ){
+    
+    proxymap %>% 
+    glAddLayer(
+      idGl = "basemap",
+      idBelowTo = "contours",
+      style = styleList[[selBaseMap]] 
+      )     
+    }else{
+      proxymap %>% 
+    glRemoveLayer(
+      idGl = "basemap",
+      idLayer = "rasterOverlay"
+      )  
     }
+  }
+
+#    if( selBaseMap == mxConfig$noLayer ){
+      #mxDebugMsg("Remove additional base layer if needed")
+
+    #}else{
+      #switch(selBaseMap,
+        #"mapbox"={
+          #proxyMap %>%
+          #removeTiles(layId) %>%
+          #addTiles(
+            #"https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
+            #,layerId=layId,options=list('zIndex'=-4)
+            #)
+        #},
+        #"nasa"={
+          #proxyMap %>%
+          #removeTiles(layId) %>%
+          #addTiles(
+            #"http://map1.vis.earthdata.nasa.gov/wmts-webmerc/MODIS_Terra_Aerosol/default/2014-04-09/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png",
+            #layerId=layId,
+            #options=list('zIndex'=-5)
+            #)
+        #},{
+          #proxyMap %>%
+          #removeTiles(layId) %>%
+          #addProviderTiles(selBaseMap,layerId=layId,options=list('zIndex'=-5)
+            #)
+        #}
+        #)
+    #}
 })
 })
 

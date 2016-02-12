@@ -34,10 +34,10 @@ observe({
 observe({
   if(mxReact$allowStoryReader){
     source("parts/server/storyReader.R",local=TRUE)
-    ## will source story creator if needed. scoping. scoping..
+    #NOTE: we need to source storyCreator inside story reader. 
+    #TODO: give the sesstion environment instead of local=TRUE ?
   }
 })
-
 
 
 # Allow toolbox / analysis
@@ -48,9 +48,22 @@ observe({
 })
 
 #
-# UI by user privilege
+#observeEvent(input$mapxMap_center,{
+#  center <- input$mapxMap_center
+#  
+# res <-  dbGetValByCoord(dbInfo,table="mx_country_un",column="iso3code",lat=center$lat,lng=center$lng,distKm=20)
+#iso3 <- res$result[["iso3code"]]
+#
+#if(!noDataCheck(iso3)){
+# updateSelectInput(session,"selectCountry",selected=iso3)
+#}
+#})
 #
 
+
+#
+# UI by user privilege
+#
 observe({
   mxUiEnable(id="sectionMap",enable=mxReact$allowMap) 
 })
@@ -64,14 +77,12 @@ observe({
 })
 observe({
   mxUiEnable(id="btnStoryReader",enable=mxReact$allowStoryReader) 
+  
 })
-
 observe({
-  allowStoryCreator = mxReact$allowStoryCreator
-  mxUiEnable(class="mx-allow-story-edit",enable=allowStoryCreator)
-  mxUiEnable(id="btnStoryCreator",enable=allowStoryCreator)
+  mxUiEnable(id="btnStoryCreator",enable=mxReact$allowStoryCreator)
+  mxUiEnable(class="mx-allow-story-edit",enable=mxReact$allowStoryCreator)
 })
-
 
 #
 # UI by user event
@@ -154,6 +165,10 @@ output$mapxMap <- renderLeaflet({
   }
 })
 
+
+
+
+
 #
 # Map custom style
 #
@@ -161,11 +176,10 @@ output$mapxMap <- renderLeaflet({
 observeEvent(mxReact$mapInitDone,{
   map <- leafletProxy("mapxMap")
   map %>% 
-  addGlLayer(
-      styleId=mxConfig$mapboxStyle,
-      token=mxConfig$mapboxToken,
-      id = "basemap"
-      ) %>%
+glInit(
+  idGl="basemap",
+  style=mxConfig$mapboxStyle,
+  token=mxConfig$mapboxToken)%>%
   setZoomOptions(buttonOptions=list(position="topright")) 
   session$sendCustomMessage(
     type="addCss",
@@ -174,42 +188,136 @@ observeEvent(mxReact$mapInitDone,{
 })
 
 
+
+
+
 #
 # Map set center and overlay
 #
 
-observe({
-  initOk <- mxReact$mapInitDone > 0
-  iso3 <- mxReact$selectCountry
 
-  if(!noDataCheck( iso3 ) && isTRUE( initOk ) ){
-    id = "overlay"
-    center <- mxConfig$countryCenter[[iso3]] 
+#' Create url for pgrestapi source
+#' @return url 
+glMakeUrl <- function(
+  host,
+  port,
+  table,
+  fieldVariables,
+  fieldGeom
+  ){
+ # layer <- paste0(table,"_",fieldGeom) 
+  query <- sprintf("?fields=%s",paste(fieldVariables,collapse=",")) 
+#  url <- sprintf("http://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.geojson?where=iso3code%%3dCOD`",
+  url <- sprintf("http://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.pbf%s",
+    host,
+    port,
+    table,
+    fieldGeom,
+    query)
+
+ return(c(url,url))
+}
+
+#
+# Add sources
+#
+
+observeEvent(input$glLoaded,{
+
+  proxymap <- leafletProxy("mapxMap")
+
+  # Country overlay source
+  tilesCountry <- glMakeUrl("localhost","8080","mx_country_un","iso3code","geom")
+
+  proxymap  %>%
+  glAddSource(
+    idGl = "basemap",
+    idSource = "mapboxsat",
+    url = "mapbox://mapbox.satellite",
+    type = "raster",
+    tileSize = 256
+    ) %>%  
+  glAddSource(
+    idGl = "basemap",
+    idSource = "country",
+    tiles = tilesCountry,
+    type = "vector"
+    )  
+
+    })
+
+
+observeEvent(input$glLoaded,{
+  mxDebugMsg("gl loaded")
+
+  initOk <- mxReact$mapInitDone > 0
+  
+  isolate({
+
+  if(
+    isTRUE( initOk )
+    ){
+
+
+  countryStyle  = list(
+    `id` = "countryOverlay",
+    `source` = "country",
+    `source-layer` = "mx_country_un_geom",
+    `type`="fill",
+    `paint`= list(
+      `fill-color`="rgba(47,47,47,0.6)",
+      `fill-outline-color`="rgba(47,47,47,0.2)"
+      )
+    )
+
+
     proxymap <- leafletProxy("mapxMap")
 
-
-
-    #
-    # Set view and add country overlay
-    #
-    
     proxymap %>%
+       glAddLayer(
+      idGl = "basemap",
+      idBelowTo = NULL,
+      style= countryStyle
+      ) 
+  }
+  })
+})
+
+
+
+#
+# update country extent
+#
+
+observe({
+
+  layId <- "countryOverlay"
+  iso3 <- mxReact$selectCountry
+  cnt <- !noDataCheck( iso3 )
+  ini <- !noDataCheck( mxReact$mapInitDone )
+  lay <- isTRUE( input$glLoadedLayer == layId )
+
+  if( cnt && ini && lay ){
+
+    center <- mxConfig$countryCenter[[ iso3 ]] 
+
+    # if the country code match, don't paint it.
+    filt <- c("!in", 'iso3code', iso3 )
+
+    proxyMap <- leafletProxy("mapxMap")
+
+    proxyMap %>%
     setView(center$lng,center$lat,center$zoom) %>%
-    addVectorCountries(
-      url            = mxConfig$hostVt,
-      port           = mxConfig$portVtPublic,
-      table          = "mx_country_un",
-      iso3column     = "iso3code",
-      iso3select     = iso3,
-      geomColumn     = "geom",
-      idColumn       = "gid",
-      id             =  id
-      )  
-
-
-
+    glSetFilter(
+      idGl="basemap",
+      idLayer=layId,
+      filter=filt
+      )
   }
 })
+
+
+
 
 
 #
