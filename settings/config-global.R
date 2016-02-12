@@ -166,38 +166,47 @@ mxConfig$class = list(
   "Environment" = "env",
   "Extractives" = "ext",
   "Stresses" = "str",
-  "Tradition" = "trad"
+  "Custom" = "cus"
   )
-# Set data subclasses
-mxConfig$subclass = list(
-  "dev" = list(
-    "Unemployment" = "unemployment",
-    "Poverty" = "poverty",
-    "Agriculture" = "agriculture"
-    ),
-  "env" = list(
-    "Forest cover" = "forest",
-    "Deforestation" = "deforest",
-    "Biodiversity" = "biodiversity",
-    "Contamination" = "contamination"
-    ),
-  "ext" = list(
-    "Mineral" = "mineral",
-    "Oil" = "oil",
-    "Forestry" = "forestry",
-    "Artisanal mines" = "mines_artisanal"
-    ),
-  "str" = list(
-    "Conflict" = "conflict" 
-    ),
- "trad" = list(
-    "Tribs" = "tribs" 
-    )
-  )
+
+#
+#
+## Set data subclasses
+#mxConfig$subclass = list(
+#  "dev" = list(
+#    "Unemployment" = "unemployment",
+#    "Poverty" = "poverty",
+#    "Agriculture" = "agriculture"
+#    ),
+#  "env" = list(
+#    "Climate change" = "climate",
+#    "Biodiversity" = "biodiv",
+#    "Water" = "water",
+#    "Farming" = "farming",
+#    "Population"="population",
+#    "N/P/K cycles"="npkcycle",
+#    "Land use" = "landuse",
+#    "Nanotechnology" ="nanotech",
+#    "Pollution"="pollution",
+#    "Forest"="forest"
+#    ),
+#  "ext" = list(
+#    "Mineral" = "mineral",
+#    "Oil" = "oil",
+#    "Forestry" = "forestry",
+#    "Artisanal mines" = "mines_artisanal"
+#    ),
+#  "str" = list(
+#    "Conflict" = "conflict" 
+#    ),
+# "trad" = list(
+#    "Tribs" = "tribs" 
+#    )
+#  )
 # Set default years avaiable for date inputs
 mxConfig$currentTime <- Sys.time()
 mxConfig$currentYear <- as.integer(format(mxConfig$currentTime,"%Y"))
-mxConfig$yearsAvailable <- seq(mxConfig$currentYear,mxConfig$currentYear+50)
+mxConfig$yearsAvailable <- seq(mxConfig$currentYear,mxConfig$currentYear-30)
 # Set default date for date picker
 mxConfig$minDate <- paste0(mxConfig$currentYear-50,"-01-01")
 mxConfig$maxDate <- paste0(mxConfig$currentYear+50,"-01-01")

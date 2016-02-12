@@ -31,21 +31,22 @@ observe({
         if(mapViewMode == "mapViewsCreator"){
          # In creator mode, get all the variables 
           vars <- vtGetColumns(table=lay,port=mxConfig$portVt)$column_name
-          feedBack <- "always"
+          feedback <- "always"
           #feedBack <- "once" # input$leafletvtLoaded will not be triggered more than once 
         }else{
           # Other mode, only get variables kept
           vToKeep <- mxStyle$variableToKeep
           vToKeep <- vToKeep[!vToKeep %in% mxConfig$noVariable]
           vars <- unique(c(var,vToKeep))
-          feedBack <- "once"
+          feedback <- "once"
         }
       })
       if(!noDataCheck(vars)){
-        proxyMap <- leafletProxy("mapxMap")
+        proxyMap <- leafletProxy("mapxMap",deferUntilFlush=FALSE)
 
         proxyMap %>%
-        clearGroup(mxConfig$defaultGroup)
+        clearGroup(grp)
+
 
         proxyMap %>%
         addVectorTiles(
@@ -56,9 +57,11 @@ observe({
           table          = lay,
           dataColumn     = vars,
           group          = grp,
-          onLoadFeedback = feedBack
+          onLoadFeedback = feedback
           )  
+        
         mxDebugMsg(paste("Start downloading",lay,"from host",mxConfig$hostVt,"on port:",mxConfig$portVt))
+      
       }
     }
 })

@@ -1,8 +1,5 @@
 
 
-
-
-
 /* collapse top nav if href is not section top */
 $(function() {
   $('a.page-scroll').bind('click', function(event) {
@@ -105,10 +102,25 @@ Shiny.addCustomMessageHandler("jsDebugMsg",
 
 Shiny.addCustomMessageHandler("mxSetButonState",
     function(r) {
+
       if(r.disable === true){
-        $("#"+r.id).addClass("btn-danger").removeClass("btn-default").attr("disabled",true); 
-      }else{ 
-        $("#"+r.id).addClass("btn-default").removeClass("btn-danger").attr("disabled",false); 
+        $("#"+r.id)
+          .addClass("btn-danger")
+          .removeClass("btn-default")
+          .removeClass("btn-warning")
+          .attr("disabled",true); 
+      }else if(r.warming === true){ 
+        $("#"+r.id)
+          .addClass("btn-warning")
+          .removeClass("btn-default")
+          .removeClass("btn-danger")
+          .attr("disabled",false); 
+      }else{
+        $("#"+r.id)
+          .addClass("btn-default")
+          .removeClass("btn-danger")
+          .removeClass("btn-warning")
+          .attr("disabled",false); 
       }
     }
     );
