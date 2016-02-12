@@ -19,7 +19,11 @@ observe({
     #
     # COOKIES
     #
-    cookies <- mxGetCookies()
+    cookies = list(
+      language = input$cookiesLanguage,
+      country = input$cookiesCountry
+      )
+    # does not work on shiny server   cookies <- mxGetCookies()
 
     #
     # Country selection
@@ -38,7 +42,7 @@ observe({
       !noDataCheck(cookies$country)
       ){
       # if no vale from query but something from cookie, use cookie
-      cntry <- cookies$country
+      cntry <- cookies$country 
     }else{
       # default 
       cntry <- mxConfig$defaultCountry
@@ -56,9 +60,9 @@ observe({
       # guet lang from query
       lang <- query$language
     }else if(
-      !noDataCheck(cookies$lang)
+      !noDataCheck(cookies$language)
       ){
-      lang <- cookies$lang
+      lang <- cookies$language
     }else{
       lang <- mxConfig$defaultLanguage
     }
