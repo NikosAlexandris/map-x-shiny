@@ -1,0 +1,18 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+                                                                                
+"features": [
+{ "type": "Feature", "properties": { "gid": 4, "timestamp": "2014-06-09T21:38:20Z", "version": "2", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": "Belia", "proposed": null, "id": "node\/418578", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 26.8211653, -1.5040243 ] } },
+{ "type": "Feature", "properties": { "gid": 20, "timestamp": "2014-06-09T21:38:26Z", "version": "2", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": "Kailo (Ambwe)", "proposed": null, "id": "node\/418594", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 26.1656064, -2.3612937 ] } },
+{ "type": "Feature", "properties": { "gid": 24, "timestamp": "2014-06-09T21:38:28Z", "version": "4", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": "Kamimbi", "proposed": "yes", "id": "node\/418599", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 26.0140687, -3.2115274 ] } },
+{ "type": "Feature", "properties": { "gid": 25, "timestamp": "2014-06-09T21:38:29Z", "version": "2", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": "Kampene", "proposed": null, "id": "node\/418600", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 26.7035009, -3.5043195 ] } },
+{ "type": "Feature", "properties": { "gid": 41, "timestamp": "2014-06-09T21:38:35Z", "version": "2", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": "Lutshurukuru", "proposed": null, "id": "node\/418616", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 26.4681721, -2.7310961 ] } },
+{ "type": "Feature", "properties": { "gid": 43, "timestamp": "2014-06-09T21:38:36Z", "version": "2", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": "Mangembe", "proposed": null, "id": "node\/418618", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 28.1322832, -4.1094508 ] } },
+{ "type": "Feature", "properties": { "gid": 47, "timestamp": "2014-06-09T21:38:38Z", "version": "2", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": "Moga", "proposed": null, "id": "node\/418622", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 27.0733034, -2.3276753 ] } },
+{ "type": "Feature", "properties": { "gid": 52, "timestamp": "2015-02-02T21:46:29Z", "version": "3", "changeset": "528", "user": "Leo B", "uid": "3", "energy": "dam", "name": "Mungombe", "proposed": null, "id": "node\/418627", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 28.5425978, -3.1285607 ] } },
+{ "type": "Feature", "properties": { "gid": 74, "timestamp": "2014-06-09T21:38:48Z", "version": "4", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": "Ulindi", "proposed": "yes", "id": "node\/418649", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 28.4322258, -2.8062496 ] } },
+{ "type": "Feature", "properties": { "gid": 79, "timestamp": "2014-06-09T21:38:50Z", "version": "2", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": null, "proposed": null, "id": "node\/418654", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 26.8379745, -2.5630041 ] } },
+{ "type": "Feature", "properties": { "gid": 81, "timestamp": "2014-06-09T21:38:51Z", "version": "4", "changeset": "473", "user": "jlc_2", "uid": "15", "energy": "dam", "name": null, "proposed": "yes", "id": "node\/418656", "mask_gid": 1 }, "geometry": { "type": "Point", "coordinates": [ 26.189689, -3.9004995 ] } }
+]
+}
