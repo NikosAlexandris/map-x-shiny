@@ -611,7 +611,7 @@ observeEvent(input$btnViewCreatorSave,{
 
 
       # ?? glitch one time with duplicate id ?? he
-      if(id %in% names(mxReact$views)){
+      if(idUnique %in% names(mxReact$views)){
        idUnique <- randomName()
       }
 
