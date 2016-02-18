@@ -31,7 +31,7 @@ observe({
 #
 output$checkInputViewsContainer <- renderUI({
   start <- Sys.time()
-  viewsUi <- mxMakeViews(mxReact$views,mxConfig$class)
+  viewsUi <- mxMakeViews_cache(mxReact$views,mxConfig$class)
   mxDebugMsg(paste("Time for generating views ui=",Sys.time()-start))
   return(viewsUi)
 })
