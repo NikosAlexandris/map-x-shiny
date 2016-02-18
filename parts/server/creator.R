@@ -563,7 +563,6 @@ observeEvent(input$btnViewCreatorSave,{
       # save has date state
 
 
-
       #
       # Date handler
       #

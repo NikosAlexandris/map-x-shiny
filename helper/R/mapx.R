@@ -1124,12 +1124,17 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   opa <- style$opacity
   sze <- style$size
   grp <- style$group
-  leg <- style$hideLegends
   bnd <- style$bounds
   mxd <- style$mxDateMax
   mnd <- style$mxDateMin
   unt <- style$variableUnit
-  
+ 
+
+
+
+
+
+  if(noDataCheck(tit)) return()
   # handle min and max date if exists.
   if(noDataCheck(mnd))mnd<-as.POSIXlt(mxConfig$minDate)
   if(noDataCheck(mxd))mxd<-as.POSIXlt(mxConfig$maxDate)
@@ -1186,8 +1191,6 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
 
   # Apply style
   #jsSty <- sprintf("mxSetStyle('%1$s',%2$s,'%3$s',false)",grp,sList,lay)
-
-
 
   session$sendCustomMessage(
     type="setStyle",
@@ -1384,6 +1387,7 @@ mxCheckboxIcon <- function(id,idLabel,icon,display=TRUE){
 #' @param opacity Default opacity
 #' @export
 mxSliderOpacity <- function(id,opacity){
+  if(noDataCheck(opacity))opacity=1
   tagList(
     tags$div(class="slider-date-container",
       tags$div(type="text",id=sprintf("slider-opacity-for-%s",id)),
@@ -1454,6 +1458,8 @@ mxTimeSliderDouble <-function(id,min,max,lay){
 #' @param lay Layer name
 #' @export 
 mxTimeSlider <- function(id,min,max,lay){
+  if(noDataCheck(min))min=0
+  if(noDataCheck(max))min=1
   tagList(
     tags$div(class="slider-date-container",
       tags$div(type="text",id=sprintf("slider-for-%s",id)),
@@ -1980,7 +1986,10 @@ cl <- classes
           ),
         conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
           tags$div(class="map-views-item-options",id=itIdCheckOptionPanel,
-            mxSliderOpacity(itId,v[[itId]]$style$opacity),
+            mxSliderOpacity(
+              itId,
+              v[[itId]]$style$opacity
+              ),
             timeSlider,
             filterSelect,
             viewButtons
@@ -2251,10 +2260,13 @@ mxGetWdiIndicators <- function(){
 #' Reset all value in a reactiveValues object
 #' @param reaciveObj Reactive values object
 #' @export
-   reactiveValuesReset <-function(reactiveObj,resetValue=""){
-     rList <- names(reactiveValuesToList(reactiveObj))
-     for(n in rList){
-     reactiveObj[[n]]<-resetValue
+   mxStyleReset <-function(reactiveObj){
+
+     sty <- mxConfig$defaultStyle
+     styName <- names(sty)
+    #rList <- names(reactiveValuesToList(reactiveObj))
+     for(n in styName){
+     reactiveObj[[n]]<-sty[[n]]
      }
     }
 
