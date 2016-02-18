@@ -114,7 +114,8 @@ observeEvent(input$btnAnalysisOverlaps,{
       # UPDATE PGRESTAPI
       #
 
-      if(mxConfig$os=="Darwin"){
+
+      if( mxConfig$hostname != "map-x-full" ){
         print("update pgrestapi from darwin") 
         if(!exists('remoteInfo'))stop("No remoteInfo found in /settings/settings.R")
         r <- remoteInfo 

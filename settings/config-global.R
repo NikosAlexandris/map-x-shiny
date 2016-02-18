@@ -189,8 +189,6 @@ year = 2016
 url = http://
 "
 
-
-
 #
 #
 ## Set data subclasses
