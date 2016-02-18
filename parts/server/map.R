@@ -137,7 +137,7 @@ observeEvent(input$btnViewsExplorer,{
       removeControl(layerId=legendId) %>%
       clearGroup(dGroup)
   # double remove.
-  mxRemoveEl(class=legendId)
+  #mxRemoveEl(class=legendId)
         })
   }
 })
@@ -148,12 +148,12 @@ observeEvent(input$btnViewsExplorer,{
 observeEvent(input$btnViewsCreator,{
   if(mxReact$allowMap){
 
+    mxReact$viewsToDisplay = ""
     mxStyle$group <- "G1"
     mxStyle$layer <- NULL
     mxStyle$variable <- NULL
     mxStyle$values <- NULL
       #   reactiveValuesReset(mxStyle)
-      mxReact$viewsToDisplay = ""
   }
 })
 
