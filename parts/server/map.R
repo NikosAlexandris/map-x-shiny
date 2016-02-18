@@ -242,7 +242,7 @@ observeEvent(input$glLoaded,{
   proxymap <- leafletProxy("mapxMap")
 
   # Country overlay source
-  tilesCountry <- glMakeUrl("localhost","8080","mx_country_un","iso3code","geom")
+  tilesCountry <- glMakeUrl(mxConfig$hostVt,mxConfig$portVtPublic,"mx_country_un","iso3code","geom")
 
   proxymap  %>%
   glAddSource(
