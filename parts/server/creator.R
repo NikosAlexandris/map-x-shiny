@@ -606,18 +606,8 @@ observeEvent(input$btnViewCreatorSave,{
       viewTable <- mxConfig$viewsListTableName
       timeNow <- Sys.time()
 
-
-      idUnique <- randomName()
-
-
-      # ?? glitch one time with duplicate id ?? he
-      if(idUnique %in% names(mxReact$views)){
-       idUnique <- randomName()
-      }
-
-
       tbl = as.data.frame(stringsAsFactors=FALSE,list(
-          id =  idUnique,
+          id =  randomName(),
           country = mxReact$selectCountry,
           title = input$mapViewTitle,
           class = input$mapViewClass,
