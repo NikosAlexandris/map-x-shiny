@@ -20,4 +20,5 @@ packrat/lib*/
 .Rproj.user
 tests/testthat/packrat/
 packrat-scenario*/
-
+# libre office temp file
+.~lock*

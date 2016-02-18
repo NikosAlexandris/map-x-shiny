@@ -7,68 +7,64 @@
 #                 |_|           
 # map content
 
+
+
+
+
+
 uiMapCreator <- tagList(
   #
   # MAP CREATOR
   #
   tags$section(id="sectionMapcreator",class="section-map-creator mx-mode-creator container-fluid mx-hide",
-        mxAccordionGroup(id="mapCreator",
-          itemList=list(
-            "data"=list("title"="Data upload",content=tagList(
-                selectInput("selNewLayerClass","Select layer class",choice=mxConfig$class),
-                textInput("txtNewLayerTags","Write additional tags","default"),
-                selectInput("selNewLayerYear","Layer year",choices=mxConfig$yearsAvailable),
-                textInput("txtNewLayerAttribution","Attribution/Sources"),
-                tags$textarea(
-                  id="txtNewLayerDescription",
-                  rows=3,
-                  cols=30,
-                  placeholder="Description...",
-                  spellcheck="false"
-                  ),
-                 hr(),
-                div(id="outNewLayerNameValidation"),
-                hr(),
-                div(id="outNewLayerErrors"),
-                hr(),
-                mxFileInput("fileNewLayer",
-                  label="Choose a file (geojson)",
-                  multiple=FALSE,
-                  fileAccept=mxConfig$inputDataExt$vector$GeoJSON
-                  )
-                )
+    mxAccordionGroup(id="mapCreator",
+      itemList=list(
+        "data"=list("title"="Upload new data",content=tagList(
+          
+            selectInput("selNewLayerClass","Layer class",choice=mxConfig$class),
+            textInput("txtNewLayerTags","Additional tags","default"),
+            #selectInput("selNewLayerYear","Layer year",choices=mxConfig$yearsAvailable),
+            tags$textarea(
+              id="txtNewLayerMeta",
+              rows=10,
+              cols=30,
+              placeholder="Sources...",
+              spellcheck="false",
+              mxConfig$bibDefault
               ),
-            "style"=list("title"="Style settings",content=tagList(
-                textInput("mapViewTitle","Map view title",mxConfig$noTitle),
-                selectInput("selLayer","Select a vector tiles layer",choices=""),
-                selectInput("selColumnVar","Select a variable to display",choices=""),
-                textInput("txtVarUnit","Unit suffixe"),
-                selectInput("selPalette","Select a palette",choices=""),
-                selectInput("selColumnVarToKeep","Select other variables to keep",choices="",multiple=T),
-                numericInput("selOpacity","Opacity",min=0,max=1,value=0.6,step=0.1),
-                numericInput("selSize","Size point / line",min=0,max=100,value=5,step=0.1),
-                selectInput("mapViewClass","Map view class",choices=mxConfig$class),
-                dateRangeInput("mapViewDateRange",
-                  label = "Set a date range for this layer",
-                  start = Sys.Date(), end = Sys.Date(),
-                  min = mxConfig$minDate, max = mxConfig$maxDate,
-                  separator = " - ", format = "yyyy/mm/dd",
-                  startview = "year", language = "en", weekstart = 1
-                  ),
-                tags$textarea(
-                  id="txtViewDescription",
-                  rows=3,
-                  cols=30,
-                  placeholder="Description...",
-                  spellcheck="false"
-                  )
+            mxFileInput("fileNewLayer",
+              label="Choose a file (geojson)",
+              multiple=FALSE,
+              fileAccept=mxConfig$inputDataExt$vector$GeoJSON
               ),
-            div(class="shiny-input-container-inline shiny-flow-layout",
-              tags$h4(textOutput("txtValidationCreator"))
-              ) 
+            div(id="outLayerFileMsg"),
+            div(id="outNewLayerErrors"),                
+            div(id="outNewLayerNameValidation")
             )
-          ))
+          ),
+        "style"=list("title"="Create a view",content=tagList(
+            textInput("mapViewTitle","Title",mxConfig$noTitle),
+            selectInput("selLayer","Layer",choices=""),
+            selectInput("selColumnVar","Variable to display",choices=""),
+            textInput("txtVarUnit","Suffix for labels"),
+            selectInput("selPalette","Colors",choices=""),
+            selectInput("selColumnVarToKeep","Variable(s) to keep",choices="",multiple=T),
+            numericInput("selOpacity","Opacity",min=0,max=1,value=0.6,step=0.1),
+            numericInput("selSize","Size point / line",min=0,max=100,value=5,step=0.1),
+            selectInput("mapViewClass","View class",choices=mxConfig$class),
+            tags$textarea(
+              id="txtViewDescription",
+              rows=10,
+              cols=30,
+              placeholder="Description...",
+              spellcheck="false"
+              ),
+            actionButton("btnViewCreatorSave","Save view")
+            )
+          )
+        )
       )
+    )
   )
 
     uiMapList <- tagList(
@@ -195,7 +191,7 @@ uiMapCreator <- tagList(
       #
       # editor
       #
-      tags$textarea(id="txtStoryMap", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
+      tags$textarea(id="txtStoryMapEditor", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
       #buttons
       span("Drag and drop views from the menu; Drag and drop coordinates from the box below :"),
       div(id="txtLiveCoordinate",draggable=TRUE),
@@ -255,26 +251,31 @@ uiMapCreator <- tagList(
 
 
 
-    uiMapStoryReader <- tagList(
-      #
-      # STORY MAP PREVIEW / READER
-      #
-      div(id="mxStorySelectorBox",class="collapse",
+    uiMapStorySelector <- tagList(
         selectizeInput(
           inputId="selectStoryId", 
           label="", 
           choices ="",
           options = list(
             placeholder = 'Select a story',
-            onInitialize = I('
-              function() {
+            onInitialize = I(
+              'function() {
                 this.setValue("");
-                this.on("change",function(){console.log("changed")})
-              }
-              ')
+                this.on("change",function(v){console.log(v)})
+              }'
+              )
             )
-          )
-        ),
+        ) 
+      )
+
+
+
+
+    uiMapStoryReader <- tagList(
+      #
+      # STORY MAP PREVIEW / READER
+      #
+
       tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",
         div(id="mxStoryLimitTrigger"),
         div(id="mxStoryText")
@@ -379,13 +380,7 @@ uiMapCreator <- tagList(
           )
         )
         )
-      ),
-    tags$li(
-      actionButton("btnMapCreatorSave",
-        class="btn-icon mx-mode-creator mx-hide",
-        label=icon("floppy-o")
-        )
-      ),
+      ),  
     tags$li(
       actionButton("btnZoomToLayer",
         class="btn-icon mx-mode-creator mx-hide",
@@ -460,6 +455,13 @@ uiMapCreator <- tagList(
             #
             tags$div(
               span(id="titlePanelMode","Views explorer")
+              ),
+            #
+            # STORY SELECTOR
+            #
+            div(
+              id="mxStorySelectorBox",class="collapse mx-mode-story-reader",
+              uiMapStorySelector
               )
             ),
           #

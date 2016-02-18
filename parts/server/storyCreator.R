@@ -7,7 +7,7 @@ observeEvent(input$txtStoryName,{
   newStoryName <- input$txtStoryName 
   valid <- mxTextValidation(
     textToTest = newStoryName,
-    existingTexts = mxData$storyMaps()$name,
+    existingTexts = mxGetStoryMapName(dbInfo),
     idTextValidation = "validateNewStoryName"
     )
 
@@ -23,6 +23,8 @@ observeEvent(input$btnSaveNewStory,{
     
 
     newId <- randomName()
+    
+    timeNow <- Sys.time()
 
     df <- data.frame(
       id=newId,
@@ -37,15 +39,14 @@ observeEvent(input$btnSaveNewStory,{
       revision = 0,
       validated = TRUE,
       archived = FALSE,
-      dateCreated = date(),
-      dataModifed = date(),
-      dateValidated = date()
+      dateCreated = timeNow,
+      dateArchived = as.POSIXct(as.Date(0,origin="1970/01/01")),
+      dateModified = timeNow,
+      dateValidated = timeNow
       )
 
-    mxReact$newStoryId <- newId 
-
     mxDbAddData(dbInfo,table=mxConfig$storyMapsTableName, data=df )
-  
+    mxReact$updateStorySelector<-runif(1)
     updateTextInput(session,'txtStoryName',value="")
  
   }
@@ -65,19 +66,18 @@ observe({
 
 observeEvent(input$btnStoryMapEditorUpdate,{
   mxCatch(title="Input story map text",{
-  storyText <- input$txtStoryMap
+  storyText <- input$txtStoryMapEditor
   if( isTRUE(mxReact$allowStoryCreator)){
     storyId <- input$selectStoryId
       if(nchar(storyText)>0){
-        mxCatch(title="Parsing story and knit",{
+        mxCatch(title="Saving story",{
           mxDbUpdate(dbInfo,
             table = mxConfig$storyMapsTableName,
             column = "content_b64",
             id = storyId,
             value = mxEncode(storyText) 
             )
-          mxUpdateText(id="mxStoryText",text=mxParseStory(storyText))
-         mxReact$storyMap <- mxParseStory(storyText) 
+         mxReact$storyMap <- storyText
         })
     }
   }

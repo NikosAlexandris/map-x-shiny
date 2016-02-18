@@ -536,16 +536,48 @@ dbGetSp <- function(dbInfo,query) {
 #' @param query PostGIS spatial sql querry.
 #' @return geojson list
 #' @export
-dbGetGeoJSON<-function(dbInfo,query,fromSrid="4326",toSrid="4326"){
+dbGetGeoJSON<-function(dbInfo,query,fromSrid="4326",toSrid="4326",asList=FALSE){
   # NOTE: check package geojsonio for topojson and geojson handling.
   # https://github.com/ropensci/geojsonio/issues/61
   d <- dbInfo
-  dsn <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
-    d$dbname,d$host,d$port,d$user,d$password
-    )
+
+  dsn <-gsub("\n|\\s+"," ",sprintf(
+    "dbname='%1$s'
+    host='%2$s'
+    port='%3$s'
+    user='%4$s'
+    password='%5$s'",
+    d$dbname,
+    d$host,
+    d$port,
+    d$user,
+    d$password
+    ))
+  
   tmp <- paste0(tempfile(),".geojson")
-  system(sprintf("ogr2ogr -f GeoJSON '%s' '%s' -sql '%s' -s_srs 'EPSG:%4$i' -t_srs 'EPSG:%5$i'",tmp,dsn,query,fromSrid,toSrid))
+
+  cmd <-gsub("\n|\\s+"," ",sprintf(
+      "ogr2ogr -f GeoJSON
+      %2$s
+      PG:\"%1$s\"
+      -sql '%3$s'
+      -s_srs 'EPSG:%4$s'
+      -t_srs 'EPSG:%5$s'",
+      dsn,
+      tmp,
+      query,
+      fromSrid,
+      toSrid
+      )
+    )
+  
+  system(cmd)
+
+ if(asList){
   return(jsonlite::fromJSON(tmp))
+ }else{
+   return(tmp)
+ }
 }
 #' Get layer extent
 #' @param dbInfo Named list with dbName,host,port,user and password
@@ -1123,7 +1155,7 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   # sometimes this does not work. Double removal.
   mxRemoveEl(class=legendClass)
   
-  if(isTRUE(!leg)){
+ # if(isTRUE(!leg)){
     
     if(!noDataCheck(unt)){
       labFor<-labelFormat(suffix=unt)
@@ -1140,7 +1172,7 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
       class=legendClass,
       title=tit
       )
-  }
+  #}
 
   names(col) <- val
   sList = list(
@@ -1555,7 +1587,58 @@ mxDbGetQuery <- function(dbInfo,query,stringAsFactors=F){
     finally={})
 }
 
+#' Parse key value pair from text
+#' @param txt unformated text with key value pair. eg. myKey = myValue
+#' @return list of value
+#' @export
+mxParseListFromText <- function(txt){
+  txt2 = txt %>%
+  strsplit(.,"(\n\\s*)",perl=T) %>%
+  unlist(.) %>%
+  gsub("^\\s*([a-z]+?)\\s*=\\s+(.+?)$","\\1 = \"\\2\"",.) %>%
+  paste(.,collapse=",")%>%
+  paste("list(",.,")")%>%
+  parse(text=.)%>%
+  eval(.)
+  return(txt2)
+}
 
+
+
+#' Get layer meta stored in default layer table
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param layer Postgis layer stored in layer table. Should have a meta field.
+#' @export
+mxGetLayerMeta <- function(dbInfo,layer){
+
+  layerTable <- mxConfig$layersTableName
+
+  if(!mxDbExistsTable(dbInfo,layerTable)){
+    mxDebugMsg("mxGetMeta requested, but no layer table available")
+    return()
+  }
+  if(!mxDbExistsTable(dbInfo,layer)){
+    mxDebugMsg("mxGetMeta requested, but no layer available")
+    return()
+  }
+  # query
+  query <- sprintf(
+    "SELECT meta FROM %1$s WHERE \"layer\"='%2$s' AND \"validated\"='t' AND \"archived\"='f'",
+    layerTable,
+    layer
+    )
+
+  res <- mxDbGetQuery(dbInfo,query)$meta
+
+  res <- jsonlite::fromJSON(mxDecode(res))
+
+  return(res)
+}
+
+
+#' Remove old results from db query
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @export
 mxDbClearAll <- function(dbInfo){
   d <- dbInfo
   drv <- dbDriver("PostgreSQL")
@@ -1593,6 +1676,27 @@ mxDbListTable<- function(dbInfo){
   )
 }
 
+#' Check if table exists in postgresql
+#'
+#' Shortcut to create a connection, and check if table exists. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param table Name of the table to check
+#' @export
+mxDbExistsTable<- function(dbInfo,table){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbExistsTable(con,table)
+    dbDisconnect(con)
+    return(res)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+
+
 #' List existing column from postgresql table
 #'
 #' Shortcut to create a connection, get the list of column and close the connection, using a dbInfo list. 
@@ -1605,7 +1709,6 @@ mxDbListColumns <- function(dbInfo,table){
     drv <- dbDriver("PostgreSQL")
     con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
     res <- dbListFields(con,table)
-
     dbDisconnect(con)
     return(res)
   },finally=if(exists('con'))dbDisconnect(con)
@@ -1632,42 +1735,42 @@ mxDbAddData <- function(dbInfo,data,table){
     con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
     res <- dbListTables(con)
     tExists <- isTRUE(table %in% res)
-    nExists <- FALSE
-
+    tAppend <- FALSE
     if(tExists){
       tNam <- names(table)
       rNam <- dbListFields(con,table)
-      nExists <- all(tNam %in% rNam)
-      wText <- sprintf("mxDbAddData: remote table %1$s has fields: '%2$s', table to append: '%3$s'",
-        table,
-        paste(rNam,collapse="; "),
-        paste(tNam,collapse="; ")
-        )
-      if(!nExists){
+      if(!all(tNam %in% rNam)){
+        wText <- sprintf("mxDbAddData: remote table %1$s has fields: '%2$s', table to append: '%3$s'",
+          table,
+          paste(rNam,collapse="; "),
+          paste(tNam,collapse="; ")
+          )
         stop(wText)
+      }else{
+        tAppend = TRUE
       }
     }
 
-    dbWriteTable(con,name=table,value=data,append=nExists,row.names=F)
+    dbWriteTable(con,name=table,value=data,append=tAppend,row.names=F)
 
     dbDisconnect(con)
   },finally=if(exists('con'))dbDisconnect(con)
   )
 }
 
+
 mxDbUpdate <- function(dbInfo,table,column,idCol="id",id,value){
     
    query <- sprintf("
       UPDATE %1$s
-      SET %2$s='%3$s'
-      WHERE %4$s='%5$s'",
+      SET \"%2$s\"='%3$s'
+      WHERE \"%4$s\"='%5$s'",
       table,
       column,
       value,
       idCol,
       id
       )
-
     res <- mxDbGetQuery(dbInfo,query)
 
     return(res)
@@ -1687,6 +1790,253 @@ mxCreateSecret =  function(n=20){
   stopifnot(require(digest))
   digest::digest(paste(letters[round(runif(n)*24)],collapse=""))
 }
+
+#' Create html list of available views
+#' @param views List of available views
+#' @param classes
+#' @export
+mxMakeViews<-function(views,classes){
+  session = shiny:::getDefaultReactiveDomain()
+  checkListOut <- p("No view found.")
+v <- views
+cl <- classes
+  if(!is.null(v)){
+    cl = mxConfig$class
+    cl = data.frame(n=names(cl),id=as.character(cl),stringsAsFactors=FALSE)
+    clUn = unique(sapply(v,function(x)x$class))
+    viewsList = list()
+    for(i in names(v)){
+      title <- v[[i]]$title 
+      class <- v[[i]]$class
+      className <- cl[cl$id == class,'n']
+      viewId <- as.list(i)
+      names(viewId) <- title
+      other <- viewsList[[className]]
+      if(is.null(other)){
+        viewsList[[className]] <- viewId
+      }else{
+        viewsList[[className]] <- c(viewId,other)
+      }
+    }
+    id = "viewsFromMenu"
+    checkList = tagList()
+    for(i in names(viewsList)){
+      items <- viewsList[[i]]
+      checkList <- tagList(checkList,tags$span(class="map-views-class",i))
+      for(j in names(items)){
+        #
+        # set item id text
+        #
+        it <- items[j]
+        itId <- as.character(it)
+        itName <- names(it)
+        itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
+        itIdLabel <- sprintf('label_for_%s',itId)
+        itIdCheckOptionLabel <- sprintf('checkbox_opt_label_%s',itId)
+        itIdCheckOptionPanel <- sprintf('checkbox_opt_panel_%s',itId)
+        itIdFilterCompany <- sprintf('select_filter_for_%s',itId)
+        itIdBtnReport <- sprintf('btn_show_report_for_%s',itId)
+        #
+        # check if time slider or filter should be shown
+        #
+        hasDate <- isTRUE(v[[itId]]$style$hasDateColumns)
+        hasCompany <- isTRUE(v[[itId]]$style$hasCompanyColumn)
+
+        # layer name
+        layerName <- v[[itId]]$layer
+
+        #
+        # create time slider
+        #
+        if(hasDate){
+          timeSlider <- mxTimeSlider(
+            id=itId,
+            min=as.numeric(as.POSIXct(v[[itId]]$style$dateMin))*1000,
+            max=as.numeric(as.POSIXct(v[[itId]]$style$dateMax))*1000,
+            lay=v[[itId]]$layer
+            )
+        }else{
+          timeSlider <- tags$div()
+        }
+        # 
+        # create custom selectize input for company
+        #
+        if(hasCompany){
+          # which field contains company names ?
+          fieldSelected <- "parties"
+
+          companies <- unlist(v[[itId]]$style$companies)
+          updateSelectizeInput(session,
+            itIdFilterCompany,
+            choices = companies,
+            server=TRUE
+            )
+
+          # create selectize js code
+
+          filterSelect <- selectizeInput(
+            inputId=itIdFilterCompany, 
+            label="", 
+            choices = NULL,
+            options = list(
+              placeholder = 'Please select a company',
+              onInitialize = I(
+                sprintf('
+                  function() {
+                    this.setValue("");
+                    this.on("change",function(){
+                      val = this.getValue(); 
+                      mxSetFilter("%1$s","%2$s","%3$s",val)
+                      });
+                  }
+                  ',
+                  v[[itId]]$layer,#1
+                  itId,#2
+                  fieldSelected#3
+                  )
+                )
+              )
+            )
+
+      }else{
+        filterSelect <- tags$div()
+      }
+      #
+      # report button UGLY AAaah, sorry.
+      #
+      reportButton <- tagList(
+        if(hasCompany){
+          tagList(
+        tags$button(
+          id=itIdBtnReport,
+          class="btn btn-default btn-sm mx-layer-button mx-hide",
+          onclick="console.log('btnShowReport')",
+          "EITI Report"),
+        tags$script(
+          sprintf("
+            $('#%1$s').on('click',function(){
+              mxConfig.mapInfoBox.toggle(700,true);
+             var trigger = Math.random();
+          Shiny.onInputChange('tenke',trigger); 
+        })",
+            itIdBtnReport
+            ),
+          sprintf("
+            $('#%1$s').change(function(){
+              if( this.value == 'TENKE FUNGURUME MINING' ){
+                $('#%2$s').removeClass('mx-hide');
+              }else{
+                $('#%2$s').addClass('mx-hide');
+              }
+        })",
+            itIdFilterCompany,
+            itIdBtnReport
+            )
+          )
+        )
+        }
+        )
+
+      requestMetaBtn <- tags$button(
+        class="btn btn-default btn-sm mx-layer-button",
+        onclick=sprintf("mxRequestMeta('%1$s')",layerName),
+        icon("info")
+        )
+
+
+      downloadBtn <- tags$button(
+        class="btn btn-default btn-sm mx-layer-button",
+        onclick="",
+        icon("download")
+        )
+
+
+
+      viewButtons <- tagList(
+        div(class="mx-view-button-group",
+        requestMetaBtn,
+        downloadBtn,
+        reportButton
+        )
+        )
+
+
+      # toggle option panel for this view
+      toggleOptions <- sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)
+      # set on hover previre for this view
+      # previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,3000))
+      previewTimeOut <- ""
+      #
+      # HTML 
+      #
+      val <- div(class="checkbox",
+        tags$label(id=itIdLabel,draggable=TRUE,`data-viewid`=itId,`data-viewtitle`=itName,
+          tags$input(type="checkbox",class="vis-hidden",name=id,value=itId,
+            onChange=toggleOptions),
+          div(class="map-views-item",
+            tags$span(class="map-views-selector",itName),
+            mxCheckboxIcon(itIdCheckOption,itIdCheckOptionLabel,"cog",display=FALSE)
+            ) 
+          ),
+        conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
+          tags$div(class="map-views-item-options",id=itIdCheckOptionPanel,
+            mxSliderOpacity(itId,v[[itId]]$style$opacity),
+            timeSlider,
+            filterSelect,
+            viewButtons
+            )
+          ),
+        tags$script(
+          sprintf("
+            document.getElementById('%1$s')
+            .addEventListener('dragstart',function(e){
+              var coord = document.getElementById('txtLiveCoordinate').innerHTML,
+              ret = String.fromCharCode(13),
+              vid = e.target.dataset.viewid,
+              vti = e.target.dataset.viewtitle,
+              vst = '@view_start( '+vti+' ; '+vid+' ; '+coord+' )', 
+              ven = '@view_end',
+              txt = vst + ret + ret + ven + ret + ret;
+              e.dataTransfer.setData('text', txt);
+        })",itIdLabel)
+            )
+          # previewTimeOut
+          )
+        checkList <- tagList(checkList,val)
+    }
+  }
+  checkListOut <- tagList(
+    div(id=id,class="form-group shiny-input-checkboxgroup shiny-input-container",
+      div(class="shiny-options-group",
+        checkList
+        )
+      )
+    )
+}
+  
+  return(checkListOut)
+  }
+
+
+#' extract views from the db and create a list
+#' @param dbInfo map-x db info list
+#' @param cntry Country iso3 code
+#' @return list of views data and style 
+#' @export
+ mxMakeViewList <- function(dbInfo,cntry){
+      views = list()
+      if(!noDataCheck(cntry)){
+        viewsDf <- mxGetViewsTable(dbInfo,mxConfig$viewsListTableName,country=cntry)
+        if(isTRUE(nrow(viewsDf)>0)){
+          # create list of map views
+          for(i in viewsDf$id){
+            views[[i]] <- as.list(viewsDf[viewsDf$id==i,])
+            views[[i]]$style <- fromJSON(mxDecode(views[[i]]$style))
+          }
+        }
+      }
+      return(views)
+    }
 
 
 #' Save named list of value into cookie
@@ -1752,28 +2102,74 @@ mxAnalysisOverlaps <- function(dbInfo,inputBaseLayer,inputMaskLayer,outName,data
   msg=character(0)
   if(!outName %in% mxDbListTable(dbInfo)){
 
-    varToKeep <- paste0(sprintf("%s.%s",inputBaseLayer,varToKeep),collapse=",")
-    createTable = sprintf("
-      create table %1$s as SELECT %4$s, 
-      ST_Multi(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0)) As geom
-      FROM %3$s
-      INNER JOIN %2$s
-      ON ST_Intersects(%3$s.geom, %2$s.geom)
-      WHERE Not ST_IsEmpty(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0));
-      ALTER TABLE %1$s
-      ALTER COLUMN geom TYPE geometry(MultiPolygon, %5$i) 
-      USING ST_SetSRID(geom,%5$i);
-      ALTER TABLE %1$s OWNER TO %6$s;
-      ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
-      ",
-      outName,
-      inputBaseLayer,
-      inputMaskLayer,
-      varToKeep,
-      sridOut,
-      dataOwner
-      )
+    #varToKeep <- paste0(sprintf("%s.%s",inputBaseLayer,varToKeep),collapse=",")
+    #createTable <- sprintf("
+      #CREATE TABLE %1$s AS SELECT %4$s, 
+      #ST_Multi(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0))
+      #FROM %3$s
+      #INNER JOIN %2$s
+      #ON ST_Intersects(%3$s.geom, %2$s.geom)
+      #WHERE Not ST_IsEmpty(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0));
+      #ALTER TABLE %1$s
+      #ALTER COLUMN geom TYPE geometry(MultiPolygon, %5$i) 
+      #USING ST_SetSRID(geom,%5$i);
+      #ALTER TABLE %1$s OWNER TO %6$s;
+      #ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
+      #",
+      #outName,
+      #inputBaseLayer,
+      #inputMaskLayer,
+      #varToKeep,
+      #sridOut,
+      #dataOwner
+      #)
 
+    # get geometry type. 
+    # NOTE: qgis seems confused if the geom type is not updated.
+    geomType <- mxDbGetQuery(
+      dbInfo,
+      sprintf("select GeometryType(geom) FROM %s limit 1",
+        inputBaseLayer
+        )
+      )[[1]]
+    varBase <- paste0(sprintf("a.%s",varToKeep[!varToKeep %in% "geom"]),collapse=",")
+    createTable <- gsub("\n|\\s+"," ", sprintf("
+        CREATE TABLE %1$s AS
+        SELECT
+        %2$s,
+        b.gid AS mask_gid,
+        CASE 
+        WHEN ST_Within(a.geom,b.geom) 
+        THEN a.geom
+        ELSE ST_Multi(ST_Intersection(a.geom,b.geom)) 
+        END AS geom
+        FROM %3$s a
+        JOIN %4$s b
+        ON ST_Intersects(a.geom, b.geom);
+        ALTER TABLE %1$s
+        ALTER COLUMN geom TYPE geometry(%7$s, %5$i) 
+        USING ST_SetSRID(geom,%5$i);
+        ALTER TABLE %1$s OWNER TO %6$s;
+        DO
+        $$
+        BEGIN
+        IF not EXISTS (SELECT gid FROM %1$s) THEN
+        ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
+      ELSE
+        raise NOTICE 'gid already exists';
+  END IF;
+  END
+  $$
+  "
+  ,outName
+  ,varBase
+  ,inputBaseLayer
+  ,inputMaskLayer
+  ,sridOut
+  ,dataOwner
+  ,geomType
+  )
+      )
     mxDbGetQuery(dbInfo,createTable) 
   }
   }
@@ -1956,6 +2352,108 @@ mxParseVimeo <- function(text){
 
 }
 
+
+#' R list to html
+#' @param listInput list in inptu
+#' @param htL List to append to
+#' @param h Value of the first level of html header
+#' @param exclude list named item to exclude
+#' @export
+listToHtml<-function(listInput,htL='',h=2, exclude=NULL){
+
+  hS<-paste0('<H',h,'><u>',collapse='') #start 
+  hE<-paste0('</u></H',h,'>',collapse='') #end
+  h=h+1 #next
+  if(is.list(listInput)){
+    nL<-names(listInput)
+    nL <- nL[!nL %in% exclude]
+    htL<-append(htL,'<ul>')
+    for(n in nL){
+      htL<-append(htL,c(hS,n,hE))
+      subL<-listInput[[n]]
+      htL<-listToHtml(subL,htL=htL,h=h,exclude=exclude)
+    }
+    htL<-append(htL,'</ul>')
+  }else if(is.character(listInput) || is.numeric(listInput)){
+    htL<-append(htL,c('<li>',paste(listInput,collapse=','),'</li>'))
+  }
+  return(paste(htL,collapse=''))
+}
+
+#' R list to html list
+#' @param listInput list in inptu
+#' @param htL List to append to
+#' @param h Value of the first level of html header
+#' @param exclude list named item to exclude
+#' @export
+listToHtmlClass<-function(listInput, exclude=NULL, c=0, htL="",classUl="list-group",classLi="list-group-item"){
+
+#  hS<- '<u>' #start
+#  hE<- '</u>' #end
+  c = c+1 #next
+
+  if(is.list(listInput)){
+    nL <- names(listInput)
+    nL <- nL[!nL %in% exclude]
+    htL <- append(
+      htL,
+      paste(
+        '<ul class="',
+        paste(
+          classUl,
+          collapse=","
+          ),
+        '">'
+        )
+      ) # open
+    for(n in nL){
+#      htL <- append(htL,c(hS,n,hE))
+  htL<-append(
+      htL,
+      c(
+        paste(
+          '<li class="',
+          paste(classLi,collapse=","),
+          '">'
+          ),
+        n)
+      )
+      subL <- listInput[[n]]
+      htL <- listToHtmlClass(
+        subL, 
+        exclude=exclude,
+        htL=htL,
+        c=c,
+        classUl=classUl,
+        classLi=classLi
+        )
+    }
+    htL<-append(htL,'</li></ul>') # close
+
+  }else if(is.character(listInput) || is.numeric(listInput)){
+
+    htL<-append(
+      htL,
+      paste("<b>",listInput,"</b>")
+     # c(
+        #paste(
+          #'<b class="',
+          #paste(classLi,collapse=","),
+          #'">'
+          #),
+        #paste(
+          #listInput,
+          #collapse=','
+          #),
+        #'</li>')
+      )
+
+  }
+  return(paste(htL,collapse=''))
+}
+
+
+
 #' Parse view string
 #' @param test Story map text with @view_start( name ; id ; extent ) ... @view_end tags
 #' @return parsed html 
@@ -1972,7 +2470,7 @@ mxParseView <- function(text){
 
 
  # regular expression
-  expr <- "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*([ 0-9,\\.\\-]+?)\\s*\\)(.*?)@view_end"
+  expr <- "@view_start\\(\\s*(.*?)\\s*;\\s*(.*?)\\s*;\\s*([ 0-9,-\\.\n]*?)\\s*\\)(.*?)@view_end"
 
   # substitute
   gsub(
@@ -1986,7 +2484,6 @@ mxParseView <- function(text){
     .
     )
  
-
 }
 
 #' Parse story map : markdown, R, view and video
@@ -2011,21 +2508,67 @@ mxParseStory <- function(txtorig,knit=T,toc=F){
 #' @param geojsonPath path the geojson
 #' @param dbInfo dbInfo object containgin pass,user, .... 
 #' @param tableName Name of the postgis layer / table 
-dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableName=NULL){
+dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableName=NULL,archiveIfExists=T,archivePrefix="mx_archives"){
 
+
+      # NOTE : no standard method worked.
+      # rgdal::writeOGR (require loading in r AND did not provide options AND did not allow mixed geometry) or gdalUtils::ogr2ogr failed (did not set -f option!).
+    
   gL <- geojsonList
   gP <- geojsonPath
   tN <- tableName
   d <- dbInfo
+  timestamp <- format(Sys.time(),"%Y_%m_%d_%H_%M_%S")
+  aN <- paste0(archivePrefix,"_",tN,"_",timestamp)
+  tE <- mxDbExistsTable(d,tN)
+  aE <- mxDbExistsTable(d,aN)
+
 
   if(!is.null(gL) && typeof(gL) == "list"){
     gP <- tempfile(fileext=".GeoJSON")
     write(jsonlite::toJSON(gL,auto_unbox=TRUE),gP)
   }
 
+  #
+  # Stop if file does not exists
+  #
   stopifnot(file.exists(gP))
+  #
+  # overwrite handling
+  #
+  if(tE && isTRUE(archiveIfExists) && aE){
 
-  # db set destination
+      aNameTable <- aN
+      aNameSeq <- paste0(aN,"_seq")
+      aNameIdx <- paste0(aN,"_idx")
+      aNamePkey <- paste0(aN,"_pkey")
+
+      qdb <- sprintf("
+        ALTER TABLE IF EXISTS %1$s 
+        RENAME TO %2$s;
+        ALTER SEQUENCE IF EXISTS %1$s_gid_seq 
+        RENAME TO %3$ ;
+        ALTER INDEX IF EXISTS %1$s_geom_geom_idx
+        RENAME TO %4$ ;
+        ALTER INDEX IF EXISTS %1$s_pkey
+        RENAME TO %5$s ;
+        ",
+        tN,
+        aNameTable,
+        aNameIdx,
+        aNameSeq,
+        aNamePkey
+        )
+  
+      mxDbGetQuery(d,qdb) 
+  }
+  if(aE){
+    stop("Archive requested but already existing ! ArchiveName =  %a",aN)
+  }else{
+
+  #
+  # Import into db
+  #
   tD <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
     d$dbname,d$host,d$port,d$user,d$password
     )
@@ -2033,23 +2576,26 @@ dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableNa
     "ogr2ogr
     -t_srs 'EPSG:4326'
     -s_srs 'EPSG:4326'
-    -geomfield geom
-    -lco FID=gid
-    -lco GEOMETRY_NAME=geom
-    -lco SCHEMA=public
+    -geomfield 'geom'
+    -lco FID='gid'
+    -lco GEOMETRY_NAME='geom'
+    -lco SCHEMA='public'
     -f 'PostgreSQL'
     -overwrite
     -nln '%1$s'
+    -nlt 'PROMOTE_TO_MULTI'
     '%2$s'
     '%3$s'
     OGRGeoJSON
     ",tN,tD,gP)
-    cmd <- gsub("\\n","",cmd)
+    cmd <- gsub("\n\\s+"," ",cmd)
 
+    # 
+    # Execute command
+    #
+  system(cmd,intern=TRUE)
+  }
 
-
-    # er : output. 
-    er <- system(cmd,intern=TRUE)
 
 
 }

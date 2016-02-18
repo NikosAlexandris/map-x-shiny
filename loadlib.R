@@ -10,6 +10,7 @@
 
 # essentials
 library(shiny)
+library(memoise)
 library(leaflet)
 library(leafletvt)
 library(jsonlite)
@@ -30,7 +31,6 @@ library(xts)
 
 # data transfer
 library(base64enc)
-library(sendmailR)
 
 # story map
 library(knitr)
