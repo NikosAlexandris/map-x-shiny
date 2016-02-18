@@ -272,14 +272,12 @@ layerStyle <- reactive({
         layClient == sprintf("%s_%s",layLocal,mxConfig$defaultGeomCol)
         ){
         sty <- reactiveValuesToList(mxStyle)
-        if(!any(sapply(sty,is.null))){
           palOk <- isTRUE(sty$palette %in% sty$paletteChoice)
           if(palOk){ 
-            sty <- addPaletteFun(sty,sty$palette)
+            sty <- addPaletteFun_cache(sty,sty$palette)
             sty$colors <- sty$paletteFun(sty$values)
             return(sty)
           }
-        }
       }
     }
     return(NULL)
@@ -293,7 +291,7 @@ layerStyle <- reactive({
 
 observe({
   mxCatch(title="Apply layerStyle()",{
-    sty = layerStyle() # NOTE: Why this reactiv function invalidate the observer ?
+    sty = layerStyle() 
     if(!noDataCheck(sty)){
       mxSetStyle(style=sty)
     }

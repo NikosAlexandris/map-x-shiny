@@ -12,6 +12,11 @@
 #
 
 
+# use memoise to cache some function
+addPaletteFun_cache <- memoise(addPaletteFun)
+mxMakeViews_cache <- memoise(mxMakeViews)
+
+
 #
 # PERMISSION EVENT : loading server files
 #
@@ -207,7 +212,6 @@ glMakeUrl <- function(
   ){
  # layer <- paste0(table,"_",fieldGeom) 
   query <- sprintf("?fields=%s",paste(fieldVariables,collapse=",")) 
-#  url <- sprintf("http://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.geojson?where=iso3code%%3dCOD`",
   url <- sprintf("http://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.pbf%s",
     host,
     port,
@@ -428,117 +432,124 @@ observe({
 
  
 observeEvent(input$btnDrawActionConfirm,{
-
- 
-
-
   mxCatch(title="Polygon of interest : processing",{
 
  # inputs
+  # entered email
   em <- input$txtDrawEmail
+  # automatic email adress
+  am <- mxConfig$mapxBotEmail
+  # seleced layer
   sl <- input$selDrawLayer
+  # selected action
   sa <- input$selDrawAction
+  # user name
   un <- mxReact$userName
-  gm <- mxConfig$defaultGeomCol
-
-
+  # out message
+  ms <- character(0)
+  # url of the result
+  ur <- character(0)
+  # digest code (md5 sum of the file) 
+  di <- character(0)
+  # description of the poi
+  de <- character(0)
+  # get actual geojson from client
   gj <- mxReact$drawActionGeoJson 
-  tm <- randomName("tmp")
- 
-  
-  dbAddGeoJSON(geojsonList=gj,tableName=tm,dbInfo=dbInfo)
-  stopifnot(tm %in% mxDbListTable(dbInfo))
-
-
-#  q <- sprintf("SELECT %1$s from %2$s INNER JOIN %3$s ON ST_Intersects(%2$s.%1$s, %2$s.%1$s)")
-
-  q <- sprintf("SELECT * FROM %1$s INNER JOIN %2$s ON ST_Intersects(%1$s.%3$s, %2$s.%3$s);"
-    ,sl
-    ,tm
-    ,gm
+  # table for polygon
+  tp <- randomName("mx_poi_")
+  # table for inner join (result)
+  tr <- randomName("tmp__poi_res")
+  # columns to import
+  lc <- mxDbListColumns( dbInfo, sl )
+  # add geojson to tp
+  dbAddGeoJSON(
+    geojsonList=gj,
+    tableName=tp,
+    dbInfo=dbInfo
     )
- 
-  rs <- mxDbGetQuery(dbInfo,q)
-  if(is.null(rs)){
-    rs = data.frame(title="NO VALUE")
-  }else{
-
-
-    # this result will be used to compare to previous results if something changed. 
-
-    cl <- mxDbListColumns(dbInfo,sl)
-
-
-    # rm cols
-    rc <- c('gid','geom','mx_date_start','mx_date_end','guidshap','guidlice','guidspat','intgeome','intshape') 
-
-    cls <- cl[! cl %in% rc]
-
-    rs <- rs[,names(rs) %in% cls]
-
-  }
-
- 
-  di <- digest(rs)
-  nr <- nrow(rs)
-  ## send result by mail
-  from <- "bot@mapx.io"
-  to <- em
-  subject <- paste("mapx analysis result for on layer",sl)
-
-  msg <- sprintf(
-    "Hi %1$s,
-    \n here is the result for your polygon request.
-    \n Number of rows = %2$s
-    \n MD5 sum = %3$s",
-    un,nr,di
+  # test if tp is available
+  stopifnot(tp %in% mxDbListTable(dbInfo))
+  # do an overlap analysis
+  mxAnalysisOverlaps(
+    dbInfo,
+    sl,
+    tp,
+    tr,
+    varToKeep = lc
     )
+  # get number of row returner
+  cr <- mxDbGetQuery(dbInfo,sprintf("SELECT COUNT(gid) FROM %s",tr))$count
+
+if(cr>0){
+qr <- sprintf("SELECT * FROM %s",tr)
+tmp <- dbGetGeoJSON(dbInfo,query=qr)
+de <- sprintf("Polygon of interest %1$s based on %2$s",tp,sl)
+if( file.exists(tmp)){
+  # creating a gist ! alternative : create a geojson in www/data/poi
+  ur <- system(sprintf("gist -p %1$s -d '%2$s'",tmp,de),intern=T) 
+  #poiPath<- sprintf("www/data/poi/%1$s.geojson",tp)
+  #ur <- sprintf("https://github.com/fxi/map-x-shiny/blob/master/%s",poiPath)
+  #file.rename(tmp,poiPath)
+  #browser()
+  #system(sprintf("git add %1$s",poiPath))
+  #system("git commit -m 'update poi'")
+  #system("git push")
+}
+}
+
+# output message
+
+if( cr > 0 && length(ur) > 0){
+  di <- digest(file=tmp)
+  ms <- sprintf(
+    "Dear %1$s,
+    \n Here is the result for your polygon request with id \"%2$s\"
+    \n link to data = %3$s
+    \n Number of rows = %4$s
+    \n MD5 sum = %5$s.
+    Have a nice day !",
+    un,tp,ur,cr,di
+    )
+}else{
+ms <- sprintf(
+  "Dear %1$s,
+  There is no data for the polygon of interest requested.
+  The id of this request is '%2$s'
+  Have a nice day !",
+  un,tp
+  )
+}
+
+mxDbGetQuery(dbInfo,sprintf("DROP TABLE IF EXISTS %s",tr))
 
 
-  mime_part.data.frame <- function(x, name=deparse(substitute(x)), ...) {
-      f <- tempfile()
-    on.exit(file.remove(f))
-      write.table(x, file=f, ...)
-      sendmailR:::.file_attachment(f, name=sprintf("%s.csv", name), type="text/plain")
-  }
+sendEmail <- sprintf("echo '%1$s' | mail -s 'map-x : polygon of interest %2$s' -a 'From: %3$s' %4$s",
+  ms,
+  tp,
+  am,
+  em
+  )
 
 
-  body <- list(msg, mime_part(rs))
+if( mxConfig$hostname != "map-x-full" ){
+  if(!exists("remoteInfo"))stop("No remoteInfo found in /settings/settings.R")
+  r <- remoteInfo  
+  remoteCmd(host="map-x-full",cmd=sendEmail)
+}else{
+  system(sendEmail)
+}
 
+output$panelAlert <- renderUI( mxPanelAlert(
+    title="message",
+    subtitle="Email sent !",
+    message=ms
+    )
+  )
 
-  #library(gmailr)
-  #gmail_auth("settings/mapx-gmail.json", scope = 'compose')
-
-
-
-  #
-#
-#  mxDebugMsg("send the message")
-#  sendmail(
-#    from, 
-#    to, 
-#    subject, 
-#    body,
-#    control=list(
-#      smtpPortSMTP="25",
-#      #smtpServer="smtp.unige.ch" 
-#      smtpServer="aspmx.l.google.com" 
-#      )
-#    )
+ 
   })
-
-  output$panelAlert <- renderUI( mxPanelAlert(
-        title="message",
-        subtitle="Email sent !",
-        message=msg
-        )
-    )
+      })
 
 
-
-
-
-
-})
 
 

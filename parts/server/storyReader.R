@@ -16,94 +16,122 @@ observe({
   }
 })
 
+
+mxGetStoryMapText <- function(dbInfo,id,textColumn="content_b64"){
+  tblName <- mxConfig$storyMapsTableName
+  res <- data.frame()
+  if(mxDbExistsTable(dbInfo,tblName)){
+    q <- sprintf("SELECT %1$s FROM %2$s WHERE \"id\"='%3$s' and \"archived\"='f'",
+      textColumn,
+      tblName,
+      id
+      )
+    res <- mxDbGetQuery(dbInfo,q) 
+  }
+  if(textColumn %in% names(res)){
+  res <- mxDecode(res$content_b64)
+  }
+  return(res)
+}
+
+
+mxGetStoryMapName <- function(dbInfo){
+  tblName <- mxConfig$storyMapsTableName
+  if(!mxDbExistsTable(dbInfo,tblName)) return(data.frame())
+  q <- sprintf("SELECT name FROM %1$s WHERE \"archived\"='f'",tblName)
+  res <- mxDbGetQuery(dbInfo,q) 
+  return(res)
+}
+
 # available story
-mxData$storyMaps <- reactive({
+observe({
   if(mxReact$mapPanelMode != "mapStoryReader") return()
 
-  newStory <- mxReact$newStoryId
-
-  db <- NULL
+  update <- mxReact$updateStorySelector
   usr <- mxReact$userId
-  cnt <- mxReact$selectCountry
+  iso3 <- mxReact$selectCountry
+  panelMode <- mxReact$mapPanelMode 
+
+
   tblName <- mxConfig$storyMapsTableName
+  storyIds <- list()
  
   # validation
   if(
     isTRUE(!noDataCheck(usr)) && 
-    isTRUE(!noDataCheck(cnt)) && 
-    isTRUE(mxReact$mapPanelMode == "mapStoryReader") &&
-    isTRUE(tblName %in% mxDbListTable(dbInfo))
+    isTRUE(!noDataCheck(iso3)) && 
+    isTRUE(panelMode == "mapStoryReader") &&
+    isTRUE(mxDbExistsTable(dbInfo,tblName))
     ){
 
       # db : id,user,country,name,desc,content_b64,content_ascii
-      q <- sprintf("SELECT * FROM %1$s WHERE country='%2$s'",tblName,cnt)
-      db <- mxDbGetQuery(dbInfo,q) 
-    
-    }else{
-      # empty
-      db <- data.frame(
-        id=NA,
-        user=usr,
-        country=cnt,
-        name=NA,
-        desc=NA,
+      q <- sprintf("SELECT id, name FROM %1$s WHERE country='%2$s' AND \"archived\"='f' order by \"dateModified\" desc",tblName,iso3)
+      res <- mxDbGetQuery(dbInfo,q) 
 
-        content_b64=NA,
-        content_ascii=NA
+      storyIds <- res$id
+      names(storyIds) <-res$name
+   
+      updateSelectizeInput(session,
+        "selectStoryId",
+        choices=storyIds,
+        server=TRUE,
+        selected=storyIds[1]
         )
     }
-
-  if(!noDataCheck(newStory)){
-  db <- rbind(
-      db[db$id==newStory,],
-      db[db$id!=newStory,]
-    )
-  }
-
-
-    mxDebugMsg("Update of storymaps reactive function")
-   return(db)
-})
-
-
-observe({
-mxCatch(title="Update story selector",{
-
-  if(mxReact$mapPanelMode != "mapStoryReader") return()
-  mxDebugMsg("Update story selectize input")
-  #
-  # Update story map selector 
-  #
-  db <- mxData$storyMaps() 
-  listStory <- db$id
-  names(listStory) <-db$name
-  updateSelectizeInput(session,"selectStoryId",choices=listStory,server=TRUE,selected=listStory[1])
-    })
 })
 
 
 observeEvent(input$selectStoryId,{
-  mxCatch(title="Select story id",{
-    #
-    # Decode selected story
-    #
-    storyId <- input$selectStoryId
-    storyMap <- "Write a story.."
-    if(!noDataCheck(storyId,noDataVal="NA")){
-      storyMap <- mxData$storyMaps() 
-      storyMap <- storyMap[storyMap$id==storyId,"content_b64"]
-      if(is.na(storyMap)){
-        storyMap <- "Write a story.."
-      }else{
-        storyMap <- mxDecode(storyMap)
-      }
-    }else{
-      storyMap = " No story map yet :( "
-    }
-    mxReact$storyMap <- storyMap
+id <- input$selectStoryId
 
-    })
+story <-  mxGetStoryMapText(dbInfo,id)
+
+if(noDataCheck(story)) story = "Write a story ..."
+
+mxReact$storyMap <- story
+  
 })
+
+
+
+#observe({
+#mxCatch(title="Update story selector",{
+
+  #if(mxReact$mapPanelMode != "mapStoryReader") return()
+  #mxDebugMsg("Update story selectize input")
+  ##
+  ## Update story map selector 
+  ##
+  #db <- mxData$storyMaps() 
+  #listStory <- db$id
+  #names(listStory) <-db$name
+  #updateSelectizeInput(session,"selectStoryId",choices=listStory,server=TRUE,selected=listStory[1])
+    #})
+#})
+
+
+#observeEvent(input$selectStoryId,{
+  #mxCatch(title="Select story id",{
+    ##
+    ## Decode selected story
+    ##
+    #storyId <- input$selectStoryId
+    #storyMap <- "Write a story.."
+    #if(!noDataCheck(storyId,noDataVal="NA")){
+      #storyMap <- mxData$storyMaps() 
+      #storyMap <- storyMap[storyMap$id==storyId,"content_b64"]
+      #if(is.na(storyMap)){
+        #storyMap <- "Write a story.."
+      #}else{
+        #storyMap <- mxDecode(storyMap)
+      #}
+    #}else{
+      #storyMap = " No story map yet :( "
+    #}
+    #mxReact$storyMap <- storyMap
+
+    #})
+#})
 
 
 observeEvent(mxReact$storyMap,{
@@ -112,8 +140,7 @@ observeEvent(mxReact$storyMap,{
     #
     # Update editor
     #
-    mxUpdateText(id="txtStoryMap",text=storyMap)
-    mxDebugToJs(list(textStory=storyMap))
+    mxUpdateValue(id="txtStoryMapEditor",value=storyMap)
     #
     # Parse story map
     #

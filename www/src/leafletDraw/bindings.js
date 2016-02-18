@@ -30,8 +30,14 @@ LeafletWidget.methods.toggleDraw = function(options){
       this.addLayer( this.draw.items );
     }
 
+    // note : circle disable as retrieving geojson is not yet possible
+    // see #390
     options.edit = {
-      featureGroup : this.draw.items
+      featureGroup : this.draw.items,
+    };
+
+    options.draw = {
+      circle:false
     };
 
     this.draw.control = new L.Control.Draw( options );

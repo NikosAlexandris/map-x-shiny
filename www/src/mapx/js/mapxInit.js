@@ -19,6 +19,8 @@ $('.navbar-collapse ul li a').click(function() {
 
 
 
+
+
 // background selector
 
 bgClasses = ["mx-top-bg-1","mx-top-bg-2","mx-top-bg-3"];
@@ -28,6 +30,12 @@ var bgClass = bgClasses[Math.floor(Math.random()*bgClasses.length)];
 $("#sectionTop").addClass(bgClass);
 }
 
+
+
+// request meta for a layer
+function  mxRequestMeta(layer){
+  Shiny.onInputChange("mxRequestMeta", layer);
+}
 
 
 // When document is ready

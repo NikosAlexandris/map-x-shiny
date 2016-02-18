@@ -341,10 +341,9 @@ info box
   height:100%;
 }
 
-
-
 textarea {
 color:#000;
+width: 100%;
 }
 
 
@@ -682,9 +681,8 @@ btn upload
 
 label.btn input[type="file"] {
   position: fixed;
-  top: -1000px;
+  top: -10000px;
 }
-
 
 
 .btn-close {
@@ -692,6 +690,24 @@ margin:3px;
 cursor:pointer;
 }
 
+
+
+/* btn upload file*/
+
+#fileNewLayer {
+width:100%;
+}
+
+
+/* btn save view*/
+#btnViewCreatorSave{
+width:100%;
+}
+
+/* view buton group*/
+.mx-view-button-group{
+  padding:10px;
+}
 
 
 .map-x-title {
@@ -1504,20 +1520,12 @@ padding-bottom: 3000px;
 /* map tools */
 
 
-/* taken from http://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_dropdown*/
 
-.mx-btn-dropown {
-    background-color: #4CAF50;
-    color: white;
-    padding: 16px;
-    font-size: 16px;
-    border: none;
+.mx-btn-dropdown {
     cursor: pointer;
 }
 
-.mx-btn-dropown:hover, .dropbtn:focus {
-    background-color: #3e8e41;
-}
+
 
 .mx-dropdown {
     position: relative;
@@ -1543,6 +1551,7 @@ background-color: #f1f1f1
 .mx-dropdown-show {
   display: block;
 }
+
 
 .map-tool-button {
   width: 60px;

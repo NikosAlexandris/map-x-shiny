@@ -163,6 +163,10 @@ function  updateStoryMaps(){
 
             if(onView !== prevState){
               storyMapLayer[id].enable = onView;
+              
+              /*
+              set class for text when view state change
+              */
               if(onView){
                 storyMapLayer.store.push(vId);
                 $item.removeClass("mx-story-dimmed");
@@ -188,15 +192,19 @@ function  updateStoryMaps(){
               }
 
               if(( onView && ! hasLayer ) || ( !onView && hasLayer ) ){
+                setTimeout(function(){  
                 $("input[value=" + vId + "]").trigger("click");
+                  }, 200);
               }
 
+              /* Set extent for the current view */
               if(onView){
                 out = {
                   extent : vExt
                 };
                 Shiny.onInputChange("storyMapData",out);
               }
+              
 
               /*
                  out = {
@@ -631,8 +639,8 @@ function defaultStyle(feature) {
   var style = {};
   var selected = style.selected = {};
   var type = feature.type;
-  var dataCol = 'rgba(255,0,0,0.8)';
-  var size = 1;
+  var dataCol = 'rgba(255,0,0,0.5)';
+  var size = 5;
 
   switch (type) {
     case 1: //'Point'
@@ -640,22 +648,22 @@ function defaultStyle(feature) {
       style.color = dataCol;
       style.radius = size;
       selected.color = 'rgba(255,255,0,0.5)';
-      selected.radius = 6;
+      selected.radius = size+5;
       break;
     case 2: //'LineString'
       //style.color = 'rgba(161,217,155,0.8)';
       style.color = dataCol;
       style.size = size;
-      selected.color = 'rgba(255,25,0,0.5)';
+      selected.color = 'rgba(255,255,0,0.5)';
       selected.size = size;
       break;
     case 3: //'Polygon'
       style.color = dataCol;
       style.outline = {
-        color: 'rgba(0,0,0,1)',
+        color: dataCol,
         size: 1
       };
-      selected.color = 'rgba(255,0,0,0.3)';
+      selected.color = 'rgba(255,255,0,0.5)';
       selected.outline = {
         color: 'rgba(255,0,0,1)',
         size: size

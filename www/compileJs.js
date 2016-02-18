@@ -19,6 +19,7 @@ var inFile = [
   "src/mapx/js/mapx.js"
 ];
 
+
 var result = UglifyJS.minify(inFile,{
   mangle : true,
   compress : true

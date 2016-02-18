@@ -80,6 +80,10 @@ mxConfig$defaultZoom = 9
 mxConfig$defaultGroup = "G1"
 # column column used in postgis
 mxConfig$defaultGeomCol = "geom"
+
+
+mxConfig$mapxBotEmail = "bot@mapx.io"
+
 # languages
 
 # roles
@@ -125,11 +129,17 @@ mxConfig$mapPanelModeAvailable <- c(
   "mx-mode-creator",
   "mx-mode-story-reader"
   )
-
+# Name of the table containing layers meta data
+mxConfig$layersTableName = "mx_layers"
 # Name of the table containing the views data
 mxConfig$viewsListTableName = "mx_views"
 # Name of the table containing story maps
 mxConfig$storyMapsTableName = "mx_story_maps"
+# Prefix for archived 
+mxConfig$prefixArchiveLayer = "mx_archived_layers"
+mxConfig$prefixArchiveStory = "mx_archived_stories"
+mxConfig$prefixArchiveViews = "mx_archived_views"
+
 # Command to restart pgrestapi
 # NOTE: touch "restart.txt" reactivate nodejs application launched by NGINX + passenger.
 mxConfig$restartPgRestApi = "touch /home/vagrant/tools/pgrestapi/tmp/restart.txt"
@@ -163,11 +173,23 @@ mxConfig$tileProviders = list(
 # Set data classes
 mxConfig$class = list(
   "Development" = "dev",
+  "Energy"="nrg",
   "Environment" = "env",
   "Extractives" = "ext",
   "Stresses" = "str",
   "Custom" = "cus"
   )
+
+mxConfig$bibDefault = "
+title = My first map
+author = Grid dev team
+organization = Map-x
+address = Geneva
+year = 2016
+url = http://
+"
+
+
 
 #
 #

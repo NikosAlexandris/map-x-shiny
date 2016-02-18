@@ -27,8 +27,8 @@ observe({
       switch(analysis,
            "overlaps"={
           # prevent others layer to be evaluated.
-          idA = layers[grep("_ext__mineral",layers)]
-          idB = layers[grep("_env_",layers)]
+         idA <- layers
+         idB <- layers
 
           if(noDataCheck(idA) || noDataCheck(idB)){
             idA <- mxConfig$noData
@@ -95,7 +95,18 @@ observeEvent(input$btnAnalysisOverlaps,{
       # ASSUME THAT the same combination of layer will produce the same output.
       outName <- paste0("tmp__",digest(paste(idA,idB,idAVar)))
       mxUpdateText(id="txtAnalysisOverlaps",text="Launch analysis... This could a slow process, please be patient")
-      mxAnalysisOverlaps(dbInfo,idA,idB,outName,varToKeep=idAVar)
+
+
+
+      #
+      # Mmx overlap analysis
+      #
+      mxAnalysisOverlaps(
+        dbInfo=dbInfo,
+        inputBaseLayer = idA,
+        inputMaskLayer = idB,
+        outName,
+        varToKeep=idAVar)
 
       mxUpdateText(id="txtAnalysisOverlaps",text="Analysis done! Update vector tiles...")
 
@@ -121,6 +132,8 @@ observeEvent(input$btnAnalysisOverlaps,{
       #
 
       layers <- vtGetLayers(port=mxConfig$portVt,grepExpr=paste0("^tmp_"))
+      
+      
       if(outName %in% layers){
 
       mxUpdateText(id="txtAnalysisOverlaps",text="Vector tiles available, begin download.")
@@ -137,7 +150,7 @@ observeEvent(input$btnAnalysisOverlaps,{
           onLoadFeedback="always"
           ) 
       }else{
-        mxUpdateText(id="txtAnalysisOverlaps",text="Requested layer not available")
+        mxUpdateText(id="txtAnalysisOverlaps",text="something went wrong : layer computed but not available")
       }
 
     }
