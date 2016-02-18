@@ -85,7 +85,6 @@ mxConfig$defaultGeomCol = "geom"
 mxConfig$mapxBotEmail = "bot@mapx.io"
 
 
-
 # style
   mxConfig$defaultStyle = list(
     title = character(0),
