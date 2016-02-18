@@ -2153,7 +2153,14 @@ mxAnalysisOverlaps <- function(dbInfo,inputBaseLayer,inputMaskLayer,outName,data
         DO
         $$
         BEGIN
-        IF not EXISTS (SELECT gid FROM %1$s) THEN
+        IF not EXISTS (
+          SELECT attname 
+          FROM pg_attribute 
+          WHERE attrelid = (
+            SELECT oid 
+            FROM pg_class 
+            WHERE relname = '%1$s'
+            ) AND attname = 'gid') THEN
         ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
       ELSE
         raise NOTICE 'gid already exists';
