@@ -43,8 +43,8 @@ uiMapCreator <- tagList(
             )
           ),
         "style"=list("title"="Create a view",content=tagList(
-            textInput("mapViewTitle","Title",mxConfig$noData),
             selectInput("selLayer","Layer",choices=""),
+            textInput("mapViewTitle","Title",mxConfig$noData),
             selectInput("selColumnVar","Variable to display",choices=""),
             textInput("txtVarUnit","Suffix for labels"),
             selectInput("selPalette","Colors",choices=""),

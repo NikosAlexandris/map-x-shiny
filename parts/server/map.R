@@ -125,37 +125,48 @@ observeEvent(input$btnStoryReader,{
 #
 # Clear layer after exlorer mode enter
 #
-observeEvent(input$btnViewsExplorer,{
-  if(mxReact$allowMap){
-    mxCatch(title="Clean creator layers",{
-      reactiveValuesReset(mxStyle)
-      mxStyle <- reactiveValues()
+#observeEvent(input$btnViewsExplorer,{
+  #if(mxReact$allowMap){
+    #mxCatch(title="Clean creator layers",{
+
+      #reactiveValuesReset(mxStyle)
+      #mxStyle <- reactiveValues()
+      #dGroup <- mxConfig$defaultGroup
+      #legendId <- paste0(dGroup,"_legends")
+      #proxyMap <- leafletProxy("mapxMap")
+      #proxyMap %>%
+      #removeControl(layerId=legendId) %>%
+      #clearGroup(dGroup)
+  ## double remove.
+  ##mxRemoveEl(class=legendId)
+        #})
+  #}
+#})
+
+
+
+observeEvent(mxReact$mapPanelMode,{
+  if(mxReact$mapPanelMode %in% c("mapViewsCreator","mapViewsExplorer")){
+    mxReact$viewsToDisplay = ""
+    mxStyleReset(mxStyle)
+
+    if( mxReact$mapPanelMode == "mapViewsExplorer"){
+
       dGroup <- mxConfig$defaultGroup
       legendId <- paste0(dGroup,"_legends")
       proxyMap <- leafletProxy("mapxMap")
       proxyMap %>%
       removeControl(layerId=legendId) %>%
-      clearGroup(dGroup)
-  # double remove.
-  #mxRemoveEl(class=legendId)
-        })
+      clearGroup(dGroup)  
+
+    }
+
+
   }
 })
 
-#
-# Clear layer after creator enter
-#
-observeEvent(input$btnViewsCreator,{
-  if(mxReact$allowMap){
 
-    mxReact$viewsToDisplay = ""
-    mxStyle$group <- "G1"
-    mxStyle$layer <- NULL
-    mxStyle$variable <- NULL
-    mxStyle$values <- NULL
-      #   reactiveValuesReset(mxStyle)
-  }
-})
+
 
 #
 # Main map
@@ -490,7 +501,6 @@ if( file.exists(tmp)){
   #poiPath<- sprintf("www/data/poi/%1$s.geojson",tp)
   #ur <- sprintf("https://github.com/fxi/map-x-shiny/blob/master/%s",poiPath)
   #file.rename(tmp,poiPath)
-  #browser()
   #system(sprintf("git add %1$s",poiPath))
   #system("git commit -m 'update poi'")
   #system("git push")

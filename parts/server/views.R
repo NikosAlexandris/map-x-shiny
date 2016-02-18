@@ -117,40 +117,43 @@ observe({
 
 observe({
   mxCatch(title="Views manager",{
-    #
-    # views from url
-    #
-    vUrl <- mxReact$viewsFromUrl
-    #
-    # views from menu and story
-    #
-    vMenu <- c(
-      input$viewsFromMenu
-      )
-    #
-    # Views available
-    #
-    vAvailable <- names(mxReact$views) 
-    #
-    # Reset view to display
-    #
-    vToDisplay <- ""
 
-    #
-    # Build list
-    #
+    if(mxReact$mapPanelMode %in% c("mapViewsExplorer")){
+      #
+      # views from url
+      #
+      vUrl <- mxReact$viewsFromUrl
+      #
+      # views from menu and story
+      #
+      vMenu <- c(
+        input$viewsFromMenu
+        )
+      #
+      # Views available
+      #
+      vAvailable <- names(mxReact$views) 
+      #
+      # Reset view to display
+      #
+      vToDisplay <- ""
 
-    if(noDataCheck(vMenu) && !noDataCheck(vUrl)){
-      vToDisplay <- vUrl[vUrl %in% vAvailable]
-    }else if(!noDataCheck(vMenu)){
-      vToDisplay <-  vMenu[vMenu %in% vAvailable]
-    }else{
-      vToDisplay <- mxConfig$noData
+      #
+      # Build list
+      #
+
+      if(noDataCheck(vMenu) && !noDataCheck(vUrl)){
+        vToDisplay <- vUrl[vUrl %in% vAvailable]
+      }else if(!noDataCheck(vMenu)){
+        vToDisplay <-  vMenu[vMenu %in% vAvailable]
+      }else{
+        vToDisplay <- mxConfig$noData
+      }
+
+      mxReact$viewsToDisplay <- vToDisplay
+      mxReact$viewsFromUrl <- ""
+
     }
-
-    mxReact$viewsToDisplay <- vToDisplay
-    mxReact$viewsFromUrl <- ""
-
       })
 })
 
@@ -192,15 +195,22 @@ observeEvent(mxReact$vToHide,{
   mxCatch(title="View to hide",{
     vToHide <- mxReact$vToHide
     if(!noDataCheck(vToHide)){
-      # set expected legend id
-      legendId <- sprintf("%s_legends",vToHide)
-      # get map proxy, hide group and control. 
-      proxyMap <- leafletProxy("mapxMap",deferUntilFlush=FALSE)
-      proxyMap %>% 
-      removeControl(layerId=legendId) %>%
-      hideGroup(as.character(vToHide))
-      # double removal
-      mxRemoveEl(class=legendId)
+      for(vth in vToHide){
+        mxDebugMsg(
+          paste("View to hide =",
+            vth
+            )
+          )
+        # set expected legend id
+        legendId <- sprintf("%s_legends",vth)
+        #mxRemoveEl(class=legendId)
+        # get map proxy, hide group and control. 
+        proxyMap <- leafletProxy("mapxMap")
+        proxyMap %>% 
+        removeControl(layerId=legendId) %>%
+        hideGroup(as.character(vth))
+        # double removal
+      }
     }
       })
 })
@@ -213,21 +223,26 @@ observeEvent(mxReact$vToCalc,{
     vToCalc <- mxReact$vToCalc
     vData <- mxReact$views
     if(!noDataCheck(vToCalc)){
-      sty <- vData[[vToCalc]]$style
-      if(!noDataCheck(sty)){
-        mxDebugMsg(paste("First style computation for",vToCalc))
-        mxStyle$layer <- sty$layer
-        mxStyle$group <- vToCalc
-        mxStyle$variable <- sty$variable
-        vUnit <- sty$variableUnit
-        vToKeep <- sty$variableToKeep 
-        # As we check for null in layerStyle(),add "noData/noVariable" values.
-        if(is.null(vToKeep))vToKeep <- mxConfig$noVariable
-        mxStyle$variableToKeep <- vToKeep
+      for(vtc in vToCalc){
 
-        if(is.null(vUnit))vUnit <- ""
-        mxStyle$variableUnit
+        sty <- vData[[vtc]]$style
+        if(!noDataCheck(sty)){
+          mxDebugMsg(paste("First style computation for",vtc))
+          mxStyle$layer <- sty$layer
+          mxStyle$group <- vtc
+          mxStyle$variable <- sty$variable
 
+          # variable to keep
+          vToKeep <- sty$variableToKeep 
+          if(is.null(vToKeep))vToKeep <- mxConfig$noVariable
+          mxStyle$variableToKeep <- vToKeep
+
+          # variable unit
+          vUnit <- sty$variableUnit
+          if(is.null(vUnit))vUnit <- ""
+          mxStyle$variableUnit <- vUnit
+
+        }
       }
     }
       })

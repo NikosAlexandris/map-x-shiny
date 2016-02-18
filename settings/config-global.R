@@ -84,6 +84,26 @@ mxConfig$defaultGeomCol = "geom"
 
 mxConfig$mapxBotEmail = "bot@mapx.io"
 
+
+
+# style
+  mxConfig$defaultStyle = list(
+    title = character(0),
+    colors = character(0),
+    paletteFun = function(){},
+    values =character(0),
+    variable=character(0),
+    layer=character(0),
+    opacity=0.8,
+    size=20,
+    group=mxConfig$defaultGroup,
+    bounds=numeric(0),
+    mxDateMin=numeric(0),
+    mxDateMax=numeric(0),
+    variableUnit=character(0)
+    )
+
+
 # languages
 
 # roles
