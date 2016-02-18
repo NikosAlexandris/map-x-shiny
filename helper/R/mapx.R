@@ -1802,12 +1802,13 @@ mxCreateSecret =  function(n=20){
 #' @param classes
 #' @export
 mxMakeViews<-function(views,classes){
-  session = shiny:::getDefaultReactiveDomain()
+  session <- shiny:::getDefaultReactiveDomain()
   checkListOut <- p("No view found.")
 v <- views
 cl <- classes
   if(!is.null(v)){
     cl = mxConfig$class
+    # NOTE : what is this ?
     cl = data.frame(n=names(cl),id=as.character(cl),stringsAsFactors=FALSE)
     clUn = unique(sapply(v,function(x)x$class))
     viewsList = list()
