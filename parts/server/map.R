@@ -536,6 +536,7 @@ if( mxConfig$hostname != "map-x-full" ){
   r <- remoteInfo  
   remoteCmd(host="map-x-full",cmd=sendEmail)
 }else{
+  mxDebugToJs(sendEmail)
   system(sendEmail)
 }
 
