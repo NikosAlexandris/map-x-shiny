@@ -2492,7 +2492,6 @@ mxParseView <- function(text){
  # regular expression
 #  expr <- "@view_start\\(\\s*(.*?)\\s*[;]\\s*(.*?)\\s*[;]\\s*([0-9\\.,-]*?)\\s*\\)(.*?)@view_end"
   expr <- expr <- "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*([ 0-9,\\.\\-]+?)\\s*\\)(.*?)@view_end"
-  browser()
   # substitute
   gsub(
     "(lng):|(lat):|(zoom):",
