@@ -118,7 +118,7 @@ observe({
 observe({
   mxCatch(title="Views manager",{
 
-    if(mxReact$mapPanelMode %in% c("mapViewsExplorer")){
+    if(mxReact$mapPanelMode %in% c("mapViewsExplorer","mapStoryReader")){
       #
       # views from url
       #
