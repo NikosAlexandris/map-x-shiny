@@ -196,7 +196,7 @@ mxConfig$class = list(
   "Environment" = "env",
   "Extractives" = "ext",
   "Stresses" = "str",
-  "Customs" = "cus"
+  "Social" = "soc"
   )
 
 mxConfig$bibDefault = "

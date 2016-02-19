@@ -2008,7 +2008,7 @@ cl <- classes
           sprintf("
             /* add tooltip handler  */
             $('#%1$s').tooltip({
-              delay : 500,
+              delay : 100,
               placement : 'right',
               container: '#sectionMap'
             });
