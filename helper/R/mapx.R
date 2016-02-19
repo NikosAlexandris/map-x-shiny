@@ -1978,7 +1978,7 @@ cl <- classes
       # toggle option panel for this view . TODO: use bootstrap for this
       toggleOptions <- sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)
       # set on hover previre for this view
-      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,2000))
+      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,500))
       #previewTimeOut <- ""
       #
       # HTML 
@@ -2008,7 +2008,7 @@ cl <- classes
           sprintf("
             /* add tooltip handler  */
             $('#%1$s').tooltip({
-              delay : 2000,
+              delay : 500,
               placement : 'right',
               container: '#sectionMap'
             });
