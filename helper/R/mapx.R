@@ -1836,6 +1836,7 @@ cl <- classes
         #
         it <- items[j]
         itId <- as.character(it)
+        dat <- v[[itId]]
         itName <- names(it)
         itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
         itIdLabel <- sprintf('label_for_%s',itId)
@@ -1846,11 +1847,17 @@ cl <- classes
         #
         # check if time slider or filter should be shown
         #
-        hasDate <- isTRUE(v[[itId]]$style$hasDateColumns)
-        hasCompany <- isTRUE(v[[itId]]$style$hasCompanyColumn)
+        hasDate <- isTRUE(dat$style$hasDateColumns)
+        hasCompany <- isTRUE(dat$style$hasCompanyColumn)
+        
+        # get description
+        #
+
+        desc <- dat$style$description
+
 
         # layer name
-        layerName <- v[[itId]]$layer
+        layerName <- dat$layer
 
         #
         # create time slider
@@ -1858,8 +1865,8 @@ cl <- classes
         if(hasDate){
           timeSlider <- mxTimeSlider(
             id=itId,
-            min=as.numeric(as.POSIXct(v[[itId]]$style$dateMin))*1000,
-            max=as.numeric(as.POSIXct(v[[itId]]$style$dateMax))*1000,
+            min=as.numeric(as.POSIXct(dat$style$dateMin))*1000,
+            max=as.numeric(as.POSIXct(dat$style$dateMax))*1000,
             lay=v[[itId]]$layer
             )
         }else{
@@ -1872,7 +1879,7 @@ cl <- classes
           # which field contains company names ?
           fieldSelected <- "parties"
 
-          companies <- unlist(v[[itId]]$style$companies)
+          companies <- unlist(dat$style$companies)
           updateSelectizeInput(session,
             itIdFilterCompany,
             choices = companies,
@@ -1897,7 +1904,7 @@ cl <- classes
                       });
                   }
                   ',
-                  v[[itId]]$layer,#1
+                  dat$layer,#1
                   itId,#2
                   fieldSelected#3
                   )
@@ -1968,16 +1975,16 @@ cl <- classes
         )
 
 
-      # toggle option panel for this view
+      # toggle option panel for this view . TODO: use bootstrap for this
       toggleOptions <- sprintf("toggleOptions('%s','%s','%s')",itId,itIdCheckOptionLabel,itIdCheckOptionPanel)
       # set on hover previre for this view
-      # previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,3000))
-      previewTimeOut <- ""
+      previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,2000))
+      #previewTimeOut <- ""
       #
       # HTML 
       #
       val <- div(class="checkbox",
-        tags$label(id=itIdLabel,draggable=TRUE,`data-viewid`=itId,`data-viewtitle`=itName,
+        tags$label(id=itIdLabel,draggable=TRUE,`data-viewid`=itId,`data-viewtitle`=itName,`data-toggle`="tooltip",title=dat$style$description,
           tags$input(type="checkbox",class="vis-hidden",name=id,value=itId,
             onChange=toggleOptions),
           div(class="map-views-item",
@@ -1993,11 +2000,19 @@ cl <- classes
               ),
             timeSlider,
             filterSelect,
-            viewButtons
+            viewButtons,
+            previewTimeOut
             )
           ),
         tags$script(
           sprintf("
+            /* add tooltip handler  */
+            $('#%1$s').tooltip({
+              delay : 2000,
+              placement : 'right',
+              container: '#sectionMap'
+            });
+            /* Add drag handler*/
             document.getElementById('%1$s')
             .addEventListener('dragstart',function(e){
               var coord = document.getElementById('txtLiveCoordinate').innerHTML,
