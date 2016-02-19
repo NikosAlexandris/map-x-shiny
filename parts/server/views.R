@@ -126,9 +126,11 @@ observe({
       #
       # views from menu and story
       #
-      vMenu <- c(
-        input$viewsFromMenu
-        )
+      vMenu <- unique(c(
+        input$viewsFromMenu,
+        input$viewsFromPreview
+        ))
+      mxDebugMsg(vMenu)
       #
       # Views available
       #
