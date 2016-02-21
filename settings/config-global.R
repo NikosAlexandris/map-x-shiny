@@ -196,7 +196,8 @@ mxConfig$class = list(
   "Environment" = "env",
   "Extractives" = "ext",
   "Stresses" = "str",
-  "Social" = "soc"
+  "Social" = "soc",
+  "Customs" = "cus"
   )
 
 mxConfig$bibDefault = "
@@ -262,8 +263,10 @@ mxData$rgi_score_2013 <- na.omit(import('data/rgi_2013-compscores.csv'))
 mxData$rgi_score_2013$iso3 <- countrycode(mxData$rgi_score_2013$Country,'country.name','iso3c')
 
 
-mxConfig$mapboxToken = "pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
-mxConfig$mapboxStyle = "mapbox://styles/helsinki/cik9kvy2d0023b6m40iq3dhwe"  
+#mxConfig$mapboxToken = "pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
+mxConfig$mapboxToken = "pk.eyJ1IjoidW5lcGdyaWQiLCJhIjoiY2lrd293Z3RhMDAzNHd4bTR4YjE4MHM0byJ9.9c-Yt3p0aKFSO2tX6CR26Q"
+#mxConfig$mapboxStyle = "mapbox://styles/helsinki/cik9kvy2d0023b6m40iq3dhwe"  
+mxConfig$mapboxStyle = "mapbox://styles/unepgrid/cikwoxzjr00fob0lxslqnu3r9"
 
 # Default base layer for testing
 mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,lat=0,zoom=5)){
