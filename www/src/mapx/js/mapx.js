@@ -135,10 +135,13 @@ function  updateStoryMaps(){
           var $item = $(this);
           var enable = false,
           id = $item.prop('id'),
-          vId = $item.attr("mx-map-id"),
+          vId = $item.attr("mx-map-id").split(","),
           vExt = JSON.parse($item.attr("mx-map-extent")),
-          vTit = $item.attr('mx-map-title'),
+
+          /*vTit = $item.attr('mx-map-title'),*/
+
           prevData = storyMapLayer[id],
+
           prevState = false,
           onView = false,
           hasLayer = false,
@@ -186,17 +189,37 @@ function  updateStoryMaps(){
 */
 
               /* check if map already has the layer */
+            
+    
+    
+    var clickMeThis = function(){  
+                $("input[value=" + vSub + "]").trigger("click");
+                 };
+                 
+                 
 
-              if ( typeof leafletvtId[vId] !== "undefined" ){
-                hasLayer = leafletvtId[vId].map.hasLayer(leafletvtId[vId]);
+
+
+
+
+
+              for(var v in vId){
+              var vSub = vId[v];
+              if ( leafletvtId[vSub] !== undefined ){
+                hasLayer = leafletvtId[vSub].map.hasLayer(leafletvtId[vSub]);
               }
 
               if(( onView && ! hasLayer ) || ( !onView && hasLayer ) ){
-                setTimeout(function(){  
-                $("input[value=" + vId + "]").trigger("click");
-                  }, 200);
+
+               var  el =  $("input[value=" + vSub + "]");
+                console.log(el) ;
+               el.trigger("click");
+//  setTimeout(clickMeThis, 200);
+              }
               }
 
+
+             
               /* Set extent for the current view */
               if(onView){
                 out = {

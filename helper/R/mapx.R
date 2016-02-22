@@ -2356,36 +2356,6 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
 
 
 
-#' Parse vimeo string 
-#' @param text Story map text with @vimeo( id ; desc ) tag
-#' @return html enabled version
-#' @export
-mxParseVimeo <- function(text){
-
-  # remplacement string
-  html <- tags$div(
-  tags$iframe(
-    src=sprintf("https://player.vimeo.com/video/%1$s?autoplay=0&color=ff0179",'\\1'),
-    width="300",
-    frameborder="0",
-    webkitallowfullscreen="",
-    mozallowfullscreen="",
-    allowfullscreen=""
-    ),
-  span(style="font-size=10px",'\\2')
-  )
-
-  # regular expression
-  expr <- "@vimeo\\(\\s*([ 0-9]+?)\\s+[;]+\\s*([ a-zA-Z0-9,._-]*?)\\s*\\)"
-
-  # substitute
-  gsub(
-    expr,
-    html,
-    text
-    )
-
-}
 
 
 #' R list to html
@@ -2489,6 +2459,40 @@ listToHtmlClass<-function(listInput, exclude=NULL, c=0, htL="",classUl="list-gro
 
 
 
+
+#' Parse vimeo string 
+#' @param text Story map text with @vimeo( id ; desc ) tag
+#' @return html enabled version
+#' @export
+mxParseVimeo <- function(text){
+
+  # remplacement string
+  html <- tags$div(
+  tags$iframe(
+    src=sprintf("https://player.vimeo.com/video/%1$s?autoplay=0&color=ff0179",'\\1'),
+    width="300",
+    frameborder="0",
+    webkitallowfullscreen="",
+    mozallowfullscreen="",
+    allowfullscreen=""
+    ),
+  span(style="font-size=10px",'\\2')
+  )
+
+  # regular expression
+  expr <- "@vimeo\\(\\s*([ 0-9]+?)\\s+[;]+\\s*([ a-zA-Z0-9,._-]*?)\\s*\\)"
+
+  # substitute
+  gsub(
+    expr,
+    html,
+    text
+    )
+
+}
+
+
+
 #' Parse view string
 #' @param test Story map text with @view_start( name ; id ; extent ) ... @view_end tags
 #' @return parsed html 
@@ -2506,7 +2510,7 @@ mxParseView <- function(text){
 
  # regular expression
 #  expr <- "@view_start\\(\\s*(.*?)\\s*[;]\\s*(.*?)\\s*[;]\\s*([0-9\\.,-]*?)\\s*\\)(.*?)@view_end"
-  expr <- expr <- "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*([ 0-9,\\.\\-]+?)\\s*\\)(.*?)@view_end"
+  expr <- expr <- "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z,]*?)\\s*[;]+\\s*([ 0-9,\\.\\-]+?)\\s*\\)(.*?)@view_end"
   # substitute
   gsub(
     "(lng):|(lat):|(zoom):",

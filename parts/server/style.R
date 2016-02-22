@@ -180,7 +180,7 @@ observe({
     proxymap %>% 
     glAddLayer(
       idGl = "basemap",
-      idBelowTo = "contours",
+      idBelowTo = "hillshade",
       style = styleList[[selBaseMap]] 
       )     
     }else{
