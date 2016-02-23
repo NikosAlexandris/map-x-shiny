@@ -107,7 +107,7 @@ mxConfig$mapxBotEmail = "bot@mapx.io"
 
 # roles
 mxConfig$rolesVal <- list(
-  "superuser" = 1000,
+  "superuser" = 10000,
   "admin" = 1000,
   "user" = 100,
   "visitor" = 0

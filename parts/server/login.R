@@ -200,7 +200,7 @@ observe({
   mxReact$allowAdmin <- mxAllow(
     logged = mxReact$userLogged,
     roleName = mxReact$userRole,
-    roleLowerLimit = 1000
+    roleLowerLimit = 10000
     )
 
 })
