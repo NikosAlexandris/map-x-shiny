@@ -310,7 +310,8 @@ mxData$pwd <- rbind(
   c(id=9,u="sandra",l="f40a37048732da05928c3d374549c832",k="4925a6581bde894377a2827c9b94608c", r="user",e="mail@example.com"),
   c(id=10,u="mady",l="137f13f84ad65ab8772946f3eb1d3a65",k="57ba663c95d2e961727cf6ce004e5886", r="user",e="mail@example.com"),
   c(id=11,u="nik", l="f64609172efea86a5a6fbae12ab86d33",k="81dc9bdb52d04dc20036dbd8313ed055", r="superuser",e="nikos.alexandris@unepgrid.ch"),
-  c(id=12,u="random", l="7ddf32e17a6ac5ce04a8ecbf782ca509",k="7ddf32e17a6ac5ce04a8ecbf782ca509", r="user",e="random@unepgrid.ch")
+  c(id=12,u="random", l="7ddf32e17a6ac5ce04a8ecbf782ca509",k="7ddf32e17a6ac5ce04a8ecbf782ca509", r="user",e="random@unepgrid.ch"),
+  c(id=13,u="admin", l="21232f297a57a5a743894a0e4a801fc3",k="d25a67c94fa9f1f2775c956719b6b0f7", r="admin",e="admin@example.com")
   )
 
 mxData$pwd <- as.data.frame(mxData$pwd,stringsAsFactors=F)
