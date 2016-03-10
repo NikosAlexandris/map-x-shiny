@@ -73,7 +73,13 @@ observe({
   if(mxReact$allowToolbox){
     selLayer <- input$selectOverlapA
     if(!noDataCheck(selLayer)){
-      vars <- vtGetColumns(table=selLayer,port=mxConfig$portVt)$column_name
+
+      vars <- vtGetColumns(
+        protocol=mxConfig$protocolVt,
+        table=selLayer,
+        port=mxConfig$portVt
+        )$column_name
+
       vars <- vars[!vars %in% c("geom","gid")]
       updateSelectInput(session,"selectOverlapAVar",choices=vars)
     }
@@ -132,7 +138,11 @@ observeEvent(input$btnAnalysisOverlaps,{
       # Add layer
       #
 
-      layers <- vtGetLayers(port=mxConfig$portVt,grepExpr=paste0("^tmp_"))
+      layers <- vtGetLayers(
+        protocol=mxConfig$protocolVt,
+        port=mxConfig$portVt,
+        grepExpr=paste0("^tmp_")
+        )
       
       
       if(outName %in% layers){

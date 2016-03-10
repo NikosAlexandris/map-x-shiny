@@ -30,7 +30,11 @@ observe({
         var <- mxStyle$variable 
         if(mapViewMode == "mapViewsCreator"){
          # In creator mode, get all the variables 
-          vars <- vtGetColumns(table=lay,port=mxConfig$portVt)$column_name
+          vars <- vtGetColumns(
+            protocol=mxConfig$protocolVt,
+            table=lay,
+            port=mxConfig$portVt
+            )$column_name
           feedback <- "always"
           #feedBack <- "once" # input$leafletvtLoaded will not be triggered more than once 
         }else{

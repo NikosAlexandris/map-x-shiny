@@ -89,8 +89,8 @@ Hash: 71771ef2ee8e27d4aa46babd7163dac5
 
 Package: curl
 Source: CRAN
-Version: 0.9.5
-Hash: 03562aad7537914f516bd67e9bba28b1
+Version: 0.9.6
+Hash: 21fb53e12f47bff18a2db6ab69bd87a0
 
 Package: data.table
 Source: CRAN
@@ -156,8 +156,8 @@ Requires: digest
 
 Package: htmlwidgets
 Source: CRAN
-Version: 0.5
-Hash: 0aa33e8666baac6fcff4e376789b9c2e
+Version: 0.6
+Hash: 267a36d738dd98cec3dc9c471becb717
 Requires: htmltools, jsonlite, yaml
 
 Package: httpuv
@@ -189,24 +189,24 @@ Hash: ecf589b42cd284b03a4beb9665482d3e
 
 Package: leaflet
 Source: github
-Version: 1.0.1.9002
-Hash: 04e1a9bd6926521f4fc3040bce0a0e33
+Version: 1.0.1.9003
+Hash: e5305c65fb7e93ab1229ebb9b95132ec
 Requires: RColorBrewer, base64enc, htmltools, htmlwidgets, magrittr,
     markdown, png, raster, scales, sp
 GithubRepo: leaflet
 GithubUsername: rstudio
 GithubRef: master
-GithubSha1: f89f66d19149ead272952de8de808f7127fe4a14
+GithubSha1: 52c792d9db313df60a5741f8678d7c05e307cdfe
 
 Package: leafletvt
 Source: github
-Version: 0.0.4
-Hash: 22cb0e42887fd1705d4c45ad589805bf
+Version: 0.0.5
+Hash: 026910b34db79d0f64ad22fac49c3747
 Requires: RPostgreSQL, curl, jsonlite, leaflet
 GithubRepo: leafletvt
 GithubUsername: fxi
 GithubRef: master
-GithubSha1: a545c14b6ab2f391354b0fb113cc01e80bee5a37
+GithubSha1: 7ff6110741b274468a00d542dc6ef7e30941df9b
 
 Package: magrittr
 Source: CRAN
@@ -232,8 +232,8 @@ Hash: b08c52dae92a0a11e64a4deea032ec33
 
 Package: munsell
 Source: CRAN
-Version: 0.4.2
-Hash: 72d343a6664778029f49a7ad36de1cab
+Version: 0.4.3
+Hash: f96d896947fcaf9b6d0074002e9f4f9d
 Requires: colorspace
 
 Package: openxlsx
@@ -301,15 +301,9 @@ Requires: XML, curl, data.table, haven, jsonlite, openxlsx, readODS,
 
 Package: scales
 Source: CRAN
-Version: 0.3.0
-Hash: 9c140be1bda3cf690f8714cfc810aa45
+Version: 0.4.0
+Hash: b74e3f81bab2d88325d8798d5e03e0cc
 Requires: RColorBrewer, Rcpp, dichromat, labeling, munsell, plyr
-
-Package: sendmailR
-Source: CRAN
-Version: 1.2-1
-Hash: 26561ceb5871f3983b40c2bfdf90ed09
-Requires: base64enc
 
 Package: shiny
 Source: github

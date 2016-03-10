@@ -405,7 +405,7 @@ observe({
     update <- mxReact$layerListUpdate
 
     mxCatch("Update input: pgrestapi layer list",{
-      layers <- vtGetLayers(port=mxConfig$portVt,grepExpr=paste0("^",cntry,"_"))
+      layers <- vtGetLayers(protocol=mxConfig$protocolVt,port=mxConfig$portVt,grepExpr=paste0("^",cntry,"_"))
       if(!noDataCheck(layers)){
         choice = c(choice,layers)  
       }
@@ -437,7 +437,12 @@ observeEvent(input$selLayer,{
     if(!noDataCheck(lay)){
       mxCatch("Update input: layer columns",{
 
-        variables <- vtGetColumns(table=lay,port=mxConfig$portVt,exclude=c("geom","gid"))$column_name
+        variables <- vtGetColumns(
+          protocol=mxConfig$protocolVt,
+          table=lay,
+          port=mxConfig$portVt,
+          exclude=c("geom","gid")
+          )$column_name
 
         if(!noDataCheck(variables)){
           vars = variables

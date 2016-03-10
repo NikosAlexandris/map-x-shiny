@@ -190,6 +190,7 @@ output$mapxMap <- renderLeaflet({
 #
 
 observeEvent(mxReact$mapInitDone,{
+
   map <- leafletProxy("mapxMap")
   map %>% 
 glInit(
@@ -215,7 +216,8 @@ glInit(
 #' Create url for pgrestapi source
 #' @return url 
 glMakeUrl <- function(
-  host,
+  protocole="http",
+  host="localhost",
   port,
   table,
   fieldVariables,
@@ -223,7 +225,9 @@ glMakeUrl <- function(
   ){
  # layer <- paste0(table,"_",fieldGeom) 
   query <- sprintf("?fields=%s",paste(fieldVariables,collapse=",")) 
-  url <- sprintf("http://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.pbf%s",
+
+  url <- sprintf("%s://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.pbf%s",
+    protocole,
     host,
     port,
     table,
@@ -242,22 +246,51 @@ observeEvent(input$glLoaded,{
   proxymap <- leafletProxy("mapxMap")
 
   # Country overlay source
-  tilesCountry <- glMakeUrl(mxConfig$hostVt,mxConfig$portVtPublic,"mx_country_un","iso3code","geom")
+  tilesCountry <- glMakeUrl(
+    protocole = mxConfig$protocolVt,
+    host = mxConfig$hostVt,
+    port= mxConfig$portVtPublic,
+    table="mx_country_un",
+    fieldVariables="iso3code",
+    fieldGeom="geom"
+    )
 
+  #srcAcled = list(
+    #data = "data/acled_test.geojson",
+    #type = "geojson",
+    #cluster = TRUE,
+    #clusterMaxZoom = 14, 
+    #clusterRadius = 50
+    #)
+
+
+  srcSatellite = list(
+    url = "mapbox://mapbox.satellite",
+    type = "raster",
+    tileSize = 256 
+    )
+
+  srcCountry = list(
+    tiles = tilesCountry,
+    type = "vector" 
+    )
+  
   proxymap  %>%
   glAddSource(
     idGl = "basemap",
     idSource = "mapboxsat",
-    url = "mapbox://mapbox.satellite",
-    type = "raster",
-    tileSize = 256
+    style = srcSatellite
     ) %>%  
   glAddSource(
     idGl = "basemap",
     idSource = "country",
-    tiles = tilesCountry,
-    type = "vector"
-    )  
+    style = srcCountry
+    ) 
+#  glAddSource(
+    #idGl = "basemap",
+    #idSource= "acled",
+    #style = srcAcled
+    #)
 
     })
 
@@ -272,6 +305,8 @@ observeEvent(input$glLoaded,{
   if(
     isTRUE( initOk )
     ){
+
+
 
 
   countryStyle  = list(
@@ -293,7 +328,7 @@ observeEvent(input$glLoaded,{
       idGl = "basemap",
       idBelowTo = NULL,
       style= countryStyle
-      ) 
+      )
   }
   })
 })
@@ -321,6 +356,23 @@ observe({
 
     proxyMap <- leafletProxy("mapxMap")
 
+    #acledStyle = list(
+      #`id` = "acled_test",
+      #`type` = "circle",
+      #`source`="acled",
+      #`paint` = list(
+        #`circle-radius`=5,
+        #`circle-color`="#990000"
+    #    )
+     # `layout`= list(
+        #`icon-image`= "{marker-symbol}-15",
+        #`text-field`= "{title}",
+        #`text-font`= c("Open Sans Semibold", "Arial Unicode MS Bold"),
+        #`text-offset`= c(0, 0.6),
+        #`text-anchor`= "top"
+     #   )
+     # )
+
     proxyMap %>%
     setView(center$lng,center$lat,center$zoom) %>%
     glSetFilter(
@@ -328,6 +380,16 @@ observe({
       idLayer=layId,
       filter=filt
       )
+
+
+    #proxyMap  %>%
+     #glAddLayer(
+      #idGl = "basemap",
+      #style= acledStyle
+      #) 
+    
+
+
   }
 })
 
