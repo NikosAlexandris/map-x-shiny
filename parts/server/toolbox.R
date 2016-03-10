@@ -151,6 +151,7 @@ observeEvent(input$btnAnalysisOverlaps,{
         proxyMap <- leafletProxy("mapxMap")
         proxyMap %>%
         addVectorTiles(
+          protocol=mxConfig$protocolVtPublic,
           url=mxConfig$hostVt,
           port=mxConfig$portVtPublic,
           geomColumn="geom", # should be auto resolved by PGRestAPI

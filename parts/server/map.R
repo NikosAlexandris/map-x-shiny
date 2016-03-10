@@ -216,7 +216,7 @@ glInit(
 #' Create url for pgrestapi source
 #' @return url 
 glMakeUrl <- function(
-  protocole="http",
+  protocol="http",
   host="localhost",
   port,
   table,
@@ -227,7 +227,7 @@ glMakeUrl <- function(
   query <- sprintf("?fields=%s",paste(fieldVariables,collapse=",")) 
 
   url <- sprintf("%s://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.pbf%s",
-    protocole,
+    protocol,
     host,
     port,
     table,
@@ -247,7 +247,7 @@ observeEvent(input$glLoaded,{
 
   # Country overlay source
   tilesCountry <- glMakeUrl(
-    protocole = mxConfig$protocolVt,
+    protocol = mxConfig$protocolVt,
     host = mxConfig$hostVt,
     port= mxConfig$portVtPublic,
     table="mx_country_un",

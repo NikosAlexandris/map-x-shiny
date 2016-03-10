@@ -54,6 +54,7 @@ observe({
 
         proxyMap %>%
         addVectorTiles(
+          protocol       = mxConfig$protocolVtPublic,
           url            = mxConfig$hostVt,
           port           = mxConfig$portVtPublic,
           geomColumn     = "geom",

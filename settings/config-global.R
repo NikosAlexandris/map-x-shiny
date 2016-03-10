@@ -42,11 +42,13 @@ mxConfig$hostname<-Sys.info()['nodename']
 
 if ( mxConfig$hostname == "map-x-full" ) {
   mxConfig$protocolVt <- "http"
+  mxConfig$protocolVtPublic <- "http"
   mxConfig$portVt <- 80
   mxConfig$portVtPublic <- 8080
   mxConfig$hostVt <- "localhost"
 }else{
   mxConfig$protocolVt <- "http"
+  mxConfig$protocolVtPublic <- "http"
   mxConfig$portVt <- 8080
   mxConfig$portVtPublic <- 8080
   mxConfig$hostVt <- "localhost"
