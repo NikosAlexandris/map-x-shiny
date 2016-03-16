@@ -222,15 +222,7 @@ observeEvent(input$glLoaded,{
     fieldGeom="geom"
     )
 
-  #srcAcled = list(
-    #data = "data/acled_test.geojson",
-    #type = "geojson",
-    #cluster = TRUE,
-    #clusterMaxZoom = 14, 
-    #clusterRadius = 50
-    #)
-
-
+ 
   srcSatellite = list(
     url = "mapbox://mapbox.satellite",
     type = "raster",
@@ -254,11 +246,6 @@ observeEvent(input$glLoaded,{
     idSource = "country",
     style = srcCountry
     ) 
-#  glAddSource(
-    #idGl = "basemap",
-    #idSource= "acled",
-    #style = srcAcled
-    #)
 
     })
 

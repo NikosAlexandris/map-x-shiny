@@ -48,7 +48,6 @@ source("settings/config-global.R")
 #
 source("settings/config-local.R")
 
-
 shinyServer(function(input, output, session) {
   mxCatch(title="Main server function",{
      #
