@@ -43,7 +43,7 @@ tagList(
         ),
       tags$footer( 
         tags$script( src="dist/assets.js" ),
-        tags$script( src="src/mapx/js/mapx.js" ),
+        #tags$script( src="src/mapx/js/mapx.js" ),
         uiOutput("mapxInit")
         )
       )
