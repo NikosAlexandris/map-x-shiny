@@ -33,8 +33,13 @@ $("#sectionTop").addClass(bgClass);
 
 
 // request meta for a layer
-function  mxRequestMeta(layer){
-  Shiny.onInputChange("mxRequestMeta", layer);
+function  mxRequestMeta(viewId){
+  var trigger = new Date();
+  Shiny.onInputChange("mxRequestMeta", { 
+    id:viewId, 
+    time:trigger
+  }
+  );
 }
 
 
@@ -44,6 +49,19 @@ $( document ).ready(function() {
   changeBg();
 // remove loading screen
 $("#sectionLoading").css({display:'none'});
+
+$('#storyMapModal').draggable({ 
+  handle:'#storyMapModalHandle',
+  containment: '#sectionMap'
+});
+$('#btnStoryCreator').click(
+  function(){
+    $id = $('#storyMapModal');
+    $id.toggleClass('mx-hide');
+  }
+);
+
+
 // update map panel element
   updateMapElement();
 // update documentIsReady input

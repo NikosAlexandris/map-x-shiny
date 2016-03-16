@@ -22,3 +22,5 @@ tests/testthat/packrat/
 packrat-scenario*/
 # libre office temp file
 .~lock*
+# node modules
+www/node_modules

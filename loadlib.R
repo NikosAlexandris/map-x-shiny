@@ -12,7 +12,6 @@
 library(shiny)
 library(memoise)
 library(leaflet)
-library(leafletvt)
 library(jsonlite)
 library(WDI)
 library(countrycode)

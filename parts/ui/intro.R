@@ -17,9 +17,9 @@ tags$section(id="sectionTop",class="mx-section-container mx-section-top containe
         hr()
         ),
       tags$div(class="map-x-logos hidden-xs ",
-        tags$img(src="img/intro_logo_grid_white_en.svg",class="map-x-logo"),
-        tags$img(src="img/intro_world-bank-optimized.svg",class="map-x-logo"),
-        tags$img(src="img/intro_g7-vect-optimized.svg",class="map-x-logo"),
+        tags$img(src="img/intro_logo_grid_white_en.svg",height="50px",class="map-x-logo"),
+        tags$img(src="img/intro_world-bank-optimized.svg",height="50px",class="map-x-logo"),
+        tags$img(src="img/intro_g7-vect-optimized.svg",height="50px",class="map-x-logo"),
         hr()
         ),
       div(class="col-xs-12",

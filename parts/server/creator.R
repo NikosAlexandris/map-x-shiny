@@ -163,7 +163,7 @@ observeEvent(mxReact$newLayerSummary,{
   sl <- mxReact$newLayerSummary 
   if(TRUE){
     sl <- HTML(listToHtmlClass(sl,exclude="file"))
-    ui<-tagList(div(style="max-height:400px;overflow-y:scroll;",
+    ui<-tagList(div(class="mx-panel-400",
         h6("Upload done"),
         p("Please review DB importation before continuing:"),
         sl

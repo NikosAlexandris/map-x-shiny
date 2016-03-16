@@ -122,7 +122,7 @@ function setUniqueItemsId(){
 
 
   // story map handler
-function  updateStoryMaps(){
+function  updateStoryMaps_orig(){
 
     // var containerOffset =  $("#mxStoryContainerPreview").offset().top;
 
@@ -226,7 +226,7 @@ function  updateStoryMaps(){
     );
   }
 
-
+updateStoryMaps = debounce(updateStoryMaps_orig,50);
 
 
 //
@@ -392,50 +392,62 @@ function mxSetFilter(layer,id,column,value){
 }
 
 
-
+// https://davidwalsh.name/javascript-debounce-function
+// Returns a function, that, as long as it continues to be invoked, will not
+// be triggered. The function will be called after it stops being called for
+// N milliseconds. If `immediate` is passed, trigger the function on the
+// leading edge, instead of the trailing.
+function debounce(func, wait, immediate) {
+  var timeout;
+  return function() {
+    var context = this, args = arguments;
+    var later = function() {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    var callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+}
 
 
 
 //
 // Set time slider filter
 //
-function mxFilterDate(id,date,lay){
+function mxFilterDate_orig(id,date,lay){
   // copy style
   vtStyle = leafletvtId[id].vtStyle;
   // create function to apply
   var sty = function(feature) {
+
     var style = {};
     var selected = style.selected = {};
     var  type = feature.type,
     defaultColor = 'rgba(0,0,0,0)',
     dataCol = defaultColor,
     val = feature.properties[vtStyle.dataColum],
-    dateFeatStart = feature.properties.mx_date_start,
-    dateFeatEnd = feature.properties.mx_date_end,
-    d = []; 
-    // skip = set feature style to default(transparent)
-    var skip = false ;
-    // if 
-    var hasDate = false ;
-
-    if( typeof(dateFeatEnd) != "undefined" && typeof(dateFeatStart) != "undefined" ){
+    dStart = parseInt(feature.properties.mx_date_start),
+    dEnd = parseInt(feature.properties.mx_date_end),
+    dFilter = parseInt(date),
+    skip = false,
+    hasDate = false ;
+ if(feature.properties.code=="5823"){
+         debugger;
+       }
+    if( typeof(dEnd) != "undefined" && typeof(dStart) != "undefined" ){
       hasDate = true;
-      d.push(
-          date*1000,
-          dateFeatStart*1000,
-          dateFeatEnd*1000
-          );
-
-      if(hasDate){
-        if(d[0] > d[2] || d[0] < d[1] ){
-          skip = true;
-        }
+      
+      if( dFilter < dStart || dFilter > dEnd ){
+        skip = true;
       }
     }
 
 
     if(skip){
-      return;
+       dataCol = defaultColor;
     }else{
       if( typeof(val) != 'undefined'){ 
         dataCol = hex2rgb(vtStyle.colorsPalette[val],vtStyle.opacity);
@@ -444,7 +456,6 @@ function mxFilterDate(id,date,lay){
         }
       }
     }
-
     switch (type) {
       case 1: //'Point'
         style.color = dataCol;
@@ -477,12 +488,12 @@ function mxFilterDate(id,date,lay){
   leafletvtId[id].setStyle(sty,lay+"_geom");
 }
 
-
+var mxFilterDate = debounce(mxFilterDate_orig,50);
 
 //
 // Set time slider filter
 //
-function mxSetRange(id,min,max,lay){
+function mxSetRange_orig(id,min,max,lay){
   // copy style
   vtStyle = leafletvtId[id].vtStyle;
   // create function to apply
@@ -565,12 +576,12 @@ function mxSetRange(id,min,max,lay){
   leafletvtId[id].setStyle(sty,lay+"_geom");
 }
 
+var mxSetRange = debounce(mxSetRange_orig,50);
 
 // 
 // mx set style
 //
-
-function mxSetStyle(id,vtStyle,lay,overwrite){
+function mxSetStyle_orig(id,vtStyle,lay,overwrite){
   // check if the provided style is the same as this already applied  
   if(!overwrite){
     if(vtStyle == leafletvtId[id].vtStyle){
@@ -633,6 +644,7 @@ function mxSetStyle(id,vtStyle,lay,overwrite){
   leafletvtId[id].setStyle(sty,lay+"_geom");
 }
 
+var mxSetStyle = debounce(mxSetStyle_orig,50);
 
 // still used bx server/analysis
 function defaultStyle(feature) {

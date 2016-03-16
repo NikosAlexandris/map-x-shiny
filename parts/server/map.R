@@ -122,6 +122,10 @@ observeEvent(input$btnStoryReader,{
   mxUpdateText(id="titlePanelMode",text="Story map")
 })
 
+
+
+
+
 #
 # Clear layer after exlorer mode enter
 #
@@ -149,19 +153,14 @@ observeEvent(mxReact$mapPanelMode,{
   if(mxReact$mapPanelMode %in% c("mapViewsCreator","mapViewsExplorer")){
     mxReact$viewsToDisplay = ""
     mxStyleReset(mxStyle)
-
     if( mxReact$mapPanelMode == "mapViewsExplorer"){
-
       dGroup <- mxConfig$defaultGroup
       legendId <- paste0(dGroup,"_legends")
       proxyMap <- leafletProxy("mapxMap")
       proxyMap %>%
       removeControl(layerId=legendId) %>%
       clearGroup(dGroup)  
-
     }
-
-
   }
 })
 
@@ -180,8 +179,6 @@ output$mapxMap <- renderLeaflet({
     return(map)
   }
 })
-
-
 
 
 
@@ -207,36 +204,6 @@ glInit(
 
 
 
-
-#
-# Map set center and overlay
-#
-
-
-#' Create url for pgrestapi source
-#' @return url 
-glMakeUrl <- function(
-  protocol="http",
-  host="localhost",
-  port,
-  table,
-  fieldVariables,
-  fieldGeom
-  ){
- # layer <- paste0(table,"_",fieldGeom) 
-  query <- sprintf("?fields=%s",paste(fieldVariables,collapse=",")) 
-
-  url <- sprintf("%s://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.pbf%s",
-    protocol,
-    host,
-    port,
-    table,
-    fieldGeom,
-    query)
-
- return(c(url,url))
-}
-
 #
 # Add sources
 #
@@ -247,7 +214,7 @@ observeEvent(input$glLoaded,{
 
   # Country overlay source
   tilesCountry <- glMakeUrl(
-    protocol = mxConfig$protocolVt,
+    protocol = mxConfig$protocolVtPublic,
     host = mxConfig$hostVt,
     port= mxConfig$portVtPublic,
     table="mx_country_un",
@@ -271,7 +238,8 @@ observeEvent(input$glLoaded,{
     )
 
   srcCountry = list(
-    tiles = tilesCountry,
+   # tiles = tilesCountry,
+    url = "mapbox://unepgrid.6idtkx33",
     type = "vector" 
     )
   
@@ -312,7 +280,8 @@ observeEvent(input$glLoaded,{
   countryStyle  = list(
     `id` = "countryOverlay",
     `source` = "country",
-    `source-layer` = "mx_country_un_geom",
+    #`source-layer` = "mx_country_un_geom",
+    `source-layer` = "mx_country_un_iso3code",
     `type`="fill",
     `paint`= list(
       `fill-color`="rgba(47,47,47,0.6)",

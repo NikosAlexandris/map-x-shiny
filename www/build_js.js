@@ -15,7 +15,8 @@ var inFile = [
   "src/mapx/js/lang_ui.js",
   "src/mapx/js/base64.js",
   "src/mapx/js/lang_tours.js",
-  "src/jqueryUi/custom/jquery-ui.min.js",
+  "src/modernizr/modernizr.min.js",
+  "src/jqueryUI/custom/jquery-ui.min.js",
   "src/mapx/js/mapx.js"
 ];
 

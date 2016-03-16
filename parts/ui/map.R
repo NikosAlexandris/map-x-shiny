@@ -8,10 +8,6 @@
 # map content
 
 
-
-
-
-
 uiMapCreator <- tagList(
   #
   # MAP CREATOR
@@ -364,21 +360,7 @@ uiMapCreator <- tagList(
           mx_set_lang="title.mapLeft.storyEdit",
           class="btn-icon mx-mode-story-edits mx-hide",
           label=icon("pencil-square-o")
-          ),
-        singleton(
-          tags$script(
-            "$('#storyMapModal').draggable({ 
-            handle:'#storyMapModalHandle',
-            containment: '#sectionMap'
-});
-          $('#btnStoryCreator').click(
-            function(){
-              $id = $('#storyMapModal');
-              $id.toggleClass('mx-hide');
-            }
-            );"
           )
-        )
         )
       ),  
     tags$li(

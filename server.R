@@ -12,17 +12,33 @@
 #
 source("loadlib.R")
 #
-# map-x functions (this will be transfered to a R package)
+# map-x general functions 
 #
-source("helper/R/mapx.R")
+source("helper/R/mxMisc.R")
 #
-# leaflet R plugin : additional handler for drawing
+# map-x ui functions 
 #
-source("helper/R/leafletDraw.R")
+source("helper/R/mxUi.R")
+#
+# leaflet R plugin : draw
+#
+source("helper/R/mxDraw.R")
+#
+# add vector tiles in "mapbox gl" or "leaflet mapbox vector tiles"
+#
+source("helper/R/mxVtDep.R")
+#
+# helper to get info on available pgrestapi layers
+#
+source("helper/R/mxPgRest.R")
+#
+# Helper for postgis request
+#
+source("helper/R/mxDb.R")
 #
 # handson table functions
 #
-source('helper/R/handson.R')
+source('helper/R/mxHandson.R')
 #
 # general configuration, site independant.
 #
@@ -32,27 +48,6 @@ source("settings/config-global.R")
 #
 source("settings/config-local.R")
 
-#
-# Define main user interface
-#
-ui <- tagList(
-  # alert panels
-  uiOutput('panelAlert'),
-  # sections
-  loadUi("parts/ui/nav.R"),
-  loadUi("parts/ui/intro.R"), 
-  loadUi("parts/ui/map.R"),
-  loadUi("parts/ui/country.R"),
-  loadUi("parts/ui/about.R"),
-  loadUi("parts/ui/admin.R"),
-  loadUi("parts/ui/footer.R"),
-  # Scripts loaded after ui parts : shiny bindings, dom init, etc.
-  tags$footer(
-    tagList(
-      tags$script(src="src/mapx/js/mapxInit.js")
-      )
-    )
-  )
 
 shinyServer(function(input, output, session) {
   mxCatch(title="Main server function",{
@@ -62,10 +57,12 @@ shinyServer(function(input, output, session) {
     mxReact <- reactiveValues()
     mxStyle <- reactiveValues()
     #
-    # Output ui
+    # Init job
     #
-    output$mapxUi <- renderUI(ui)
-
+    output$mapxInit <- renderUI({ 
+      mxConsoleText("load init script")
+      tags$script( src="src/mapx/js/mapxInit.js" )
+    })
     #
     # Load when "document is ready is called"
     #

@@ -42,20 +42,44 @@ output$checkInputViewsContainer <- renderUI({
 #
 
 observeEvent(input$mxRequestMeta,{
+  mxCatch(title="Get view meta data",{
+  # get the view id
+  vId <- input$mxRequestMeta$id 
+  #
+  # here we want to display the description of the view
+  # and the meta data from the layer. 
+  # could be anything, but for showcasing, it will do
+  # the trick. We can also imagine single request with a join
+  # 
+  # Get view data. Could be any column. We only keep the first result
+  viewData <- mxGetViewData(dbInfo,vId,c("style","layer"))[[1]]
+  # get the view description
+  viewDesc <- viewData$style$description
+  # get layer meta data
+  layerMeta <- mxGetLayerMeta(dbInfo,viewData$layer)
+  # merge
+  layerMeta$`View description` <- viewDesc
+  # convert te layer meta to an html list
 
-  layerName <- input$mxRequestMeta 
-  meta <- mxGetLayerMeta(dbInfo,layerName)
-  meta <- HTML(listToHtmlClass(meta))
+    ui <-div(class="mx-panel-400",
+       HTML(
+         listToHtmlClass(
+           layerMeta
+           )
+         )
+       )
+
+
   panModal <- mxPanel(
     id="panMetaModal",
     title=sprintf("Metadata"),
-    subtitle=sprintf("Information available for the layer %s ",layerName),
-    html=meta
+    subtitle="Information available",
+    html=ui
     )
 
   mxUpdateText(id="panelAlert",ui=panModal)
 
-
+})
 })
 
 

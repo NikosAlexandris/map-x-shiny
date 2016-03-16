@@ -198,16 +198,6 @@ GithubUsername: rstudio
 GithubRef: master
 GithubSha1: 52c792d9db313df60a5741f8678d7c05e307cdfe
 
-Package: leafletvt
-Source: github
-Version: 0.0.6
-Hash: 741160e554d20a61713f687c0e1d5cba
-Requires: RPostgreSQL, curl, jsonlite, leaflet
-GithubRepo: leafletvt
-GithubUsername: fxi
-GithubRef: master
-GithubSha1: 29d25a18d94c4f8eeadd94899064e764bfcdb6e1
-
 Package: magrittr
 Source: CRAN
 Version: 1.5
