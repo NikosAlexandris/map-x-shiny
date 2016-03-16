@@ -1,6 +1,3 @@
-source("helper/R/mxUi.R",local=T)
-
-
 #
 # Define main user interface
 #

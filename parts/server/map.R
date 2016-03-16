@@ -123,32 +123,6 @@ observeEvent(input$btnStoryReader,{
 })
 
 
-
-
-
-#
-# Clear layer after exlorer mode enter
-#
-#observeEvent(input$btnViewsExplorer,{
-  #if(mxReact$allowMap){
-    #mxCatch(title="Clean creator layers",{
-
-      #reactiveValuesReset(mxStyle)
-      #mxStyle <- reactiveValues()
-      #dGroup <- mxConfig$defaultGroup
-      #legendId <- paste0(dGroup,"_legends")
-      #proxyMap <- leafletProxy("mapxMap")
-      #proxyMap %>%
-      #removeControl(layerId=legendId) %>%
-      #clearGroup(dGroup)
-  ## double remove.
-  ##mxRemoveEl(class=legendId)
-        #})
-  #}
-#})
-
-
-
 observeEvent(mxReact$mapPanelMode,{
   if(mxReact$mapPanelMode %in% c("mapViewsCreator","mapViewsExplorer")){
     mxReact$viewsToDisplay = ""
@@ -230,7 +204,6 @@ observeEvent(input$glLoaded,{
     )
 
   srcCountry = list(
-   # tiles = tilesCountry,
     url = "mapbox://unepgrid.6idtkx33",
     type = "vector" 
     )
@@ -312,23 +285,6 @@ observe({
 
     proxyMap <- leafletProxy("mapxMap")
 
-    #acledStyle = list(
-      #`id` = "acled_test",
-      #`type` = "circle",
-      #`source`="acled",
-      #`paint` = list(
-        #`circle-radius`=5,
-        #`circle-color`="#990000"
-    #    )
-     # `layout`= list(
-        #`icon-image`= "{marker-symbol}-15",
-        #`text-field`= "{title}",
-        #`text-font`= c("Open Sans Semibold", "Arial Unicode MS Bold"),
-        #`text-offset`= c(0, 0.6),
-        #`text-anchor`= "top"
-     #   )
-     # )
-
     proxyMap %>%
     setView(center$lng,center$lat,center$zoom) %>%
     glSetFilter(
@@ -336,14 +292,6 @@ observe({
       idLayer=layId,
       filter=filt
       )
-
-
-    #proxyMap  %>%
-     #glAddLayer(
-      #idGl = "basemap",
-      #style= acledStyle
-      #) 
-    
 
 
   }
