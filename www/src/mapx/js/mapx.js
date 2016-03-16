@@ -434,9 +434,6 @@ function mxFilterDate_orig(id,date,lay){
     dFilter = parseInt(date),
     skip = false,
     hasDate = false ;
- if(feature.properties.code=="5823"){
-         debugger;
-       }
     if( typeof(dEnd) != "undefined" && typeof(dStart) != "undefined" ){
       hasDate = true;
       
