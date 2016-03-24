@@ -55,7 +55,7 @@ mxParseView <- function(text){
 
  # regular expression
 #  expr <- "@view_start\\(\\s*(.*?)\\s*[;]\\s*(.*?)\\s*[;]\\s*([0-9\\.,-]*?)\\s*\\)(.*?)@view_end"
-  expr <- expr <- "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*([ 0-9,\\.\\-]+?)\\s*\\)(.*?)@view_end"
+  expr <- "@view_start\\(\\s*([ a-zA-Z0-9,._-]*?)\\s*;+\\s*([ a-zA-Z]*?)\\s*[;]+\\s*([ 0-9,\\.\\-]+?)\\s*\\)(.*?)@view_end"
   # substitute
   gsub(
     "(lng):|(lat):|(zoom):",
@@ -87,4 +87,35 @@ mxParseStory <- function(txtorig,knit=T,toc=F){
     
 }
 
+
+#' Get story map text
+#' @param dbInfo Named list containing information for db connection : host, password, etc.
+#' @param id Id of the story map to get
+#' @param textColumn Column name containting the story map unparsed text
+#' @return Story map unparsed text
+#' @export
+mxGetStoryMapText <- function(dbInfo,id,textColumn="content_b64"){
+  tblName <- mxConfig$storyMapsTableName
+  res <- data.frame()
+  if(mxDbExistsTable(dbInfo,tblName)){
+    q <- sprintf("SELECT %1$s FROM %2$s WHERE \"id\"='%3$s' and \"archived\"='f'",
+      textColumn,
+      tblName,
+      id
+      )
+    res <- mxDbGetQuery(dbInfo,q) 
+  }
+  if(textColumn %in% names(res)){
+  res <- mxDecode(res$content_b64)
+  }
+  return(res)
+}
+#' @export
+mxGetStoryMapName <- function(dbInfo){
+  tblName <- mxConfig$storyMapsTableName
+  if(!mxDbExistsTable(dbInfo,tblName)) return(data.frame())
+  q <- sprintf("SELECT name FROM %1$s WHERE \"archived\"='f'",tblName)
+  res <- mxDbGetQuery(dbInfo,q) 
+  return(res)
+}
 
