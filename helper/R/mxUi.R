@@ -260,6 +260,8 @@ mxSelectInput<-function(inputId,choices=NULL,selected=NULL){
 }
 
 #' Set ioRange slider for opacity
+#'
+#' Return a div than contain a slider input instantiated with ionRangeSlider for view opacity
 #' 
 #' @param id Id of the slider
 #' @param opacity Default opacity
@@ -293,6 +295,8 @@ mxSliderOpacity <- function(id,opacity){
 
 
 #' Set ioRange slider for time slider
+#'
+#' Return a div than contain a slider input instantiated with ionRangeSlider for view time slider range.
 #' 
 #' @param id Id of the slider
 #' @param min Minimum js unix date in milisecond 
@@ -332,7 +336,9 @@ mxTimeSliderRange <-function(id,min,max,lay){
 }
 
 #' Set ioRange slider for time slider
-#' 
+#'
+#' Return a div than contain a slider input instantiated with ionRangeSlider for view time slider.
+#'  
 #' @param id Id of the slider
 #' @param min Minimum js unix date in milisecond 
 #' @param max Maxmimum js unix date in milisecond 
@@ -373,16 +379,17 @@ mxTimeSlider <- function(id,min,max,lay){
 
 
 #' Create html list of available views
+#'
+#' get a list of views and return a HTML shiny checkbox input.
+#'
 #' @param views List of available views
-#' @param classes
 #' @export
-mxMakeViews<-function(views,classes){
+mxMakeViews<-function(views){
   session <- shiny:::getDefaultReactiveDomain()
   checkListOut <- p("No view found.")
 v <- views
-cl <- classes
+cl = mxConfig$class
   if(!is.null(v)){
-    cl = mxConfig$class
     # NOTE : what is this ?
     cl = data.frame(n=names(cl),id=as.character(cl),stringsAsFactors=FALSE)
     clUn = unique(sapply(v,function(x)x$class))

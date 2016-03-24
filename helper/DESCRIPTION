@@ -1,4 +1,4 @@
-Package: mapxhelper
+Package: helper
 Title: map-x helper functions.
 Version: 0.0.1
 Date: 2015-10-05
@@ -12,3 +12,4 @@ BugReports: https://github.com/fxi/map-x-shiny/issues
 Imports:
     leaflet,
     RPostgreSQL
+RoxygenNote: 5.0.1

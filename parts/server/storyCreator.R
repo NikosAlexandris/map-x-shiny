@@ -5,6 +5,7 @@
 # name validation
 observeEvent(input$txtStoryName,{
   newStoryName <- input$txtStoryName 
+
   valid <- mxTextValidation(
     textToTest = newStoryName,
     existingTexts = mxGetStoryMapName(dbInfo),

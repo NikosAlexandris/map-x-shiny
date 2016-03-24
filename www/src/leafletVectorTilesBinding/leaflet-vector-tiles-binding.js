@@ -293,6 +293,8 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
     // DEFAULT STYLE. Will be modified after.
     style: function (feature) {
       var s = {};
+      feature.properties.group == "active"
+        
       s.color = "rgba(0,0,0,0)";
       return s ;
 

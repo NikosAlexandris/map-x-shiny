@@ -13,7 +13,7 @@
 
 
 observe({ 
- mxCatch(title="Add vector tiles",{
+  mxCatch(title="Add vector tiles",{
     grp <- mxStyle$group
     lay <- mxStyle$layer
 
@@ -29,7 +29,7 @@ observe({
       isolate({
         var <- mxStyle$variable 
         if(mapViewMode == "mapViewsCreator"){
-         # In creator mode, get all the variables 
+          # In creator mode, get all the variables 
           vars <- vtGetColumns(
             protocol=mxConfig$protocolVt,
             table=lay,
@@ -64,9 +64,9 @@ observe({
           group          = grp,
           onLoadFeedback = feedback
           )  
-        
+
         mxDebugMsg(paste("Start downloading",lay,"from host",mxConfig$hostVt,"on port:",mxConfig$portVt))
-      
+
       }
     }
 })
@@ -116,7 +116,7 @@ observeEvent(input$leafletvtIsLoaded,{
         mxStyle$hideLegends    <- sty$hideLegends
       }
     }
-          })
+})
 })
 
 #
@@ -156,108 +156,68 @@ observe
 
 observe({
   mxCatch(title="Additional base map",{
-    layId = "basemap"
-
-
+    layId <- "basemap"
     selBaseMap <- input$selectConfigBaseMap
-    
-   
-  initOk <- isTRUE(mxReact$mapInitDone > 0)
-  glOk <- isTRUE(input$glLoaded == "basemap")
+    initOk <- isTRUE(mxReact$mapInitDone > 0)
 
-  if(initOk && glOk ){
+    glOk <- isTRUE(input$glLoaded == "basemap")
 
-
-    proxymap <- leafletProxy("mapxMap")
-
-    styleList = list(
-      mapboxsat  = list(
-        `id` = 'rasterOverlay',
-        `source` = 'mapboxsat',
-        `type`='raster',
-        `min-zoom`=0,
-        `max-zoom`=22
+    if(initOk && glOk ){
+      proxymap <- leafletProxy("mapxMap")
+      styleList = list(
+        mapboxsat  = list(
+          `id` = 'rasterOverlay',
+          `source` = 'mapboxsat',
+          `type`='raster',
+          `min-zoom`=0,
+          `max-zoom`=22
+          )
         )
-      )
-
-    if( selBaseMap != mxConfig$noLayer ){
-    
-    proxymap %>% 
-    glAddLayer(
-      idGl = "basemap",
-      idBelowTo = "contours",
-      style = styleList[[selBaseMap]] 
-      )     
-    }else{
-      proxymap %>% 
-    glRemoveLayer(
-      idGl = "basemap",
-      idLayer = "rasterOverlay"
-      )  
-    }
-  }
-
-#    if( selBaseMap == mxConfig$noLayer ){
-      #mxDebugMsg("Remove additional base layer if needed")
-
-    #}else{
-      #switch(selBaseMap,
-        #"mapbox"={
-          #proxyMap %>%
-          #removeTiles(layId) %>%
-          #addTiles(
-            #"https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaGVsc2lua2kiLCJhIjoiMjgzYWM4NTE0YzQyZGExMTgzYTJmNGIxYmEwYTQwY2QifQ.dtq8cyvJFrJSUmSPtB6Q7A"
-            #,layerId=layId,options=list('zIndex'=-4)
-            #)
-        #},
-        #"nasa"={
-          #proxyMap %>%
-          #removeTiles(layId) %>%
-          #addTiles(
-            #"http://map1.vis.earthdata.nasa.gov/wmts-webmerc/MODIS_Terra_Aerosol/default/2014-04-09/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png",
-            #layerId=layId,
-            #options=list('zIndex'=-5)
-            #)
-        #},{
-          #proxyMap %>%
-          #removeTiles(layId) %>%
-          #addProviderTiles(selBaseMap,layerId=layId,options=list('zIndex'=-5)
-            #)
-        #}
-        #)
-    #}
-})
-})
-
-
-
-
-#
-# SET LABELS VISIBILITY
-#
-
-observe({
-  if(noDataCheck(mxReact$selectCountry))return()
-  mxCatch(title="Set layer labels",{
-    group = "labels"
-    hideLabels <- mxStyle$hideLabels
-    iso3 <- mxReact$selectCountry
-    if(!noDataCheck(hideLabels) && !noDataCheck(iso3)){
-      proxyMap <- leafletProxy("mapxMap")
-      if(!hideLabels){
-        mxConfig$labelLayerByCountry(iso3,group,proxyMap) 
+      if( selBaseMap != mxConfig$noLayer ){    
+        proxymap %>% 
+        glAddLayer(
+          idGl = "basemap",
+          idBelowTo = "contours",
+          style = styleList[[selBaseMap]] 
+          )     
       }else{
-        proxyMap %>%
-        clearGroup(group)
+        proxymap %>% 
+        glRemoveLayer(
+          idGl = "basemap",
+          idLayer = "rasterOverlay"
+          )  
       }
     }
 })
 })
 
-#
-#  Set layer colors
-#
-layerStyle <- reactive({
+
+  #
+  # SET LABELS VISIBILITY
+  #
+
+  observe({
+    if(noDataCheck(mxReact$selectCountry))return()
+    mxCatch(title="Set layer labels",{
+      group = "labels"
+      hideLabels <- mxStyle$hideLabels
+      iso3 <- mxReact$selectCountry
+      if(!noDataCheck(hideLabels) && !noDataCheck(iso3)){
+        proxyMap <- leafletProxy("mapxMap")
+        if(!hideLabels){
+          mxConfig$labelLayerByCountry(iso3,group,proxyMap) 
+        }else{
+          proxyMap %>%
+          clearGroup(group)
+        }
+      }
+          })
+  })
+
+  #
+  #  Set layer colors
+  #
+  layerStyle <- reactive({
     # check if vector tiles are loaded 
     # and if they correspond to mxStyle
     grpLocal <- mxStyle$group
@@ -265,40 +225,40 @@ layerStyle <- reactive({
     grpClient <- input$leafletvtIsLoaded$grp
     layClient <- input$leafletvtIsLoaded$lay
 
-  mxCatch(title="Set layerStyle()",{
-    if(
-      !noDataCheck(grpLocal) && 
-      !noDataCheck(grpClient) && 
-      !noDataCheck(layLocal) && 
-      !noDataCheck(layClient)
-      ){
+    mxCatch(title="Set layerStyle()",{
       if(
-        grpClient == grpLocal && 
-        layClient == sprintf("%s_%s",layLocal,mxConfig$defaultGeomCol)
+        !noDataCheck(grpLocal) && 
+        !noDataCheck(grpClient) && 
+        !noDataCheck(layLocal) && 
+        !noDataCheck(layClient)
         ){
-        sty <- reactiveValuesToList(mxStyle)
+        if(
+          grpClient == grpLocal && 
+          layClient == sprintf("%s_%s",layLocal,mxConfig$defaultGeomCol)
+          ){
+          sty <- reactiveValuesToList(mxStyle)
           palOk <- isTRUE(sty$palette %in% sty$paletteChoice)
           if(palOk){ 
             sty <- addPaletteFun_cache(sty,sty$palette)
             sty$colors <- sty$paletteFun(sty$values)
             return(sty)
           }
+        }
       }
-    }
-    return(NULL)
-})
-})
+      return(NULL)
+          })
+  })
 
 
-#
-# FINAL STEP TO SET STYLE
-#
+  #
+  # FINAL STEP TO SET STYLE
+  #
 
-observe({
-  mxCatch(title="Apply layerStyle()",{
-    sty = layerStyle() 
-    if(!noDataCheck(sty)){
-      mxSetStyle(style=sty)
-    }
-})
-})
+  observe({
+    mxCatch(title="Apply layerStyle()",{
+      sty = layerStyle() 
+      if(!noDataCheck(sty)){
+        mxSetStyle(style=sty)
+      }
+          })
+  })

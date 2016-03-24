@@ -17,32 +17,6 @@ observe({
 })
 
 
-mxGetStoryMapText <- function(dbInfo,id,textColumn="content_b64"){
-  tblName <- mxConfig$storyMapsTableName
-  res <- data.frame()
-  if(mxDbExistsTable(dbInfo,tblName)){
-    q <- sprintf("SELECT %1$s FROM %2$s WHERE \"id\"='%3$s' and \"archived\"='f'",
-      textColumn,
-      tblName,
-      id
-      )
-    res <- mxDbGetQuery(dbInfo,q) 
-  }
-  if(textColumn %in% names(res)){
-  res <- mxDecode(res$content_b64)
-  }
-  return(res)
-}
-
-
-mxGetStoryMapName <- function(dbInfo){
-  tblName <- mxConfig$storyMapsTableName
-  if(!mxDbExistsTable(dbInfo,tblName)) return(data.frame())
-  q <- sprintf("SELECT name FROM %1$s WHERE \"archived\"='f'",tblName)
-  res <- mxDbGetQuery(dbInfo,q) 
-  return(res)
-}
-
 # available story
 observe({
   if(mxReact$mapPanelMode != "mapStoryReader") return()
@@ -50,7 +24,6 @@ observe({
   update <- mxReact$updateStorySelector
   usr <- mxReact$userId
   iso3 <- mxReact$selectCountry
-  panelMode <- mxReact$mapPanelMode 
 
 
   tblName <- mxConfig$storyMapsTableName
@@ -60,7 +33,6 @@ observe({
   if(
     isTRUE(!noDataCheck(usr)) && 
     isTRUE(!noDataCheck(iso3)) && 
-    isTRUE(panelMode == "mapStoryReader") &&
     isTRUE(mxDbExistsTable(dbInfo,tblName))
     ){
 
@@ -80,58 +52,19 @@ observe({
     }
 })
 
+# retrieve story map text by id
+
 
 observeEvent(input$selectStoryId,{
-id <- input$selectStoryId
 
-story <-  mxGetStoryMapText(dbInfo,id)
+  id <- input$selectStoryId
+  story <-  mxGetStoryMapText(dbInfo,id)
 
-if(noDataCheck(story)) story = "Write a story ..."
+  if(noDataCheck(story)) story = "Write a story ..."
 
-mxReact$storyMap <- story
-  
+  mxReact$storyMap <- story
+
 })
-
-
-
-#observe({
-#mxCatch(title="Update story selector",{
-
-  #if(mxReact$mapPanelMode != "mapStoryReader") return()
-  #mxDebugMsg("Update story selectize input")
-  ##
-  ## Update story map selector 
-  ##
-  #db <- mxData$storyMaps() 
-  #listStory <- db$id
-  #names(listStory) <-db$name
-  #updateSelectizeInput(session,"selectStoryId",choices=listStory,server=TRUE,selected=listStory[1])
-    #})
-#})
-
-
-#observeEvent(input$selectStoryId,{
-  #mxCatch(title="Select story id",{
-    ##
-    ## Decode selected story
-    ##
-    #storyId <- input$selectStoryId
-    #storyMap <- "Write a story.."
-    #if(!noDataCheck(storyId,noDataVal="NA")){
-      #storyMap <- mxData$storyMaps() 
-      #storyMap <- storyMap[storyMap$id==storyId,"content_b64"]
-      #if(is.na(storyMap)){
-        #storyMap <- "Write a story.."
-      #}else{
-        #storyMap <- mxDecode(storyMap)
-      #}
-    #}else{
-      #storyMap = " No story map yet :( "
-    #}
-    #mxReact$storyMap <- storyMap
-
-    #})
-#})
 
 
 observeEvent(mxReact$storyMap,{
@@ -146,6 +79,7 @@ observeEvent(mxReact$storyMap,{
     #
     txt <- mxParseStory( storyMap )
     # add some blank space
+    # TODO: set margin in the mxStoryText instead of adding space
     r <- paste(rep(" ",1000),collapse="")
     txt <- paste(txt,r,sep="")
     # 

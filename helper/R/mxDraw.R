@@ -19,7 +19,6 @@ leafletDrawDependencies <- function() {
 }
 
 # leaflet draw function
-
 addDraw <- function(
   map
   , options
@@ -34,7 +33,6 @@ addDraw <- function(
 }
 
 #' @export
-#' @rdname remove
 removeDraw <- function( map ){
   invokeMethod(
     map

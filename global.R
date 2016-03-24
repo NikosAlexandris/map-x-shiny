@@ -16,6 +16,10 @@ source("helper/R/mxUi.R")
 #
 source("helper/R/mxDraw.R")
 #
+# story map fucntion
+#
+source("helper/R/mxStoryMap.R")
+#
 # add vector tiles in "mapbox gl" or "leaflet mapbox vector tiles"
 #
 source("helper/R/mxVtDep.R")

@@ -1,14 +1,9 @@
 
 
-
-
 var storyMapLayer = {store:[]};
 
 /* Object to hold ui and style state*/
 var leafletvtId = {};
-
-
-
 
 var mxConfig = {
   mapPanelMode : null,
