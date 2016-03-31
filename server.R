@@ -10,7 +10,7 @@
 
 shinyServer(function(input, output, session) {
   mxCatch(title="Main server function",{
-     #
+    #
     # Initial reactive values
     #
     mxReact <- reactiveValues()
@@ -25,7 +25,6 @@ shinyServer(function(input, output, session) {
     #
     # Load when "document is ready is called"
     #
-
     observeEvent(input$documentIsReady,{
       mxConsoleText("")
       mxConsoleText(" map-x is launched ")
@@ -34,12 +33,7 @@ shinyServer(function(input, output, session) {
       source("parts/server/login.R",local=TRUE)
       source("parts/server/nav.R",local=TRUE)
       source("parts/server/urlParsing.R",local=TRUE)
-      })
-    #
-    # Load server parts
-    #
-    # Navigation and login
-   
+    }) 
     #
     # Country panel
     #
@@ -68,8 +62,8 @@ shinyServer(function(input, output, session) {
       }
     })
 
-    })
+})
 
-  })
+})
 
 

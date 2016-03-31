@@ -96,7 +96,8 @@ uiMapCreator <- tagList(
                       "Select a satellite imagery source",
                       choices=list(
                         mxConfig$noLayer,
-                        `MapBox satellite`="mapboxsat"
+                        `MapBox satellite`="mapboxsat",
+                        `Here satellite`="heresat"
                         )
                       ),
                     #selectInput(

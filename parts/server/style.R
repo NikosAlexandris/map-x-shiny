@@ -171,6 +171,13 @@ observe({
           `type`='raster',
           `min-zoom`=0,
           `max-zoom`=22
+          ),
+        heresat = list(
+          `id` = 'rasterOverlay',
+          `source` = 'heresat',
+          `type`='raster',
+          `min-zoom`=0,
+          `max-zoom`=22
           )
         )
       if( selBaseMap != mxConfig$noLayer ){    

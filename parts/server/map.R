@@ -203,6 +203,15 @@ observeEvent(input$glLoaded,{
     tileSize = 256 
     )
 
+  srcSatelliteHere = list(
+    tiles = c(
+      "https://1.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=kaq3He8C5WiDCB2yadWE&app_code=vvvkBHJXgetE5n9fRQxrOA&ppi=72",
+      "https://2.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=kaq3He8C5WiDCB2yadWE&app_code=vvvkBHJXgetE5n9fRQxrOA&ppi=72"),
+    type="raster",
+    tileSize = 512
+    )
+
+
   srcCountry = list(
     url = "mapbox://unepgrid.6idtkx33",
     type = "vector" 
@@ -218,6 +227,11 @@ observeEvent(input$glLoaded,{
     idGl = "basemap",
     idSource = "country",
     style = srcCountry
+    ) %>% 
+  glAddSource(
+    idGl = "basemap",
+    idSource = "heresat",
+    style = srcSatelliteHere
     ) 
 
     })
