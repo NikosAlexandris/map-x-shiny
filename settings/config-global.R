@@ -201,12 +201,16 @@ mxConfig$class = list(
   "Extractives" = "ext",
   "Stresses" = "str",
   "Social" = "soc",
-  "Customs" = "cus"
+  "Customs" = "cus",
+  "Infrastructure" = "nfr",
+  "Mes Aynak Area" = "maa",
+  "Boundaries" = "bnd"
   )
 
+# defaut text for text area in meta data editor
 mxConfig$bibDefault = "
-title = My first map
-author = Grid dev team
+title = Title
+author = Authors
 organization = Map-x
 address = Geneva
 year = 2016
