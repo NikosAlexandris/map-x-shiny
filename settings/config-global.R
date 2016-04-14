@@ -9,7 +9,7 @@
 
 
 # Set shiny options
-options(shiny.maxRequestSize=30*1024^2)
+options(shiny.maxRequestSize=300*1024^2)
 # map-x configuration list (hold parameters)
 mxConfig <- list()
 # map-x data set list (hold data set imported from text or elsewhere)
@@ -166,7 +166,7 @@ mxConfig$prefixArchiveViews = "mx_archived_views"
 # Command to restart pgrestapi
 # NOTE: touch "restart.txt" reactivate nodejs application launched by NGINX + passenger.
 mxConfig$restartPgRestApi = "touch /home/vagrant/tools/pgrestapi/tmp/restart.txt"
-# set palette colors
+# set palette colors for ui
 mxConfig$colorPalettes <- mxCreatePaletteList(RColorBrewer::brewer.pal.info)
 # country data
 # http://unstats.un.org/unsd/methods/m49/m49alpha.htm
