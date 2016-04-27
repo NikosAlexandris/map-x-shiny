@@ -45,7 +45,8 @@ body {
 }
 
 .no-scrollbar-content {
-    overflow: auto;
+    /* overflow: auto; */
+    overflow: overlay; /* Fills space to the right... Describe Me Better! */
     max-height: 100%;
     margin-right: -100px;
     padding-right: 100px;
@@ -70,6 +71,14 @@ p {
 }
 
 
+p.boxed {
+    border-style: solid;
+    border-width: 1px;
+    padding: 8px 1px 8px 10px;
+    border-color: hsla(0,0%,23%,0.2);
+}
+
+
 a {
   color : #fff;
   text-decoration : none;
@@ -86,6 +95,28 @@ a {
  }
 
 
+/* truncate text and add ellipses */ 
+/* ! Works also selectively, ie for a single <li></li> */ 
+/* source: http://stackoverflow.com/a/12913510/1172302 */
+.ellipses {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/ */
+.hyphenate {
+  /* Careful, this breaks the word wherever it is without a hyphen */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+  /* Adds a hyphen where the word breaks */
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+}
 
 
 .mx-section-container {
@@ -98,6 +129,7 @@ a {
   overflow-y : scroll;
   overflow-x : hidden;
 }
+
 
 #sectionLoading {
   opacity:1;
@@ -290,8 +322,17 @@ text-transform: capitalize;
   display: inline-block;
   width: 100%;
   vertical-align: text-top;
-  padding-left: 10px;
-  padding-right: 10px;
+  /* padding-left: 10px; */
+  /* padding-right: 10px; */
+}
+
+/* Add indent before Story Map titles inside selectize */
+#map-left-panel-head .selectize-input input {
+    text-indent: 2rem;
+}
+
+#map-left-panel-head {
+
 }
 
 .map-left-content {
@@ -303,10 +344,17 @@ text-transform: capitalize;
   margin: 5px;
 }
 
+/* #panMetaModal.panel-modal-content { */
+/*   height:60%; */
+/*   overflow-y:hidden; */
+/*   margin:20px; */
+/*   width:90%; */
+/*   cursor:text; */
+/* } */
 
 .mx-panel-400 {
-max-height:400px;
-overflow-y:scroll;
+/* max-height:400px; */
+/* overflow-y:auto; */
 }
 
 /*
@@ -505,7 +553,8 @@ input:checked + .map-views-item {
 
 .panel-modal-text {
   height:60%;
-  overflow-y:scroll;
+  /* height:400px; */
+  overflow-y:auto;
   margin:20px;
   width:90%;
   cursor:text;
@@ -1261,7 +1310,8 @@ select:focus, select:active{
   display: inline-block;
 }
 .selectize-input {
-  border: 1px solid #d0d0d0;
+  /* border: 1px solid #d0d0d0; */
+  border: 1px solid rgba(208,208,208,0.25);
   padding: 8px 8px;
   display: inline-block;
   width: 100%;
@@ -1283,11 +1333,20 @@ select:focus, select:active{
 .selectize-input.full {
   background-color: #ffffff;
 }
+
+#map-left-panel-head .selectize-input.full {
+  background-color: transparent;
+  color: #ddd;
+  font-size: medium;
+}
+
+
 .selectize-input.disabled,
 .selectize-input.disabled * {
   cursor: default !important;
 }
 .selectize-input.focus {
+  border: 1px solid #ddd;       /* Remove Me? */
   -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
 }
@@ -1330,7 +1389,8 @@ select:focus, select:active{
   max-height: none !important;
   max-width: 100% !important;
   margin: 0 2px 0 0 !important;
-  text-indent: 0 !important;
+  /* text-indent: 0 !important; */
+  text-indent: 0;
   border: 0 none !important;
   background: none !important;
   line-height: inherit !important;
@@ -1457,66 +1517,179 @@ select:focus, select:active{
 #mxStorySelectorBox{
 }
 
-
-
 .mx-story-modal{
-  position: fixed;
-  width: 670px;
-  background: rgba(47, 47, 47, 0.8);
-  z-index: 1100;
-  padding: 5px;
-  left: 520px;
-  top: 320px;
-  resize:both;
+    position: fixed;
+    width: 670px;
+    background: rgba(47, 47, 47, 0.8);
+    z-index: 1100;
+    padding: 5px;
+    left: 520px;
+    top: 320px;
+    resize:both;
 }
 
 .mx-story-section {
     line-height: 2;
-    letter-spacing: 0.1em;
-    margin-bottom: 50%;
-    text-align: center;
+    /* letter-spacing: 0.1rem; */
+    margin-bottom: 12%;
+    text-align: left;
     font-family: sans-serif;
  }
 
-.mx-story-section p{
- margin: 0 0 25px;
-  font-weight : 200;
-  font-size: 18px;
-  line-height: 1.5;
-
+.mx-story-section p {
+    margin : 0 0 25px;
+    font-weight : normal;
+    font-size : 14.5px;
+    line-height : 1.5;
 }
-
 
 .mx-story-section img {
-width:100%;
+    width:100%;
 }
 
+#mxStoryText img {
+    width: 100%;
+}
+
+/* Margin after figure caption */
+#mxStoryText figcaption {
+    padding-bottom: 25px;
+    padding-top: 1rem;
+    font-size: 1.3rem;
+    line-height: 1.5;
+}
+
+
 .mx-story-dimmed {
-opacity : 0.5;
+    opacity : 0.3;
 }
 
 
 #mxStoryText {
-    text-align: center;
-    padding-right: 60px;
-    padding-left: 60px;
-padding-bottom: 3000px;
+    /* padding: 2% 5% 6% 3000px; */
+    padding-top: 2%;
+    padding-right: 5%;
+    padding-left: 6%;
+    padding-bottom: 3000px;
+    background-color: #fff;
+    color: #3B3B3B;
+    text-align: left;
+    text-rendering: optimizeLegibility;
 }
 
+/* Margin after headings */
+#mxStoryText h1, h2, h3, h4, h5, h6 {
+    margin: 0 0 15px;
+    color: rgba(0,0,0,0.3);
+    font-weight: normal;
+}
+
+#mxStoryText h1 {
+    font-size: 28px;
+    margin: 0 0 15px;
+}
+
+/* Horizontal Rule after each H1 */
+#mxStoryText h1:after, h2:after {
+    content:' ';
+    display:block;
+    border: 0;
+    border-top: 1px solid #eee;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+}
+
+
+#mxStoryText h2 {
+    font-size: 24px;
+}
+
+#mxStoryText h3 {
+    font-size: 20px;
+}
+
+#mxStoryText h4 {
+    font-size: 17px;
+}
+
+#mxStoryText hr {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 0;
+  border-top: 1px solid #eee;
+}
+
+#mxStoryText section {
+    margin-bottom: 12%;
+}
+
+#mxStoryText p {
+    font-size: 15px;
+}
+
+#mxStoryText a {
+    color: rgb(142, 142, 142);
+    font-weight: bold;
+}
+
+
+#mxStoryText ul {
+    /* http://stackoverflow.com/a/5308785 */
+    list-style: none;
+    padding:0;
+    margin:0;
+    /* */
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+#mxStoryText ol {
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+
+/* http://stackoverflow.com/a/5308785 */
+#mxStoryText li { 
+    padding-left: 1em; 
+    text-indent: -.7em;
+}
+
+#mxStoryText ul > li:before {
+    content: "• ";
+    color: rgb(142, 142, 142);
+}
+/* */
+
+
+#mxStoryText ul > li {
+    margin: 0 0 8px 0;
+}
+
+#mxStoryText ol > li {
+    margin: 0 0 8px 0;
+}
+
+.mx-story-author {
+    font-size: small !important;
+    color: grey;
+}
 
 #mxStoryLimitTrigger{
-  height: 200px;
-  width: 100%;
-  position: absolute;
-  border-bottom: 1px dashed #000;
-  background: none;
-  z-index: -1000;
+    height: 200px;
+    width: 100%;
+    position: absolute;
+    border-bottom: 1px dashed #000;
+    background: none;
+    z-index: -1000;
 }
 
-
-
 #txtStoryMap {
-  color: #000;
+  color: #001;
   padding: 5px;
   resize: both;
 }
@@ -1530,13 +1703,9 @@ padding-bottom: 3000px;
 
 /* map tools */
 
-
-
 .mx-btn-dropdown {
     cursor: pointer;
 }
-
-
 
 .mx-dropdown {
     position: relative;
@@ -1559,10 +1728,10 @@ padding-bottom: 3000px;
 .mx-dropdown a:hover {
 background-color: #f1f1f1
 }
+
 .mx-dropdown-show {
   display: block;
 }
-
 
 .map-tool-button {
   width: 60px;
