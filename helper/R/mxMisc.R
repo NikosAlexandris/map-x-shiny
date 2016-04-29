@@ -17,9 +17,9 @@ noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
     return(TRUE)
   }
   if(useNoData){
-  noData <- all(noDataVal %in% val)
+    noData <- all(noDataVal %in% val)
   }else{
-  noData <- FALSE
+    noData <- FALSE
   }
   any(c(isTRUE(is.null(val)),isTRUE(is.na(val)),isTRUE(nchar(val)==0),isTRUE(length(val)==0),noData))
 }
@@ -34,10 +34,10 @@ noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
 mxCanReach<- function(server="google.com",port=80){
 
   req <- sprintf(
-      "if nc -z %1$s %2$s; then echo '1'; else echo '0';fi;",
-      server,
-      port
-      )
+    "if nc -z %1$s %2$s; then echo '1'; else echo '0';fi;",
+    server,
+    port
+    )
 
   any( system(req,intern=T) == "1")
 
@@ -88,22 +88,22 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
     )
   js = sprintf("
     /* create chart.js object*/
-    var data = {
-      labels: %s,
-      datasets: [ %s , %s ]
-    };
-    /* context */
-    %s
-    /*create graph */
-    %s
-    /* Generate legend */
-    var chartLegend = mxChart.generateLegend();
-    $('#'+'%s').html(function(){return chartLegend;});",
-    labels,datasetComp,datasetMain,ctx,createGraph,idLegend)
-    session$sendCustomMessage(
-      type="jsCode",
-      list(code=js)
-      )
+      var data = {
+        labels: %s,
+        datasets: [ %s , %s ]
+      };
+      /* context */
+        %s
+      /*create graph */
+        %s
+      /* Generate legend */
+        var chartLegend = mxChart.generateLegend();
+      $('#'+'%s').html(function(){return chartLegend;});",
+      labels,datasetComp,datasetMain,ctx,createGraph,idLegend)
+  session$sendCustomMessage(
+    type="jsCode",
+    list(code=js)
+    )
 }
 
 
@@ -121,12 +121,12 @@ mxDebugMsg <- function(text=""){
 }
 
 mxConsoleText <- function(text=""){
- nc <- nchar(text)
- lc <- 79-nc
- mc <- lc %/% 2
- bar <- paste(rep("-",mc),collapse="")
- out <- paste0(bar,text,bar,"\n",sep="")
-cat(out)
+  nc <- nchar(text)
+  lc <- 79-nc
+  mc <- lc %/% 2
+  bar <- paste(rep("-",mc),collapse="")
+  out <- paste0(bar,text,bar,"\n",sep="")
+  cat(out)
 }
 
 mxDebugToJs<-function(text,session=getDefaultReactiveDomain()){
@@ -197,21 +197,21 @@ mxCatch <- function(
   },warning = function(e){
     emsg <- as.character(e$message)
     ecall <- as.character(e$call)
-  if(logToJs){
+    if(logToJs){
       mxDebugToJs(list(type="warning",msg=emsg,call=ecall))
     }else{
-    session$output[[panelId]]<-renderUI({
-      mxPanelAlert(
-        "warning",
-        title,
-        message=tagList(
-          p(emsg),
-          p(style="",paste("(",paste(ecall,collapse=" "),")"))
-          ),
-        ...
-        )
-    })
-  }
+      session$output[[panelId]]<-renderUI({
+        mxPanelAlert(
+          "warning",
+          title,
+          message=tagList(
+            p(emsg),
+            p(style="",paste("(",paste(ecall,collapse=" "),")"))
+            ),
+          ...
+          )
+      })
+    }
   },message = function(m){
     if(debug){
       session$output[[panelId]]<-renderUI({
@@ -294,36 +294,36 @@ subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T,u
 #' @param country ISO 3 code to filter country. 
 #' @export
 mxGetViewsTable <- function(dbInfo=NULL, table="mx_views",validated=TRUE,archived=FALSE,country="AFG"){
-    
-    country = paste0("'",country,"'",collapse=",")
 
-    if(isTRUE(table %in% mxDbListTable(dbInfo))){
+  country = paste0("'",country,"'",collapse=",")
 
-      q <- sprintf(
-        "SELECT * FROM %s 
-        WHERE validated is %s 
-        AND archived is %s 
-        AND country 
-        IN (%s)"
+  if(isTRUE(table %in% mxDbListTable(dbInfo))){
+
+    q <- sprintf(
+      "SELECT * FROM %s 
+      WHERE validated is %s 
+      AND archived is %s 
+      AND country 
+      IN (%s)"
+      ,table
+      ,validated
+      ,archived
+      ,country
+      )
+
+    res <- mxDbGetQuery(q)
+
+    return(res)
+
+  }else{
+    mxDebugMsg(
+      paste(
+        "mxGetViewsList: table"
         ,table
-        ,validated
-        ,archived
-        ,country
+        ," content requested, but not found in db."
         )
-
-      res <- mxDbGetQuery(dbInfo,q)
-
-      return(res)
-
-    }else{
-      mxDebugMsg(
-        paste(
-          "mxGetViewsList: table"
-          ,table
-          ," content requested, but not found in db."
-          )
-        )
-    }
+      )
+  }
 
 
 }
@@ -389,7 +389,7 @@ remoteCmd <- function(host=NULL,user=NULL,port=NULL,cmd=NULL,vagrant=TRUE,sshCon
 dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, overwrite=FALSE, keyCol="gid", srid=4326, geomCol="geom") {
 
   on.exit(dbDisconnect(con))
-  
+
   library(rgeos)
 
   # Create well known text and add to spatial DF
@@ -445,17 +445,17 @@ dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, over
 #' @export
 addPaletteFun <- function(sty,pal){
   res <- try(silent=TRUE,{
-  if( sty$scaleType == "continuous" ) { 
-    sty$paletteFun <- colorNumeric(
-      palette = sty$palette,
-      domain = sty$values
-      )  
-  }else{
-    sty$paletteFun <- colorFactor(
-      palette = sty$palette,
-      sty$values
-      )
-  }
+    if( sty$scaleType == "continuous" ) { 
+      sty$paletteFun <- colorNumeric(
+        palette = sty$palette,
+        domain = sty$values
+        )  
+    }else{
+      sty$paletteFun <- colorFactor(
+        palette = sty$palette,
+        sty$values
+        )
+    }
     })
   if(class(res) == "try-error" ){
     stop(res)
@@ -484,7 +484,7 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   mxd <- style$mxDateMax
   mnd <- style$mxDateMin
   unt <- style$variableUnit
- 
+
 
 
 
@@ -498,12 +498,12 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   # debug messages
   mxDebugMsg("Begin style")
   start <- Sys.time()
-  
+
   # set id of legends based on style group id.
   legendId <- sprintf("%s_legends",grp)
   legendClass <- sprintf("info legend %s",legendId)
   proxyMap <- leafletProxy(mapId)
- 
+
 
   # label format 
 
@@ -515,21 +515,21 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   proxyMap %>% removeControl(layerId=legendId)
   # sometimes this does not work. Double removal.
   mxRemoveEl(class=legendClass)
-  
- # if(isTRUE(!leg)){
-    
-    if(!noDataCheck(unt)){
-      labFor<-labelFormat(suffix=unt)
-    }else{
-      labFor<-labelFormat()
-    }
-    proxyMap %>%
+
+  # if(isTRUE(!leg)){
+
+  if(!noDataCheck(unt)){
+    labFor<-labelFormat(suffix=unt)
+  }else{
+    labFor<-labelFormat()
+  }
+  proxyMap %>%
     addLegend(position="bottomright",
       labFormat=labFor,
       pal=pal,
       values=val,
       layerId=
-      legendId,
+        legendId,
       class=legendClass,
       title=tit
       )
@@ -632,20 +632,20 @@ mxRemoveEl <- function(session=getDefaultReactiveDomain(),class=NULL,id=NULL){
 
   if(is.null(class) && is.null(id)) return()
 
-sel <- ifelse(
-  is.null(class),
-  paste0('#',id),
-  paste0('.',class)
-  )
+  sel <- ifelse(
+    is.null(class),
+    paste0('#',id),
+    paste0('.',class)
+    )
 
-res <- list(
-  element = sel
-  )
+  res <- list(
+    element = sel
+    )
 
-session$sendCustomMessage(
-  type="mxRemoveEl",
-  res
-  )
+  session$sendCustomMessage(
+    type="mxRemoveEl",
+    res
+    )
 
 }
 
@@ -678,9 +678,9 @@ mxToggleMapPanels <- function(modeSelected){
   modeAvailable <- mxConfig$mapPanelModeAvailable
 
   if(!isTRUE(modeSelected %in% modeAvailable)){
-     stop(sprintf("Map panel mode % not available. Set it in mxConfig",modeSelected))
+    stop(sprintf("Map panel mode % not available. Set it in mxConfig",modeSelected))
   }
-  
+
   stopifnot(modeSelected %in% modeAvailable)
   mS <- modeSelected
   mA <- modeAvailable
@@ -712,7 +712,11 @@ mxCheckboxIcon <- function(id,idLabel,icon,display=TRUE){
 
 
 
+mxEncrypt <- function(text,key){
 
+
+
+}
 
 
 
@@ -744,7 +748,7 @@ mxUpdateText<-function(id,text=NULL,ui=NULL,addId=FALSE,session=shiny:::getDefau
     return(NULL)
   }else{
     if(is.null(ui)){
-    textb64 <- mxEncode(text)
+      textb64 <- mxEncode(text)
       val=list(
         id = id,
         txt = textb64,
@@ -755,8 +759,8 @@ mxUpdateText<-function(id,text=NULL,ui=NULL,addId=FALSE,session=shiny:::getDefau
         val
         )
     }else{
-   session$output[[id]] <- renderUI(ui)
-  }
+      session$output[[id]] <- renderUI(ui)
+    }
   }
 }
 
@@ -788,46 +792,19 @@ mxUpdateValue <- function(id,value,session=shiny:::getDefaultReactiveDomain()){
 
 
 
-#' Get query result from postgresql
-#'
-#' Shortcut to create a connection, get the result of a query and close the connection, using a dbInfo list. 
-#'
-#' @param dbInfo Named list with dbName,host,port,user and password
-#' @param SQL query
-#' @export
-mxDbGetQuery <- function(dbInfo,query,stringAsFactors=F){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    suppressWarnings({
-    res <- dbGetQuery(con,query,stringAsFactors=stringAsFactors)
-    })
-
-    dbDisconnect(con)
-    on.exit({ 
-    dbDisconnect(con)
-    mxDbClearAll(dbInfo)
-    })
-    # return
-    return(res)
-  },
-    finally={})
-}
-
 #' Parse key value pair from text
 #' @param txt unformated text with key value pair. eg. myKey = myValue
 #' @return list of value
 #' @export
 mxParseListFromText <- function(txt){
   txt2 = txt %>%
-  strsplit(.,"(\n\\s*)",perl=T) %>%
-  unlist(.) %>%
-  gsub("^\\s*([a-z]+?)\\s*=\\s+(.+?)$","\\1 = \"\\2\"",.) %>%
-  paste(.,collapse=",")%>%
-  paste("list(",.,")")%>%
-  parse(text=.)%>%
-  eval(.)
+    strsplit(.,"(\n\\s*)",perl=T) %>%
+    unlist(.) %>%
+    gsub("^\\s*([a-z]+?)\\s*=\\s+(.+?)$","\\1 = \"\\2\"",.) %>%
+    paste(.,collapse=",")%>%
+    paste("list(",.,")")%>%
+    parse(text=.)%>%
+    eval(.)
   return(txt2)
 }
 
@@ -857,7 +834,7 @@ mxGetLayerMeta <- function(dbInfo,layer){
     layer
     )
 
-  res <- mxDbGetQuery(dbInfo,query)$meta
+  res <- mxDbGetQuery(query)$meta
 
   res <- jsonlite::fromJSON(mxDecode(res))
 
@@ -877,177 +854,102 @@ mxGetViewData <- function(dbInfo,viewId,select=NULL){
   hasStyle <- "style" %in% select || is.null(select)
 
   viewTable <- mxConfig$viewsListTableName
- 
- if(!mxDbExistsTable(dbInfo,viewTable)){
+
+  if(!mxDbExistsTable(dbInfo,viewTable)){
     mxDebugMsg("mxGetViewMeta requested, but no view table available")
     return()
   }
 
- query <- sprintf(
+  query <- sprintf(
     "SELECT %1$s FROM %2$s WHERE \"id\" in (%3$s)",
     ifelse(is.null(select),"*",paste0(select,collapse=",")),
     viewTable,
     paste0("'",viewId,"'",collapse=",")
     )
 
- res <- mxDbGetQuery(dbInfo,query)
+  res <- mxDbGetQuery(query)
 
- if(isTRUE(nrow(res)>0)){
-   for( i in 1:nrow(res) ){
-     dat[[i]] <- as.list(res[i,]) ## as.list on single column data.frame : names are removed
-     names(dat[[i]]) <- select
-     if(hasStyle){
-       dat[[i]]$style <- jsonlite::fromJSON(mxDecode(dat[[i]]$style))
-     }
-   }   
- }
+  if(isTRUE(nrow(res)>0)){
+    for( i in 1:nrow(res) ){
+      dat[[i]] <- as.list(res[i,]) ## as.list on single column data.frame : names are removed
+      names(dat[[i]]) <- select
+      if(hasStyle){
+        dat[[i]]$style <- jsonlite::fromJSON(mxDecode(dat[[i]]$style))
+      }
+    }   
+  }
   return(dat)
 }
 
 
-
-#' Remove old results from db query
-#' @param dbInfo Named list with dbName,host,port,user and password
-#' @export
-mxDbClearAll <- function(dbInfo){
-  d <- dbInfo
-  drv <- dbDriver("PostgreSQL")
-  cons <- dbListConnections(drv)
-  if(length(cons)>0){
-    lapply(cons,function(x){
-      nR <- dbListResults(x)
-      if(length(nR)>0){
-        lapply(nR,dbClearResult)
-      }
-      dbDisconnect(x)
-  })
-  }
-}
-
-
-
-
-#' List existing table from postgresql
-#'
-#' Shortcut to create a connection, get the list of table and close the connection, using a dbInfo list. 
-#'
-#' @param dbInfo Named list with dbName,host,port,user and password
-#' @export
-mxDbListTable<- function(dbInfo){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbListTables(con)
-
-    dbDisconnect(con)
-    return(res)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
-}
-
-#' Check if table exists in postgresql
-#'
-#' Shortcut to create a connection, and check if table exists. 
-#'
-#' @param dbInfo Named list with dbName,host,port,user and password
-#' @param table Name of the table to check
-#' @export
-mxDbExistsTable<- function(dbInfo,table){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbExistsTable(con,table)
-    dbDisconnect(con)
-    return(res)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
-}
-
-
-
-#' List existing column from postgresql table
-#'
-#' Shortcut to create a connection, get the list of column and close the connection, using a dbInfo list. 
-#'
-#' @param dbInfo Named list with dbName,host,port,user and password
-#' @export
-mxDbListColumns <- function(dbInfo,table){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbListFields(con,table)
-    dbDisconnect(con)
-    return(res)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
-}
-
-
-
-
-
-
-#' Add data to db
-#'
+#' Encrypt or decrypt data using postgres pg_sym_encrypt
+#' 
 #' 
 #'
-mxDbAddData <- function(dbInfo,data,table){
-
-  stopifnot(class(data)=="data.frame")
-  stopifnot(class(table)=="character")
-
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbListTables(con)
-    tExists <- isTRUE(table %in% res)
-    tAppend <- FALSE
-    if(tExists){
-      tNam <- names(table)
-      rNam <- dbListFields(con,table)
-      if(!all(tNam %in% rNam)){
-        wText <- sprintf("mxDbAddData: remote table %1$s has fields: '%2$s', table to append: '%3$s'",
-          table,
-          paste(rNam,collapse="; "),
-          paste(tNam,collapse="; ")
-          )
-        stop(wText)
-      }else{
-        tAppend = TRUE
-      }
+#' @param data vector, list or data.frame to encrypt or decrypt
+#' @param ungroup boolean : ungroup the data and apply the encryption on individual item.
+#' @param key Encryption key
+#' @example identical("hello",mxPgDecrypt(mxPgEncrypt("hello")))
+#' @return encrypted data as list
+#' @export
+mxDbEncrypt <- function(data,ungroup=FALSE,dbInfo=mxConfig$dbInfo,key=mxConfig$key){
+  if(ungroup){
+      data <- sapply(data, jsonlite::toJSON, auto_unbox=T,simplifyVector=F)
+    }else{
+      data <- jsonlite::toJSON(data,auto_unbox=T,simplifyVector=F)
     }
-
-    dbWriteTable(con,name=table,value=data,append=tAppend,row.names=F)
-
-    dbDisconnect(con)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
-}
-
-
-mxDbUpdate <- function(dbInfo,table,column,idCol="id",id,value){
-    
-   query <- sprintf("
-      UPDATE %1$s
-      SET \"%2$s\"='%3$s'
-      WHERE \"%4$s\"='%5$s'",
-      table,
-      column,
-      value,
-      idCol,
-      id
+    q <- sprintf(
+      "(SELECT mx_encrypt('%1$s','%2$s') as res)",
+      data,
+      key
       )
-    res <- mxDbGetQuery(dbInfo,query)
+    if(length(q)>1) q <- paste(q,collapse=" UNION ALL ")
+
+    # Execute querry
+    res <- as.list(mxDbGetQuery(q))$res
 
     return(res)
 }
+#' @rdname mxPgEncrypt
+mxDbDecrypt <- function(data,key=mxConfig$key){
+  res <-  NULL
+  q <- sprintf("SELECT mx_decrypt('%1$s','%2$s') as res",
+    data,
+    key
+    )
 
+  if(length(q)>1) q <- paste(q,collapse=" UNION ALL ")
 
+  res <- mxDbGetQuery(q)$res
 
+  if(!is.null(res)) {
+    if(length(res)>1) {
+    res <- lapply(res,jsonlite::fromJSON,simplifyVector=T)
+    }else{ 
+    res <- jsonlite::fromJSON(res,simplifyVector=T)
+    }
+  }
+
+  return(res)
+}
+
+#' Get group table for users
+#' @param idFilter optional filter of vector containing ids
+mxDbGetUsersGroups<-function(idFilter=NULL){
+  filter = ""
+  if(!is.null(idFilter)) filter = paste(sprintf("WHERE id=%s",idFilter),collapse="OR")
+q = sprintf(
+    "SELECT id, grp 
+    FROM ( 
+      SELECT id, jsonb_array_elements_text(data_admin->'group') as grp 
+      FROM mx_users
+      %1$s 
+      ) t",
+    filter
+    )
+res = mxDbGetQuery(q)
+return(res)
+}
 
 
 #' Create random secret
@@ -1066,20 +968,20 @@ mxCreateSecret =  function(n=20){
 #' @param cntry Country iso3 code
 #' @return list of views data and style 
 #' @export
- mxMakeViewList <- function(dbInfo,cntry){
-      views = list()
-      if(!noDataCheck(cntry)){
-        viewsDf <- mxGetViewsTable(dbInfo,mxConfig$viewsListTableName,country=cntry)
-        if(isTRUE(nrow(viewsDf)>0)){
-          # create list of map views
-          for(i in viewsDf$id){
-            views[[i]] <- as.list(viewsDf[viewsDf$id==i,])
-            views[[i]]$style <- fromJSON(mxDecode(views[[i]]$style))
-          }
-        }
+mxMakeViewList <- function(dbInfo,cntry){
+  views = list()
+  if(!noDataCheck(cntry)){
+    viewsDf <- mxGetViewsTable(dbInfo,mxConfig$viewsListTableName,country=cntry)
+    if(isTRUE(nrow(viewsDf)>0)){
+      # create list of map views
+      for(i in viewsDf$id){
+        views[[i]] <- as.list(viewsDf[viewsDf$id==i,])
+        views[[i]]$style <- fromJSON(mxDecode(views[[i]]$style))
       }
-      return(views)
     }
+  }
+  return(views)
+}
 
 
 #' Save named list of value into cookie
@@ -1107,7 +1009,7 @@ mxSetCookie <- function(
   cmd$cookie <- cookie
   cmd$expiresInSec <- nDaysExpires * 86400
   cmd$read <- read
- 
+
   session$sendCustomMessage(
     type="mxSetCookie",
     cmd
@@ -1147,30 +1049,29 @@ mxAnalysisOverlaps <- function(dbInfo,inputBaseLayer,inputMaskLayer,outName,data
 
     #varToKeep <- paste0(sprintf("%s.%s",inputBaseLayer,varToKeep),collapse=",")
     #createTable <- sprintf("
-      #CREATE TABLE %1$s AS SELECT %4$s, 
-      #ST_Multi(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0))
-      #FROM %3$s
-      #INNER JOIN %2$s
-      #ON ST_Intersects(%3$s.geom, %2$s.geom)
-      #WHERE Not ST_IsEmpty(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0));
-      #ALTER TABLE %1$s
-      #ALTER COLUMN geom TYPE geometry(MultiPolygon, %5$i) 
-      #USING ST_SetSRID(geom,%5$i);
-      #ALTER TABLE %1$s OWNER TO %6$s;
-      #ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
-      #",
-      #outName,
-      #inputBaseLayer,
-      #inputMaskLayer,
-      #varToKeep,
-      #sridOut,
-      #dataOwner
-      #)
+    #CREATE TABLE %1$s AS SELECT %4$s, 
+    #ST_Multi(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0))
+    #FROM %3$s
+    #INNER JOIN %2$s
+    #ON ST_Intersects(%3$s.geom, %2$s.geom)
+    #WHERE Not ST_IsEmpty(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0));
+    #ALTER TABLE %1$s
+    #ALTER COLUMN geom TYPE geometry(MultiPolygon, %5$i) 
+    #USING ST_SetSRID(geom,%5$i);
+    #ALTER TABLE %1$s OWNER TO %6$s;
+    #ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
+    #",
+    #outName,
+    #inputBaseLayer,
+    #inputMaskLayer,
+    #varToKeep,
+    #sridOut,
+    #dataOwner
+    #)
 
     # get geometry type. 
     # NOTE: qgis seems confused if the geom type is not updated.
     geomType <- mxDbGetQuery(
-      dbInfo,
       sprintf("select GeometryType(geom) FROM %s limit 1",
         inputBaseLayer
         )
@@ -1205,24 +1106,24 @@ mxAnalysisOverlaps <- function(dbInfo,inputBaseLayer,inputMaskLayer,outName,data
             WHERE relname = '%1$s'
             ) AND attname = 'gid') THEN
         ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
-      ELSE
+        ELSE
         raise NOTICE 'gid already exists';
-  END IF;
-  END
-  $$
-  "
-  ,outName
-  ,varBase
-  ,inputBaseLayer
-  ,inputMaskLayer
-  ,sridOut
-  ,dataOwner
-  ,geomType
-  )
+        END IF;
+        END
+        $$
+        "
+        ,outName
+        ,varBase
+        ,inputBaseLayer
+        ,inputMaskLayer
+        ,sridOut
+        ,dataOwner
+        ,geomType
+        )
       )
-    mxDbGetQuery(dbInfo,createTable) 
+    mxDbGetQuery(createTable) 
   }
-  }
+}
 
 
 #' Create a formated list of available palettes
@@ -1294,15 +1195,15 @@ mxGetWdiIndicators <- function(){
 #' Reset all value in a reactiveValues object
 #' @param reaciveObj Reactive values object
 #' @export
-   mxStyleReset <-function(reactiveObj){
+mxStyleReset <-function(reactiveObj){
 
-     sty <- mxConfig$defaultStyle
-     styName <- names(sty)
-    #rList <- names(reactiveValuesToList(reactiveObj))
-     for(n in styName){
-     reactiveObj[[n]]<-sty[[n]]
-     }
-    }
+  sty <- mxConfig$defaultStyle
+  styName <- names(sty)
+  #rList <- names(reactiveValuesToList(reactiveObj))
+  for(n in styName){
+    reactiveObj[[n]]<-sty[[n]]
+  }
+}
 
 #' Set zoom button options
 #' @param map Leaflet map object
@@ -1352,7 +1253,7 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
   err <- na.omit(err)
 
   if(!displayNameInValidation){
-     textToTest = ""
+    textToTest = ""
   }
 
   if(length(err)>0){
@@ -1426,17 +1327,17 @@ listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-g
         )
       ) # open
     for(n in nL){
-#      htL <- append(htL,c(hS,n,hE))
-  htL<-append(
-      htL,
-      c(
-        paste(
-          '<li class="',
-          paste(classLi,collapse=","),
-          '">'
-          ),
-        n)
-      )
+      #      htL <- append(htL,c(hS,n,hE))
+      htL<-append(
+        htL,
+        c(
+          paste(
+            '<li class="',
+            paste(classLi,collapse=","),
+            '">'
+            ),
+          n)
+        )
       subL <- listInput[[n]]
       htL <- listToHtmlClass(
         subL, 
