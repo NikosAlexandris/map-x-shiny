@@ -227,7 +227,7 @@ observeEvent(input$btnDbImportConfirm,{
     if( le && te ){
       # get revision number
       q <- sprintf("SELECT revision FROM %1$s WHERE layer='%2$s' LIMIT 1",tn,sl$name)
-      res <- mxDbGetQuery(dbInfo,q)$revision
+      res <- mxDbGetQuery(q)$revision
       # replace revision number if needed
       if(isTRUE(is.numeric(res))){
         rn <- res + 1
@@ -257,7 +257,7 @@ observeEvent(input$btnDbImportConfirm,{
           ADD mx_date_end bigint",
           sl$name
           )
-        mxDbGetQuery(dbInfo,qAdd)
+        mxDbGetQuery(qAdd)
         # update date start
         qStart = sprintf(
           "UPDATE %s 
@@ -265,7 +265,7 @@ observeEvent(input$btnDbImportConfirm,{
           extract(epoch from to_timestamp(octroyé,'YYYY/MM/DD'))",
           sl$name
           )
-        mxDbGetQuery(dbInfo,qStart)
+        mxDbGetQuery(qStart)
         # update date end
         qEnd = sprintf(
           "UPDATE %s 
@@ -274,7 +274,7 @@ observeEvent(input$btnDbImportConfirm,{
           sl$name
           )
 
-        mxDbGetQuery(dbInfo,qEnd)
+        mxDbGetQuery(qEnd)
       }
 
     }
@@ -576,7 +576,7 @@ observeEvent(input$btnViewCreatorSave,{
 
       if(sty$hasDateColumns){
             q <- sprintf("SELECT min(mx_date_start),max(mx_date_end) FROM %s;",sty$layer)
-            mxDate <- mxDbGetQuery(dbInfo,q)
+            mxDate <- mxDbGetQuery(q)
             sty$dateMax <- as.Date(as.POSIXct(max(mxDate), origin="1970-01-01"))
             sty$dateMin <- as.Date(as.POSIXct(min(mxDate), origin="1970-01-01"))
       }
@@ -594,7 +594,7 @@ observeEvent(input$btnViewCreatorSave,{
             companyColName,
             sty$layer
             )
-          sty$companies <- mxDbGetQuery(dbInfo,q)[[ companyColName ]] 
+          sty$companies <- mxDbGetQuery(q)[[ companyColName ]] 
       }
 
 

@@ -469,7 +469,7 @@ observeEvent(input$btnDrawActionConfirm,{
     varToKeep = lc
     )
   # get number of row returner
-  cr <- mxDbGetQuery(dbInfo,sprintf("SELECT COUNT(gid) FROM %s",tr))$count
+  cr <- mxDbGetQuery(sprintf("SELECT COUNT(gid) FROM %s",tr))$count
 
 if(cr>0){
 qr <- sprintf("SELECT * FROM %s",tr)
@@ -510,7 +510,7 @@ ms <- sprintf(
   )
 }
 
-mxDbGetQuery(dbInfo,sprintf("DROP TABLE IF EXISTS %s",tr))
+mxDbGetQuery(sprintf("DROP TABLE IF EXISTS %s",tr))
 
 
 sendEmail <- sprintf("echo '%1$s' | mail -s 'map-x : polygon of interest %2$s' -a 'From: %3$s' %4$s",

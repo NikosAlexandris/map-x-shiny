@@ -38,7 +38,7 @@ observe({
 
       # db : id,user,country,name,desc,content_b64,content_ascii
       q <- sprintf("SELECT id, name FROM %1$s WHERE country='%2$s' AND \"archived\"='f' order by \"dateModified\" desc",tblName,iso3)
-      res <- mxDbGetQuery(dbInfo,q) 
+      res <- mxDbGetQuery(q) 
 
       storyIds <- res$id
       names(storyIds) <-res$name
