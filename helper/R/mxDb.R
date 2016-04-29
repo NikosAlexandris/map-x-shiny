@@ -1,4 +1,5 @@
 
+
 #' Transfert postgis feature by sql query to sp object
 #' @param dbInfo Named list with dbName,host,port,user and password.
 #' @param query PostGIS spatial sql querry.
@@ -123,7 +124,7 @@ dbGetLayerExtent<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
 
      q <- sprintf("SELECT ST_Extent(%s) as table_extent FROM %s;",geomColumn,table)
 
-      ext <- mxDbGetQuery(dbInfo,q)[[1]] %>% 
+      ext <- mxDbGetQuery(q)[[1]] %>% 
       strsplit(split=",")%>%
       unlist() %>%
       gsub("[a-z,A-Z]|\\(|\\)","",.) %>%
@@ -162,7 +163,7 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
         geomColumn,sqlPoint,column,table,geomColumn,sqlPoint,column
         )
       suppressWarnings({
-      res <- mxDbGetQuery(dbInfo,sqlWhere)
+      res <- mxDbGetQuery(sqlWhere)
       })
       
     })
@@ -206,14 +207,14 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
             column
             )
 
-        columnExists <- nrow( mxDbGetQuery(dbInfo,q) ) > 0 
+        columnExists <- nrow( mxDbGetQuery(q) ) > 0 
 
         if(!columnExists){
           message(paste("column",column," does not exist in ",table))
           return()
         }
 
-        nR <- mxDbGetQuery(dbInfo,sprintf(
+        nR <- mxDbGetQuery(sprintf(
             "SELECT count(*) 
             FROM %s 
             WHERE %s IS NOT NULL"
@@ -222,7 +223,7 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
             )
           )[[1]]
 
-        nN <- mxDbGetQuery(dbInfo,sprintf(
+        nN <- mxDbGetQuery(sprintf(
             "SELECT count(*) 
             FROM %s 
             WHERE %s IS NULL"
@@ -230,7 +231,7 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
             ,column
             )
           )[[1]]
-        nD <- mxDbGetQuery(dbInfo,sprintf(
+        nD <- mxDbGetQuery(sprintf(
             "SELECT COUNT(DISTINCT(%s)) 
             FROM %s 
             WHERE %s IS NOT NULL"
@@ -240,7 +241,7 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
             )
           )[[1]]
 
-        val <- mxDbGetQuery(dbInfo,sprintf("
+        val <- mxDbGetQuery(sprintf("
             SELECT DISTINCT(%s) 
             FROM %s 
             WHERE %s IS NOT NULL"
@@ -309,7 +310,7 @@ dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
         )
 
       
-      mxDbGetQuery(dbInfo,query)[[2]] %>%
+      mxDbGetQuery(query)[[2]] %>%
       strsplit(split=" ")%>%
       unlist()%>%
       gsub("[a-z,A-Z]|\\(|\\)","",.)%>%
@@ -357,7 +358,7 @@ dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomCo
       operator
       )
 
-    ext <- mxDbGetQuery(dbInfo,q)[[1]]
+    ext <- mxDbGetQuery(q)[[1]]
 
     if(noDataCheck(ext))return(NULL)
     res <- ext %>%
@@ -433,7 +434,7 @@ dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableNa
         aNamePkey
         )
   
-      mxDbGetQuery(d,qdb) 
+      mxDbGetQuery(qdb) 
   }
   if(aE){
     stop("Archive requested but already existing ! ArchiveName =  %a",aN)
@@ -473,6 +474,175 @@ dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableNa
 
 }
 
+
+
+
+
+
+#' Get query result from postgresql
+#'
+#' Shortcut to create a connection, get the result of a query and close the connection, using a dbInfo list. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param SQL query
+#' @export
+mxDbGetQuery <- function(query,stringAsFactors=FALSE,dbInfo=mxConfig$dbInfo){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    suppressWarnings({
+    res <- dbGetQuery(con,query,stringAsFactors=stringAsFactors)
+    })
+
+    dbDisconnect(con)
+    on.exit({ 
+    dbDisconnect(con)
+    mxDbClearAll(dbInfo)
+    })
+    # return
+    return(res)
+  },
+    finally={})
+}
+
+#' List existing table from postgresql
+#'
+#' Shortcut to create a connection, get the list of table and close the connection, using a dbInfo list. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @export
+mxDbListTable<- function(dbInfo){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbListTables(con)
+
+    dbDisconnect(con)
+    return(res)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+#' Check if table exists in postgresql
+#'
+#' Shortcut to create a connection, and check if table exists. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param table Name of the table to check
+#' @export
+mxDbExistsTable<- function(dbInfo,table){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbExistsTable(con,table)
+    dbDisconnect(con)
+    return(res)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+
+
+#' List existing column from postgresql table
+#'
+#' Shortcut to create a connection, get the list of column and close the connection, using a dbInfo list. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @export
+mxDbListColumns <- function(dbInfo,table){
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbListFields(con,table)
+    dbDisconnect(con)
+    return(res)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+
+
+
+
+#' Add data to db
+#'
+#' 
+#'
+mxDbAddData <- function(dbInfo,data,table){
+
+  stopifnot(class(data)=="data.frame")
+  stopifnot(class(table)=="character")
+
+  tryCatch({
+    d <- dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    res <- dbListTables(con)
+    tExists <- isTRUE(table %in% res)
+    tAppend <- FALSE
+    if(tExists){
+      tNam <- names(table)
+      rNam <- dbListFields(con,table)
+      if(!all(tNam %in% rNam)){
+        wText <- sprintf("mxDbAddData: remote table %1$s has fields: '%2$s', table to append: '%3$s'",
+          table,
+          paste(rNam,collapse="; "),
+          paste(tNam,collapse="; ")
+          )
+        stop(wText)
+      }else{
+        tAppend = TRUE
+      }
+    }
+
+    dbWriteTable(con,name=table,value=data,append=tAppend,row.names=F)
+
+    dbDisconnect(con)
+  },finally=if(exists('con'))dbDisconnect(con)
+  )
+}
+
+
+mxDbUpdate <- function(dbInfo,table,column,idCol="id",id,value){
+    
+   query <- sprintf("
+      UPDATE %1$s
+      SET \"%2$s\"='%3$s'
+      WHERE \"%4$s\"='%5$s'",
+      table,
+      column,
+      value,
+      idCol,
+      id
+      )
+    res <- mxDbGetQuery(query)
+
+    return(res)
+}
+
+
+
+#' Remove old results from db query
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @export
+mxDbClearAll <- function(dbInfo){
+  d <- dbInfo
+  drv <- dbDriver("PostgreSQL")
+  cons <- dbListConnections(drv)
+  if(length(cons)>0){
+    lapply(cons,function(x){
+      nR <- dbListResults(x)
+      if(length(nR)>0){
+        lapply(nR,dbClearResult)
+      }
+      dbDisconnect(x)
+  })
+  }
+}
 
 
 
