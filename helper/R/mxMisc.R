@@ -889,7 +889,6 @@ mxGetViewData <- function(dbInfo,viewId,select=NULL){
 #' @param data vector, list or data.frame to encrypt or decrypt
 #' @param ungroup boolean : ungroup the data and apply the encryption on individual item.
 #' @param key Encryption key
-#' @example identical("hello",mxPgDecrypt(mxPgEncrypt("hello")))
 #' @return encrypted data as list
 #' @export
 mxDbEncrypt <- function(data,ungroup=FALSE,dbInfo=mxConfig$dbInfo,key=mxConfig$key){
@@ -910,7 +909,7 @@ mxDbEncrypt <- function(data,ungroup=FALSE,dbInfo=mxConfig$dbInfo,key=mxConfig$k
 
     return(res)
 }
-#' @rdname mxPgEncrypt
+#' @rdname mxDbEncrypt
 mxDbDecrypt <- function(data,key=mxConfig$key){
   res <-  NULL
   q <- sprintf("SELECT mx_decrypt('%1$s','%2$s') as res",

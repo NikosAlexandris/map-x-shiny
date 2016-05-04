@@ -2,7 +2,7 @@
 % Please edit documentation in R/mxMisc.R
 \name{mxTextValidation}
 \alias{mxTextValidation}
-\title{Sting validation}
+\title{String validation}
 \usage{
 mxTextValidation(textToTest, existingTexts, idTextValidation, minChar = 5,
   testForDuplicate = TRUE, testForMinChar = TRUE,
@@ -28,6 +28,6 @@ mxTextValidation(textToTest, existingTexts, idTextValidation, minChar = 5,
 boolean : valid or not
 }
 \description{
-Check if a string exists in a vector of string, if there is a duplicate, if contain at least n character, etc.. and update an existing div with a html summary. Return if the string is valid or not.
+Check if a string exists in a vector of string, if there is a duplicate, if contains at least n character, etc.. and update an existing div with a html summary. Return if the string is valid or not.
 }
 

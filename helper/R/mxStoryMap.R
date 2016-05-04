@@ -103,7 +103,7 @@ mxGetStoryMapText <- function(dbInfo,id,textColumn="content_b64"){
       tblName,
       id
       )
-    res <- mxDbGetQuery(dbInfo,q) 
+    res <- mxDbGetQuery(q) 
   }
   if(textColumn %in% names(res)){
   res <- mxDecode(res$content_b64)
@@ -115,7 +115,7 @@ mxGetStoryMapName <- function(dbInfo){
   tblName <- mxConfig$storyMapsTableName
   if(!mxDbExistsTable(dbInfo,tblName)) return(data.frame())
   q <- sprintf("SELECT name FROM %1$s WHERE \"archived\"='f'",tblName)
-  res <- mxDbGetQuery(dbInfo,q) 
+  res <- mxDbGetQuery(q) 
   return(res)
 }
 

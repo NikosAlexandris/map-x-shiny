@@ -10,6 +10,9 @@
 
 shinyServer(function(input, output, session) {
   mxCatch(title="Main server function",{
+    
+
+
     #
     # Initial reactive values
     #

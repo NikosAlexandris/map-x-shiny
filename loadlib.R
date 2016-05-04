@@ -30,6 +30,6 @@ library(xts)
 
 # data transfer
 library(base64enc)
-
+library(digest)
 # story map
 library(knitr)
