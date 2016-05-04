@@ -17,10 +17,12 @@ var txt = {};
 /* http://stackoverflow.com/questions/487073/check-if-element-is-visible-after-scrolling */
 function isVisible(e) {
     var el = document.getElementById(e);
+    if(el){
     var elemTop = el.getBoundingClientRect().top;
     var elemBottom = el.getBoundingClientRect().bottom;
     var inViewPort = (elemTop >= 0) && (elemBottom <= window.innerHeight) && elemTop != elemBottom;
     return inViewPort;
+    }
 }
 
 /*  mx tour management  */
