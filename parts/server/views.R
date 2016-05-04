@@ -69,7 +69,7 @@ observeEvent(input$mxRequestMeta,{
          )
        )
 
-
+  panModal <- mxPanel(
     id="panMetaModal",
     title=sprintf("Metadata"),
     subtitle="Information available",
