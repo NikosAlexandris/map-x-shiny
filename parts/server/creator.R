@@ -214,8 +214,8 @@ observeEvent(input$btnDbImportConfirm,{
     # table name
     tn <- mxConfig$layersTableName
     # table list
-    te <- mxDbExistsTable(dbInfo,tn)
-    le <- mxDbExistsTable(dbInfo,sl$name)
+    te <- mxDbExistsTable(tn)
+    le <- mxDbExistsTable(sl$name)
     # Revision number
     rn <- 0
     # time now 
@@ -236,8 +236,7 @@ observeEvent(input$btnDbImportConfirm,{
     #
     # Save into layer table
     #
-    dbAddGeoJSON(
-      dbInfo=dbInfo,
+    mxDbAddGeoJSON(
       geojsonPath=sl$file,
       tableName=sl$name,
       archivePrefix = mxConfig$prefixArchiveLayer
@@ -245,7 +244,7 @@ observeEvent(input$btnDbImportConfirm,{
     #
     # get existing columns
     #
-    cols <- mxDbListColumns(dbInfo,sl$name)
+    cols <- mxDbListColumns(sl$name)
 
     if(! "mx_date_end" %in% cols && ! "mx_date_start" %in% cols ){
       if("octroyé" %in% cols && "expire" %in% cols){
@@ -309,7 +308,6 @@ observeEvent(input$btnDbImportConfirm,{
     if(rn>0){
       # update revision
       mxDbUpdate(
-        dbInfo,
         table=tn,
         column="archived",
         idCol="layer",
@@ -317,7 +315,6 @@ observeEvent(input$btnDbImportConfirm,{
         value=TRUE
         )
       mxDbUpdate(
-        dbInfo,
         table=tn,
         column="dateArchived",
         idCol="layer",
@@ -328,7 +325,6 @@ observeEvent(input$btnDbImportConfirm,{
 
     # append or add data.
     mxDbAddData(
-      dbInfo,
       data=tbl,
       table=tn
       )
@@ -337,9 +333,8 @@ observeEvent(input$btnDbImportConfirm,{
     # Update pgrestapi
     #
 
-    if( mxConfig$hostname != "map-x-full" ){
-      if(!exists("remoteInfo"))stop("No remoteInfo found in /settings/settings.R")
-      remoteCmd(host="map-x-full",cmd=mxConfig$restartPgRestApi)
+    if( mxConfig$hostname != mxConfig$remoteHostname ){
+      remoteCmd(host=mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
     }else{
       system(mxConfig$restartPgRestApi)
     }
@@ -379,9 +374,8 @@ observeEvent(input$btnDbImportConfirm,{
 observeEvent(input$btnViewsRefresh,{
   if(mxReact$allowViewsCreator){
     mxDebugMsg("Command remote server to restart app")
-    if( mxConfig$hostname != "map-x-full" ){
-      if(!exists("remoteInfo"))stop("No remoteInfo found in /settings/settings.R")
-      remoteCmd("map-x-full",cmd=mxConfig$restartPgRestApi)
+    if( mxConfig$hostname != mxConfig$remoteHostname ){
+      remoteCmd(mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
     }else{
       system(mxConfig$restartPgRestApi)
     }
@@ -475,7 +469,7 @@ observeEvent(input$selColumnVar,{
     isolate({
       if(!noDataCheck(lay) && !noDataCheck(var)){
         # extract layer summary from postgres
-        layerSummary <- dbGetColumnInfo(dbInfo,lay,var)
+        layerSummary <- mxDbGetColumnInfo(lay,var)
         if(noDataCheck(layerSummary)){
           return(NULL)
         }
@@ -612,7 +606,7 @@ observeEvent(input$btnViewCreatorSave,{
       timeNow <- Sys.time()
 
       tbl = as.data.frame(stringsAsFactors=FALSE,list(
-          id =  randomName(),
+          id =  randomString(),
           country = mxReact$selectCountry,
           title = input$mapViewTitle,
           class = input$mapViewClass,
@@ -631,7 +625,6 @@ observeEvent(input$btnViewCreatorSave,{
         )
 
       mxDbAddData(
-        dbInfo,
         data=tbl,
         table=viewTable
         )

@@ -8,7 +8,7 @@ observeEvent(input$txtStoryName,{
 
   valid <- mxTextValidation(
     textToTest = newStoryName,
-    existingTexts = mxGetStoryMapName(dbInfo),
+    existingTexts = mxGetStoryMapName(),
     idTextValidation = "validateNewStoryName"
     )
 
@@ -23,7 +23,7 @@ observeEvent(input$btnSaveNewStory,{
     mxDebugMsg("New name requested")
     
 
-    newId <- randomName()
+    newId <- randomString()
     
     timeNow <- Sys.time()
 
@@ -46,7 +46,7 @@ observeEvent(input$btnSaveNewStory,{
       dateValidated = timeNow
       )
 
-    mxDbAddData(dbInfo,table=mxConfig$storyMapsTableName, data=df )
+    mxDbAddData(table=mxConfig$storyMapsTableName, data=df )
     mxReact$updateStorySelector<-runif(1)
     updateTextInput(session,'txtStoryName',value="")
  
@@ -72,7 +72,7 @@ observeEvent(input$btnStoryMapEditorUpdate,{
     storyId <- input$selectStoryId
       if(nchar(storyText)>0){
         mxCatch(title="Saving story",{
-          mxDbUpdate(dbInfo,
+          mxDbUpdate(
             table = mxConfig$storyMapsTableName,
             column = "content_b64",
             id = storyId,

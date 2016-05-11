@@ -5,8 +5,7 @@
 \alias{mxDbEncrypt}
 \title{Encrypt or decrypt data using postgres pg_sym_encrypt}
 \usage{
-mxDbEncrypt(data, ungroup = FALSE, dbInfo = mxConfig$dbInfo,
-  key = mxConfig$key)
+mxDbEncrypt(data, ungroup = FALSE)
 
 mxDbDecrypt(data, key = mxConfig$key)
 }

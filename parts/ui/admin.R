@@ -7,17 +7,27 @@
 #                 |_|           
 # Admin panel
 
+
+
+
 userPanel = tagList(
-  p("Note: buttons doesn't do anything for now."),
-  tags$ul(class="list-inline",
-    tags$li(
-      actionButton("btnAdmRmUser","Remove selected (test)"),
-      actionButton("btnAdmUpdateUser","Update selected (test)")
-      )
-    ),
-  div(class="mxTableContainer", hotable("tableUsers"))
- 
+uiOutput("sectionUserManage")  
   )
+
+
+
+
+#userPanel = tagList(
+  #p("Note: buttons doesn't do anything for now."),
+  #tags$ul(class="list-inline",
+    #tags$li(
+      #actionButton("btnAdmRmUser","Remove selected (test)"),
+      #actionButton("btnAdmUpdateUser","Update selected (test)")
+      #)
+    #),
+  #div(class="mxTableContainer", hotable("tableUsers"))
+ 
+  #)
 
 # views management panel
 viewsPanel <- tagList(

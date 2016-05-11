@@ -128,8 +128,8 @@ observeEvent(input$btnZoomToLayer,{
   mxCatch(title="Btn zoom to layer",{
     lay <- mxStyle$layer
     if(noDataCheck(lay))return()
-    zm = mxConfig$countryCenter[[mxReact$selectCountry]]$zoom
-    centro<-dbGetLayerCentroid(dbInfo=dbInfo,table=lay)
+    zm <- mxConfig$countryCenter[[mxReact$selectCountry]]$zoom
+    centro<- mxDbGetLayerCentroid(table=lay)
     if(noDataCheck(centro)){
       centro <- list(lng=0,lat=0)
     }

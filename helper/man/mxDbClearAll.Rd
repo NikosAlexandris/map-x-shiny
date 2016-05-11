@@ -4,10 +4,7 @@
 \alias{mxDbClearAll}
 \title{Remove old results from db query}
 \usage{
-mxDbClearAll(dbInfo)
-}
-\arguments{
-\item{dbInfo}{Named list with dbName,host,port,user and password}
+mxDbClearAll(dbInfo = mxConfig$dbInfo)
 }
 \description{
 Remove old results from db query

@@ -29,20 +29,34 @@ options(
 # LOCAL CONFIGURATION                                                    #
 #                                                                        # 
 ##########################################################################
+
 # those settings should be modified in /settings/config-local.R 
 
-# database connection 
-mxConfig$dbInfo <- list(host="",dbname="",port="",user="",password="")
-# remote host (when using map-x outside virtual server)
-#mxConfig$remoteInfo = list(host="",user="",port="")
-# In this case : Darwin = devel environment; linux = production environment
+
+mxConfig$remoteHostname = "map-x-full"
+
+
+mxConfig$remoteInfo <- list(
+  host="127.0.0.1",
+  user="vagrant",
+  port=2222
+  )
+mxConfig$dbInfo <- list(
+  host='127.0.0.1',
+  dbname='mapx',
+  port='5432',
+  user='mapxw',
+  password='"<put_your_postgres_pwd_here>"'
+  )
+mxConfig$key <- digest("<put_a_strong_key_here>")
+
+
+# get info about the host
 mxConfig$os <- Sys.info()['sysname']
 mxConfig$hostname <- Sys.info()['nodename']
-# port depending on which plateform map-x shiny is launched
 
 
-
-if ( mxConfig$hostname == "map-x-full" ) {
+if ( mxConfig$hostname == mxConfig$remoteHostname ) {
   mxConfig$protocolVt <- "http"
   mxConfig$protocolVtPublic <- "http"
   mxConfig$portVt <- 80
@@ -56,8 +70,6 @@ if ( mxConfig$hostname == "map-x-full" ) {
   mxConfig$hostVt <- "localhost"
 } 
 
-# set default key TO BE OVERWRITTEN IN CONFIG-LOCAL
-mxConfig$key <- digest("smmwcgorvuonkjarcggg")
 
 
 ##########################################################################
@@ -89,8 +101,9 @@ mxConfig$defaultZoom <- 9
 mxConfig$defaultGroup <- "G1"
 # column column used in postgis
 mxConfig$defaultGeomCol <- "geom"
-
-
+# cookies expiration in days
+mxConfig$cookiesExpireDays <- 10 
+# default email adress for sender
 mxConfig$mapxBotEmail <- "bot@mapx.io"
 
 
@@ -128,21 +141,78 @@ mxConfig$mapxBotEmail <- "bot@mapx.io"
   #)
 
 
+# project tree is valid agains schema in mxConfig$schemas$projectTree 
+mxConfig$projectTree  <- list(
+  name = "world",
+  children = list(
+    list(
+      name = "afg",
+      children = list(
+        list(
+          name = "aynak",
+          children = list()
+          )
+        )
+      ),
+    list(
+      name = "cod",
+      children = list()
+      )
+    )
+  )
+
+
+mxRecSearch <- function(li,name="afg"){
+  if(is.list(li) && length(li)>0){ 
+    if("name" %in% names(li) && li$name==name){
+      return(rapply(li,unlist))
+    }else{
+      if("children" %in% names(li)){
+        lapply(li[['children']])
+      }
+
+      for(i in 1:length(li)){
+
+
+        subLi = li[[li]]
+        if("children" %in% names)
+        print(i)
+        browser()
+        mxRecSearch(li[[i]],name)
+      }
+    }
+  }else{
+   return()
+  }
+
+}
+
+
+
+
+
+# NOTE: each role is related to specific project : admin cod will not be able to change roles of user from afg
+# only members of higher group levels can modify other members data
+# tools : analysis tool
+# read : read views and story maps (targeting is role)
+#
+#
+
 mxConfig$roles <- list(
   "guest"=list(
-    action = c("read","write"),
-    target = c("temporary")
+    action = c("tools","read"),
+    readers = c("")
     ),
   "user"=list(
-    action=c("read","write","edit"),
-    target=c("temporary","self","editor","admin","superuser")
+    action=c("tools","read","create","update"),
+    readers=c("self","editor","admin","superuser")
     ),
   "editor"=list(
-    action=c("read","write","edit","publish"),
-    target=c("temporary","self","editor","admin","superuser","public")
+    action=c("tools","read","create","update","edit"),
+    readers=c("self","editor","admin","superuser","user")
     ),
   "admin"=list(
-    action=c("read","write","edit","publish","upload","manage"),
+    action=c("tools","read","write","edit","manage"),
     target=c("temporary","self","editor","admin","superuser","public")
     ),
   "superuser"=list(

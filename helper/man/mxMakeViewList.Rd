@@ -4,11 +4,9 @@
 \alias{mxMakeViewList}
 \title{extract views from the db and create a list}
 \usage{
-mxMakeViewList(dbInfo, cntry)
+mxMakeViewList(cntry)
 }
 \arguments{
-\item{dbInfo}{map-x db info list}
-
 \item{cntry}{Country iso3 code}
 }
 \value{

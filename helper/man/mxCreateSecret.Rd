@@ -7,9 +7,9 @@
 mxCreateSecret(n = 20)
 }
 \arguments{
-\item{n}{Number of input letter for the MD5 hash}
+\item{n}{Number of character}
 }
 \description{
-Get a random string of letters and hash it.
+Get a random string .
 }
 

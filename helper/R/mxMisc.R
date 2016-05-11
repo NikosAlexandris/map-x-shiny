@@ -61,13 +61,23 @@ mxCanReach<- function(server="google.com",port=80){
 #' @param value Values
 #' @param compValues Comparative values
 #' @export
-mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,compMain,id,idLegend,labels,values,compValues){
+mxUpdateChartRadar <- function(
+  session=shiny::getDefaultReactiveDomain(),
+  main,
+  compMain,
+  id,
+  idLegend,
+  labels,
+  values,
+  compValues
+  ){
   stopifnot(is.vector(values) || is.vector(label))
-  ctx = sprintf("var ctx = document.getElementById('%s').getContext('2d');",id)
-  createGraph = "var mxChart = new Chart(ctx).Radar(data)"
-  labels = jsonlite::toJSON(labels)
-  datasetMain = jsonlite::toJSON(auto_unbox=T,
-    list(
+ 
+  res <- list()
+  res$id <- id
+  res$labels <- labels
+  res$idLegend <- idLegend
+  res$dataMain <-  list(
       label = main,
       fillColor = 'rgba(119,119, 119, 0.6)',
       strokeColor = 'rgba(119,119, 119, 0.6)',
@@ -75,9 +85,7 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
       highlightStroke = 'rgba(119,119, 119, 0.6)',
       data = values
       )
-    )
-  datasetComp = jsonlite::toJSON(auto_unbox=T,
-    list(
+  res$dataComp <- list(
       label = compMain,
       fillColor = 'rgba(255, 164, 0, 0.8)',
       strokeColor = 'rgba(255, 164, 0, 0.9)',
@@ -85,24 +93,10 @@ mxUpdateChartRadar <- function(session=shiny::getDefaultReactiveDomain(),main,co
       highlightStroke = 'rgba(255, 164, 0, 1)',
       data = compValues
       )
-    )
-  js = sprintf("
-    /* create chart.js object*/
-      var data = {
-        labels: %s,
-        datasets: [ %s , %s ]
-      };
-      /* context */
-        %s
-      /*create graph */
-        %s
-      /* Generate legend */
-        var chartLegend = mxChart.generateLegend();
-      $('#'+'%s').html(function(){return chartLegend;});",
-      labels,datasetComp,datasetMain,ctx,createGraph,idLegend)
+
   session$sendCustomMessage(
-    type="jsCode",
-    list(code=js)
+    type="updateChart",
+    res
     )
 }
 
@@ -231,21 +225,39 @@ mxCatch <- function(
 
 
 
-#' Random name generator
+#' Random string generator
 #' 
-#' Create a random name with optional prefix and suffix.
+#' Create a random string with optional settings.
 #' 
 #' @param prefix Prefix. Default = NULL
 #' @param suffix Suffix. Default = NULL
 #' @param n Number of character to include in the random string
+#' @param sep Separator for prefix or suffix
+#' @param addSymbols Add random symbols
+#' @param addLetters Add random letters (upper and lowercase)
+#' @param splitIn Split string into chunk, with separator as defined in splitSep
+#' @param splitSep Split symbos if splitIn > 1
 #' @return  Random string of letters, with prefix and suffix
 #' @export
-randomName <- function(prefix=NULL,suffix=NULL,n=20,sep="_"){
-  prefix = subPunct(prefix,sep)
-  suffix = subPunct(suffix,sep)
-  rStr = paste(letters[round(runif(n)*24)],collapse="")
-  str = c(prefix,rStr,suffix)
-  paste(str,collapse=sep)
+randomString <- function(prefix=NULL,suffix=NULL,n=15,sep="_",addSymbols=F,addLetters=T,splitIn=5,splitSep="-"){
+  prefix <- subPunct(prefix,sep)
+  suffix <- subPunct(suffix,sep)
+  src <- 0:9
+
+  if(splitIn<1) splitIn=1
+  if(isTRUE(addSymbols)) src <- c(src,"$","?","=",")","(","/","&","%","*","+")
+  if(isTRUE(addLetters)) src <- c(letters,LETTERS,src)
+
+  grp <- sort(1:n%%splitIn)
+
+  rStr <- src %>% 
+     sample(size=n,replace=T) %>%
+      split(grp) %>%
+      sapply(paste,collapse="") %>%
+      paste(collapse=splitSep)
+
+  c(prefix,rStr,suffix) %>%
+  paste(collapse=sep)
 }
 
 #' Substitute ponctiation and non-ascii character
@@ -287,17 +299,16 @@ subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T,u
 #'
 #' Get a list of available map-x views in given table, e.g. mx_views 
 #'
-#' @param dbInfo Named list with dbName,host,port, user and password
 #' @param table Table name containing views info
 #' @param validated Boolean filter validated dataset. Default = TRUE
 #' @param archived Boolean filter to get archived data. Default =FALSE
 #' @param country ISO 3 code to filter country. 
 #' @export
-mxGetViewsTable <- function(dbInfo=NULL, table="mx_views",validated=TRUE,archived=FALSE,country="AFG"){
+mxGetViewsTable <- function(table="mx_views",validated=TRUE,archived=FALSE,country="AFG"){
 
   country = paste0("'",country,"'",collapse=",")
 
-  if(isTRUE(table %in% mxDbListTable(dbInfo))){
+  if(isTRUE(table %in% mxDbListTable())){
 
     q <- sprintf(
       "SELECT * FROM %s 
@@ -372,67 +383,6 @@ remoteCmd <- function(host=NULL,user=NULL,port=NULL,cmd=NULL,vagrant=TRUE,sshCon
     }
   }
   return(res)
-}
-
-#' Write spatial data frame to postgis
-#'
-#' Convert spatial data.frame to postgis table. Taken from https://philipphunziker.wordpress.com/2014/07/20/transferring-vector-data-between-postgis-and-r/
-#'
-#' @param con PostgreSQL connection
-#' @param spatial.df  Spatial  data frame object
-#' @param schemaname Target schema table
-#' @param tablename Target table name
-#' @param overwrite Overwrite if exists
-#' @param keyCol Set new primary key
-#' @param srid Set the epsg code / SRID
-#' @param geomCol Set the name of the geometry column
-dbWriteSpatial <- function(con, spatial.df, schemaname="public", tablename, overwrite=FALSE, keyCol="gid", srid=4326, geomCol="geom") {
-
-  on.exit(dbDisconnect(con))
-
-  library(rgeos)
-
-  # Create well known text and add to spatial DF
-  spatialwkt <- writeWKT(spatial.df, byid=TRUE)
-  spatial.df$wkt <- spatialwkt
-
-  # Add temporary unique ID to spatial DF
-  spatial.df$spatial_id <- 1:nrow(spatial.df)
-
-  # Set column names to lower case
-  names(spatial.df) <- tolower(names(spatial.df))
-
-  # Upload DF to DB
-  data.df <- spatial.df@data
-  rv <- dbWriteTable(con, c(schemaname, tablename), data.df, overwrite=overwrite, row.names=FALSE)
-
-  # Create geometry column and clean up table
-  schema.table <- paste(schemaname, ".", tablename, sep="")
-  query1 <- sprintf("ALTER TABLE %s ADD COLUMN %s GEOMETRY;", schema.table, geomCol)
-  query2 <- sprintf("UPDATE %s SET %s = ST_GEOMETRYFROMTEXT(t.wkt) FROM %s t  WHERE t.spatial_id = %s.spatial_id;",
-    schema.table, geomCol, schema.table, schema.table)
-  query3 <- sprintf("ALTER TABLE %s DROP COLUMN spatial_id;",schema.table)
-  query4 <- sprintf("ALTER TABLE %s DROP COLUMN wkt;",schema.table)
-  query5 <- sprintf("SELECT UpdateGeometrySRID('%s','%s','%s',%s);",schemaname,tablename,geomCol,srid)
-
-
-  er <- dbGetQuery(con, statement=query1)
-  er <- dbGetQuery(con, statement=query2)
-  er <- dbGetQuery(con, statement=query3)
-  er <- dbGetQuery(con, statement=query4)
-  er <- dbGetQuery(con, statement=query5)
-
-
-
-
-  if(!is.null(keyCol)){
-    query6 <- sprintf("ALTER TABLE %s ADD COLUMN %s SERIAL PRIMARY KEY;", schema.table, keyCol)
-    er <- dbGetQuery(con, statement=query6)
-  }
-
-
-
-  return(TRUE)
 }
 
 
@@ -811,19 +761,19 @@ mxParseListFromText <- function(txt){
 
 
 #' Get layer meta stored in default layer table
-#' @param dbInfo Named list with dbName,host,port,user and password
 #' @param layer Postgis layer stored in layer table. Should have a meta field.
 #' @export
-mxGetLayerMeta <- function(dbInfo,layer){
+mxGetLayerMeta <- function(layer){
 
-  if(is.null(layer) || is.null(dbInfo)) return()
+  if(is.null(layer)) return()
+  
   layerTable <- mxConfig$layersTableName
 
-  if(!mxDbExistsTable(dbInfo,layerTable)){
+  if(!mxDbExistsTable(layerTable)){
     mxDebugMsg("mxGetMeta requested, but no layer table available")
     return()
   }
-  if(!mxDbExistsTable(dbInfo,layer)){
+  if(!mxDbExistsTable(layer)){
     mxDebugMsg("mxGetMeta requested, but no layer available")
     return()
   }
@@ -842,20 +792,19 @@ mxGetLayerMeta <- function(dbInfo,layer){
 }
 
 #' Get view data as list
-#' @param dbInfo Named list with dbName,host,port,user and password
 #' @param viewId Vector of view id(s) for which to retrieve data
 #' @param select Vector of columns to retrieve
 #' @export
-mxGetViewData <- function(dbInfo,viewId,select=NULL){
+mxGetViewData <- function(viewId,select=NULL){
 
-  if(is.null(viewId) || is.null(dbInfo)) return()
+  if(is.null(viewId)) return()
   dat = list()
   # test if style is requested
   hasStyle <- "style" %in% select || is.null(select)
 
   viewTable <- mxConfig$viewsListTableName
 
-  if(!mxDbExistsTable(dbInfo,viewTable)){
+  if(!mxDbExistsTable(viewTable)){
     mxDebugMsg("mxGetViewMeta requested, but no view table available")
     return()
   }
@@ -891,7 +840,8 @@ mxGetViewData <- function(dbInfo,viewId,select=NULL){
 #' @param key Encryption key
 #' @return encrypted data as list
 #' @export
-mxDbEncrypt <- function(data,ungroup=FALSE,dbInfo=mxConfig$dbInfo,key=mxConfig$key){
+mxDbEncrypt <- function(data,ungroup=FALSE,key=mxConfig$key){
+
   if(ungroup){
       data <- sapply(data, jsonlite::toJSON, auto_unbox=T,simplifyVector=F)
     }else{
@@ -910,26 +860,44 @@ mxDbEncrypt <- function(data,ungroup=FALSE,dbInfo=mxConfig$dbInfo,key=mxConfig$k
     return(res)
 }
 #' @rdname mxDbEncrypt
-mxDbDecrypt <- function(data,key=mxConfig$key){
-  res <-  NULL
-  q <- sprintf("SELECT mx_decrypt('%1$s','%2$s') as res",
-    data,
-    key
-    )
+mxDbDecrypt <- function(data=NULL,key=mxConfig$key){
 
-  if(length(q)>1) q <- paste(q,collapse=" UNION ALL ")
+  out <- try({
+    # if vector containing encrypted data is empty (or not a vector.. see noDataCheck) OR
+    # if nchar is not even (should be hex data)
+    if(
+      is.null( data ) ||
+      !all( sapply( data, length ) > 0) ||  
+      !all( sapply( data, is.character )) ||
+      !all( sapply( data, nchar )%%2 == 0)
+    ) return()
 
-  res <- mxDbGetQuery(q)$res
+    query <- sprintf("SELECT mx_decrypt('%1$s','%2$s') as res",
+      data,
+      key
+      )
+    if(length(query)>1) query <- paste(query,collapse=" UNION ALL ")
 
-  if(!is.null(res)) {
-    if(length(res)>1) {
-    res <- lapply(res,jsonlite::fromJSON,simplifyVector=T)
-    }else{ 
-    res <- jsonlite::fromJSON(res,simplifyVector=T)
+    res <- mxDbGetQuery(query)$res
+
+    if(!is.null(res) && !is.na(res)) {
+      # if we convert r object as json with mxDbEncrypt, we may want 
+      # retrieve decrypt no json based text.
+      isJSON <- all(sapply(res,jsonlite::validate))
+
+      if(isJSON){
+      if(length(res)>1) {
+        out <- lapply(res,jsonlite::fromJSON,simplifyVector=T)
+      }else{ 
+        out <- jsonlite::fromJSON(res,simplifyVector=T)
+      }
+      }else{
+       out <- res
+      }
     }
-  }
 
-  return(res)
+  },silent=T)
+  return(out)
 }
 
 #' Get group table for users
@@ -953,24 +921,22 @@ return(res)
 
 #' Create random secret
 #'
-#' Get a random string of letters and hash it.
+#' Get a random string .
 #'
-#' @param n Number of input letter for the MD5 hash
+#' @param n Number of character
 #' @export
 mxCreateSecret =  function(n=20){
-  stopifnot(require(digest))
-  digest::digest(paste(letters[round(runif(n)*24)],collapse=""))
+  randomString(20)
 }
 
 #' extract views from the db and create a list
-#' @param dbInfo map-x db info list
 #' @param cntry Country iso3 code
 #' @return list of views data and style 
 #' @export
-mxMakeViewList <- function(dbInfo,cntry){
+mxMakeViewList <- function(cntry){
   views = list()
   if(!noDataCheck(cntry)){
-    viewsDf <- mxGetViewsTable(dbInfo,mxConfig$viewsListTableName,country=cntry)
+    viewsDf <- mxGetViewsTable(mxConfig$viewsListTableName,country=cntry)
     if(isTRUE(nrow(viewsDf)>0)){
       # create list of map views
       for(i in viewsDf$id){
@@ -983,22 +949,45 @@ mxMakeViewList <- function(dbInfo,cntry){
 }
 
 
+#' Check if given email is valid
+#' @param email String email address to verify
+#' @return named logic vector
+#' @export
+mxEmailIsValid <- function(email=NULL){
+  res = FALSE
+  if(!noDataCheck(email)){
+    tryCatch({
+      # regex expression
+      # see http://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
+      regex <- "([-!#-'*+/-9=?A-Z^-~]+(\\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \\t]|(\\\\[\\t -~]))+\")@[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)+"
+      # if there is a match, return TRUE
+      res <- sapply(email,function(e){
+        isTRUE(grep(regex,x=e,perl=T)==1)
+    })},error=function(x){
+        return()
+    })
+  }
+  return(res)
+}
+
+
+
 #' Save named list of value into cookie
 #'
 #' Note : don't use this for storing sensitive data, unless you have a trusted network.
 #'
 #' @param session Shiny session object. By default: default reactive domain.
 #' @param cookie Named list holding paired cookie value. e.g. (list(whoAteTheCat="Alf"))
-#' @param nDaysExpires Integer of days for the cookie expiration
+#' @param expireDays Integer of days for the cookie expiration
 #' @param read Boolean. Read written cookie
 #' @return NULL
 #' @export
 mxSetCookie <- function(
-  session=getDefaultReactiveDomain(),
   cookie=NULL,
-  nDaysExpires=NULL,
+  expireDays=NULL,
   deleteAll=FALSE,
-  read=TRUE
+  reloadPage=FALSE,
+  session=getDefaultReactiveDomain()
   ){
 
   cmd = list()
@@ -1006,8 +995,8 @@ mxSetCookie <- function(
   cmd$path <- session$url_pathname
   cmd$deleteAll <- deleteAll
   cmd$cookie <- cookie
-  cmd$expiresInSec <- nDaysExpires * 86400
-  cmd$read <- read
+  cmd$reload <- reloadPage
+  cmd$expiresInSec <- expireDays * 86400
 
   session$sendCustomMessage(
     type="mxSetCookie",
@@ -1015,21 +1004,21 @@ mxSetCookie <- function(
     )
 }
 
-#' Get cookie from session HTTP request
+##' Get cookie from session HTTP request
+# shiny server can remove cookies
+#mxGetCookies <- function(
+  #session=getDefaultReactiveDomain()  
+  #){
+  #val = list()
+  #ck <- unlist(strsplit(session$request$HTTP_COOKIE,"; "))
+  #if(!noDataCheck(ck)){
+    #ck <- read.table(text=ck,sep="=",stringsAsFactor=FALSE)
+    #val <- as.list(ck$V2)
+    #names(val) <- ck$V1
+  #}
 
-mxGetCookies <- function(
-  session=getDefaultReactiveDomain()  
-  ){
-  val = list()
-  ck <- unlist(strsplit(session$request$HTTP_COOKIE,"; "))
-  if(!noDataCheck(ck)){
-    ck <- read.table(text=ck,sep="=",stringsAsFactor=FALSE)
-    val <- as.list(ck$V2)
-    names(val) <- ck$V1
-  }
-
-  return(val)
-}
+  #return(val)
+#}
 
 
 
@@ -1041,32 +1030,11 @@ mxGetCookies <- function(
 #' 
 #' Use a mask to get overlaps over a layer
 #' @export
-mxAnalysisOverlaps <- function(dbInfo,inputBaseLayer,inputMaskLayer,outName,dataOwner="mapxw",sridOut=4326,varToKeep="gid"){
+mxAnalysisOverlaps <- function(inputBaseLayer,inputMaskLayer,outName,dataOwner="mapxw",sridOut=4326,varToKeep="gid"){
 
-  msg=character(0)
-  if(!outName %in% mxDbListTable(dbInfo)){
+  msg <- character(0)
 
-    #varToKeep <- paste0(sprintf("%s.%s",inputBaseLayer,varToKeep),collapse=",")
-    #createTable <- sprintf("
-    #CREATE TABLE %1$s AS SELECT %4$s, 
-    #ST_Multi(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0))
-    #FROM %3$s
-    #INNER JOIN %2$s
-    #ON ST_Intersects(%3$s.geom, %2$s.geom)
-    #WHERE Not ST_IsEmpty(ST_Buffer(ST_Intersection(%3$s.geom, %2$s.geom),0.0));
-    #ALTER TABLE %1$s
-    #ALTER COLUMN geom TYPE geometry(MultiPolygon, %5$i) 
-    #USING ST_SetSRID(geom,%5$i);
-    #ALTER TABLE %1$s OWNER TO %6$s;
-    #ALTER TABLE %1$s ADD COLUMN gid BIGSERIAL PRIMARY KEY;
-    #",
-    #outName,
-    #inputBaseLayer,
-    #inputMaskLayer,
-    #varToKeep,
-    #sridOut,
-    #dataOwner
-    #)
+  if(!outName %in% mxDbListTable()){
 
     # get geometry type. 
     # NOTE: qgis seems confused if the geom type is not updated.
@@ -1377,4 +1345,60 @@ mxSendJson <- function(pathToJson,objName,session=getDefaultReactiveDomain()){
   }
 }
 
+
+
+#' Send an email using local or remote 'mail' command
+#' @param from String. Valid email for  sender
+#' @param to String. Valid email for Recipient
+#' @param body String. Text of the body
+#' @param subject. String. Test for the subject 
+#' @export
+mxSendMail <- function(from=mxConfig$mapxBotEmail,to,body,subject,wait=FALSE){
+
+
+  stopifnot(
+    mxEmailIsValid(from),
+    mxEmailIsValid(to),
+    is.character(body),
+    is.character(subject)
+    )
+
+  sendEmail <- sprintf("echo '%1$s' | mailx -a 'Content-Type: text/html' -s '%2$s' -a 'From: %3$s' %4$s",
+    body,
+    subject,
+    from,
+    to
+    )
+
+  if( mxConfig$hostname != mxConfig$remoteHostname ){
+    r <- mxConfig$remoteInfo  
+    remoteCmd(host=mxConfig$remoteHostname,cmd=sendEmail)
+  }else{
+    system(sendEmail,wait=wait)
+  }
+
+
+}
+
+#' Check if an email is known and active
+#'
+#' Check in a standard mapx database if an email/user exists
+#'
+#' @param email map-x user email
+#' @param usertable name of the table
+#' @return boolean exists
+#' @export
+mxEmailIsKnown <- function(email=NULL,usertable="tmp_users_testjson"){
+if(is.null(email)) return()
+q <- sprintf(
+  "SELECT count(\"id\")
+  FROM %1$s 
+  WHERE email='%2$s' 
+  AND data#>>'{\"admin\",\"active\"}'='true'",
+  usertable,
+  email
+  )
+res <- mxDbGetQuery(q)
+return(isTRUE(res$count==1))
+}
 

@@ -121,12 +121,10 @@ observeEvent(input$btnAnalysisOverlaps,{
       #
 
 
-      if( mxConfig$hostname != "map-x-full" ){
+      if( mxConfig$hostname != mxConfig$remoteHostname ){
         print("update pgrestapi from darwin") 
-        if(!exists('remoteInfo'))stop("No remoteInfo found in /settings/settings.R")
-        r <- remoteInfo 
         mxDebugMsg("Command remote server to restart app")
-        remoteCmd("map-x-full",cmd=mxConfig$restartPgRestApi)
+        remoteCmd(mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
         Sys.sleep(3)
       }else{
         print("update pgrestapi from not darwin")

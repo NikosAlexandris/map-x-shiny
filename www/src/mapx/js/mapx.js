@@ -68,30 +68,6 @@ function toggleDropDown(id) {
   document.getElementById(id).classList.toggle("mx-dropdown-show");
 }
 
-// Generic read cookie function and send result to shiny
-function readCookie()
-{   
-  var cookies = document.cookie.split("; ");
-  var values = {};
-  for (var i = 0; i < cookies.length; i++)
-  {   
-    var spcook =  cookies[i].split("=");
-    values[spcook[0]]=spcook[1];
-  }
-  Shiny.onInputChange("readCookie", values);
-}
-
-
-function clearListCookies()
-{
-  var cookies = document.cookie.split(";");
-  for (var i = 0; i < cookies.length; i++){   
-    var spcook =  cookies[i].split("=");
-    document.cookie = spcook[0] + "=;expires=Thu, 21 Sep 1979 00:00:01 UTC;";                                
-  }
-  window.location.reload();
-}
-
 // http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript
 function makeid(){
   var text = "";

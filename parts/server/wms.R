@@ -50,7 +50,7 @@ mxGetWmsLayers <- function(getCapabilitiesList){
     }
     ln<-paste(ln,collapse=",")
     if(!isTRUE(nchar(lt)>0)){
-      ln <-paste("[ no title ", randomName()," ]",sep="")
+      ln <-paste("[ no title ", randomString()," ]",sep="")
     }
     if(isTRUE(nchar(ln)>0)){
       res[lt]<-ln

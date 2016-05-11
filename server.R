@@ -10,28 +10,23 @@
 
 shinyServer(function(input, output, session) {
   mxCatch(title="Main server function",{
-    
 
-
+   
     #
     # Initial reactive values
     #
     mxReact <- reactiveValues()
     mxStyle <- reactiveValues()
     #
-    # Init job
     #
-    output$mapxInit <- renderUI({ 
-      mxConsoleText("load init script")
-      tags$script( src="src/mapx/js/mapxInit.js" )
-    })
+    #
+    
     #
     # Load when "document is ready is called"
     #
-    observeEvent(input$documentIsReady,{
-      mxConsoleText("")
-      mxConsoleText(" map-x is launched ")
-      mxConsoleText("")
+    observeEvent(input$cookies,{
+      mxReact$cookies <- input$cookies
+      mxConsoleText("map-x is launched")
       mxSendJson("data/tour.json","mxTour")
       source("parts/server/login.R",local=TRUE)
       source("parts/server/nav.R",local=TRUE)

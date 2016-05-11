@@ -4,12 +4,10 @@
 \alias{mxGetViewsTable}
 \title{Retrieve map views table}
 \usage{
-mxGetViewsTable(dbInfo = NULL, table = "mx_views", validated = TRUE,
-  archived = FALSE, country = "AFG")
+mxGetViewsTable(table = "mx_views", validated = TRUE, archived = FALSE,
+  country = "AFG")
 }
 \arguments{
-\item{dbInfo}{Named list with dbName,host,port, user and password}
-
 \item{table}{Table name containing views info}
 
 \item{validated}{Boolean filter validated dataset. Default = TRUE}

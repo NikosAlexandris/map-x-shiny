@@ -99,7 +99,7 @@ observe({
           outConfirm <- tagList(
             p("Are you sure to remove those views:",paste(viewsToRemove,sep=", ")),
             actionButton("btnConfirmRmViews","yes"),
-            actionButton("btnCancenRmViews","cancel")
+            actionButton("btnCancelRmViews","cancel")
             )
         }else{
           outConfirm <- tagList()  
@@ -109,23 +109,21 @@ observe({
       })
 
       observeEvent(input$btnConfirmRmViews,{
-        viewsToRemove <- mxReact$viewsToRemove
-        tryCatch({
-          d <- dbInfo
-          drv <- dbDriver("PostgreSQL")
-          con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-          t <- mxConfig$viewsListTableName
-          for(i in viewsToRemove){
-            q <- sprintf("DELETE FROM %s WHERE id='%s';",t,i)
-            dbGetQuery(con,q)
-          }
-        },finally=if(exists('con')){dbDisconnect(con)}
-          )
-        mxReact$viewsListUpdate<-runif(1)
-        output$confirmRmViews<-renderUI(tagList())
-      })
 
-      observeEvent(input$btnCancenRmViews,{ 
+        viewsToRemove <- mxReact$viewsToRemove
+        t <- mxConfig$viewsListTableName
+
+        for(i in viewsToRemove){
+          q <- sprintf("DELETE FROM %1$s WHERE id='%2$s'",t,i)
+          mxDbGetQuery(q)
+        }
+        # update views list
+        mxReact$viewsListUpdate <- runif(1)
+        # render confirmation remove
+        output$confirmRmViews <- renderUI(tagList())
+
+      })
+      observeEvent(input$btnCancelRmViews,{ 
         output$confirmRmViews<-renderUI(tagList())
       })
 

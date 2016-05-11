@@ -15,10 +15,26 @@ tags$nav(class="navbar navbar-custom navbar-fixed-top",role="navigation",
         div(style="font-size;18px;color:white;",icon('bars'))
         ),
       # country title
-      tags$a(id="countryTitleLarge",class="visible-lg-inline navbar-brand page-scroll",href="#sectionCountry"),
-      tags$a(id="countryTitleMedium",class="visible-md-inline navbar-brand page-scroll",href="#sectionCountry"),
-      tags$a(id="countryTitleSmall",class="visible-sm-inline navbar-brand page-scroll",href="#sectionCountry"),
-      tags$a(id="countryTitleMini",class="visible-xs-inline navbar-brand page-scroll",href="#sectionCountry")
+      tags$a(
+        id="countryTitleLarge",
+        class="visible-lg-inline navbar-brand page-scroll",
+        href="#sectionCountry"
+        ),
+      tags$a(
+        id="countryTitleMedium",
+        class="visible-md-inline navbar-brand page-scroll",
+        href="#sectionCountry"
+        ),
+      tags$a(
+        id="countryTitleSmall",
+        class="visible-sm-inline navbar-brand page-scroll",
+        href="#sectionCountry"
+        ),
+      tags$a(
+        id="countryTitleMini",
+        class="visible-xs-inline navbar-brand page-scroll",
+        href="#sectionCountry"
+        )
       ),
       # nav bar
       div(class="collapse navbar-collapse navbar-right navbar-main-collapse",

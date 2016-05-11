@@ -1,13 +1,42 @@
 
 
+#' Get query result from postgresql
+#'
+#' Shortcut to create a connection, get the result of a query and close the connection, using a dbInfo list. 
+#'
+#' @param dbInfo Named list with dbName,host,port,user and password
+#' @param SQL query
+#' @export
+mxDbGetQuery <- function(query,stringAsFactors=FALSE,dbInfo=mxConfig$dbInfo,onWarning=function(x){},onError=NULL){
+  res <- NULL
+
+  qry <- query
+  d <- dbInfo
+  drv <- dbDriver("PostgreSQL")
+  con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+
+  on.exit({ 
+    dbDisconnect(con)
+    mxDbClearAll(dbInfo)
+  })
+
+  tryCatch({
+      res <- postgresqlExecStatement(con, qry)
+      res <- postgresqlFetch(res)
+  },
+  error = onError,
+  warning = onWarning
+  )
+  return(res)
+}
+
 #' Transfert postgis feature by sql query to sp object
-#' @param dbInfo Named list with dbName,host,port,user and password.
 #' @param query PostGIS spatial sql querry.
 #' @return spatial object.
 #' @export
-dbGetSp <- function(dbInfo,query) {
+mxDbGetSp <- function(query) {
   if(!require('rgdal')|!require(RPostgreSQL))stop('missing rgdal or RPostgreSQL')
-  d <- dbInfo
+  d<- mxConfig$dbInfo
   tmpTbl <- sprintf('tmp_table_%s',round(runif(1)*1e5))
   dsn <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
     d$dbname,d$host,d$port,d$user,d$password
@@ -64,15 +93,15 @@ dbGetSp <- function(dbInfo,query) {
 
 
 #' Geojson from postGIS base
-#' @param dbInfo Named list with dbName,host,port,user and password
 #' @param query PostGIS spatial sql querry.
 #' @return geojson list
 #' @export
-dbGetGeoJSON<-function(dbInfo,query,fromSrid="4326",toSrid="4326",asList=FALSE){
+mxDbGetGeoJSON<-function(query,fromSrid="4326",toSrid="4326",asList=FALSE){
+
   # NOTE: check package geojsonio for topojson and geojson handling.
   # https://github.com/ropensci/geojsonio/issues/61
-  d <- dbInfo
 
+  d<- mxConfig$dbInfo
   dsn <-gsub("\n|\\s+"," ",sprintf(
     "dbname='%1$s'
     host='%2$s'
@@ -112,14 +141,16 @@ dbGetGeoJSON<-function(dbInfo,query,fromSrid="4326",toSrid="4326",asList=FALSE){
  }
 }
 #' Get layer extent
-#' @param dbInfo Named list with dbName,host,port,user and password
 #' @param table Table/layer from which extract extent
 #' @param geomColumn set geometry column
 #' @return extent
 #' @export
-dbGetLayerExtent<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
-  if(is.null(dbInfo) || is.null(table)) stop('Missing arguments')
+mxDbGetLayerExtent<-function(table=NULL,geomColumn='geom'){
+
+  if(is.null(table)) stop('Missing table name')
  
+  dbInfo<- mxConfig$dbInfo
+
     if(table %in% mxDbListTable(dbInfo)){
 
      q <- sprintf("SELECT ST_Extent(%s) as table_extent FROM %s;",geomColumn,table)
@@ -140,9 +171,8 @@ dbGetLayerExtent<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
 
 
 #' @export
-dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL,geomColumn="geom",srid="4326",distKm=1){
+mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColumn="geom",srid="4326",distKm=1){
   if(
-    noDataCheck(dbInfo) ||
     noDataCheck(table) || 
     noDataCheck(column) || 
     noDataCheck(lat) ||
@@ -183,14 +213,14 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
 
 #' Get variable summary
 #'
-#' @param dbInfo Named list with dbName,host,port, user and password
 #' @param table Table/layer from which extract extent
 #' @param column Column/Variable on wich extract summary
 #' @export
-  dbGetColumnInfo<-function(dbInfo=NULL,table=NULL,column=NULL){
+  mxDbGetColumnInfo<-function(table=NULL,column=NULL){
 
-    if(noDataCheck(dbInfo) || noDataCheck(table) || noDataCheck(column) || isTRUE(column=='gid'))return() 
+    if(noDataCheck(table) || noDataCheck(column) || isTRUE(column=='gid'))return() 
 
+  dbInfo<- mxConfig$dbInfo
 
       timing<-system.time({
 
@@ -288,14 +318,14 @@ dbGetValByCoord <- function(dbInfo=NULL,table=NULL,column=NULL,lat=NULL,lng=NULL
 #' 
 #' Compute the union of all geometry in a given layer and return the coordinate of the centroid.
 #' 
-#' @param dbInfo Named list with dbName,host,port,user and password
 #' @param table Table/layer from which extract extent
 #' @param geomColumn set geometry column
 #' @return extent
 #' @export
-dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
-  if(is.null(dbInfo) || is.null(table)) stop('Missing arguments')
+mxDbGetLayerCentroid<-function(table=NULL,geomColumn='geom'){
+  if(is.null(table)) stop('Missing arguments')
   
+  dbInfo<- mxConfig$dbInfo
   tryCatch({
     if(table %in% dbListTables(con)){
       
@@ -332,15 +362,13 @@ dbGetLayerCentroid<-function(dbInfo=NULL,table=NULL,geomColumn='geom'){
 #' 
 #' Search for a value in a  column (character data type) and return the extent if something is found.
 #'
-#' @param dbInfo Named list with dbName,host,port,user and password
 #' @param table Table/layer from which extract extent
 #' @param geomColumn set geometry column
 #' @return extent
 #' @export
-dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomColumn='geom',operator="="){
-  if(is.null(dbInfo) || is.null(table)) print("missing arguments in dbGetFilterCenter")
+mxDbGetFilterCenter<-function(table=NULL,column=NULL,value=NULL,geomColumn='geom',operator="="){
 
-  if(table %in% mxDbListTable(dbInfo)){
+  if(mxDbExistsTable(table)){
     valueOrig <- gsub("'","''",value)
     valueEscape <- paste0("(E",paste0("\'",valueOrig,"\'",collapse=","),")")
     if(length(value)>1){
@@ -380,10 +408,11 @@ dbGetFilterCenter<-function(dbInfo=NULL,table=NULL,column=NULL,value=NULL,geomCo
 #' Add geojson list or file to db postgis
 #' @param geojsonList list containing the geojson data
 #' @param geojsonPath path the geojson
-#' @param dbInfo dbInfo object containgin pass,user, .... 
 #' @param tableName Name of the postgis layer / table 
-dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableName=NULL,archiveIfExists=T,archivePrefix="mx_archives"){
+mxDbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,tableName=NULL,archiveIfExists=T,archivePrefix="mx_archives"){
 
+
+  dbInfo<- mxConfig$dbInfo
 
       # NOTE : no standard method worked.
       # rgdal::writeOGR (require loading in r AND did not provide options AND did not allow mixed geometry) or gdalUtils::ogr2ogr failed (did not set -f option!).
@@ -479,40 +508,13 @@ dbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,dbInfo=NULL,tableNa
 
 
 
-#' Get query result from postgresql
-#'
-#' Shortcut to create a connection, get the result of a query and close the connection, using a dbInfo list. 
-#'
-#' @param dbInfo Named list with dbName,host,port,user and password
-#' @param SQL query
-#' @export
-mxDbGetQuery <- function(query,stringAsFactors=FALSE,dbInfo=mxConfig$dbInfo){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    suppressWarnings({
-    res <- dbGetQuery(con,query,stringAsFactors=stringAsFactors)
-    })
-
-    dbDisconnect(con)
-    on.exit({ 
-    dbDisconnect(con)
-    mxDbClearAll(dbInfo)
-    })
-    # return
-    return(res)
-  },
-    finally={})
-}
-
 #' List existing table from postgresql
 #'
 #' Shortcut to create a connection, get the list of table and close the connection, using a dbInfo list. 
 #'
 #' @param dbInfo Named list with dbName,host,port,user and password
 #' @export
-mxDbListTable<- function(dbInfo){
+mxDbListTable<- function(dbInfo=mxConfig$dbInfo){
   tryCatch({
     d <- dbInfo
     drv <- dbDriver("PostgreSQL")
@@ -529,10 +531,9 @@ mxDbListTable<- function(dbInfo){
 #'
 #' Shortcut to create a connection, and check if table exists. 
 #'
-#' @param dbInfo Named list with dbName,host,port,user and password
 #' @param table Name of the table to check
 #' @export
-mxDbExistsTable<- function(dbInfo,table){
+mxDbExistsTable<- function(table,dbInfo=mxConfig$dbInfo){
   tryCatch({
     d <- dbInfo
     drv <- dbDriver("PostgreSQL")
@@ -552,7 +553,7 @@ mxDbExistsTable<- function(dbInfo,table){
 #'
 #' @param dbInfo Named list with dbName,host,port,user and password
 #' @export
-mxDbListColumns <- function(dbInfo,table){
+mxDbListColumns <- function(table,dbInfo=mxConfig$dbInfo){
   tryCatch({
     d <- dbInfo
     drv <- dbDriver("PostgreSQL")
@@ -572,7 +573,7 @@ mxDbListColumns <- function(dbInfo,table){
 #'
 #' 
 #'
-mxDbAddData <- function(dbInfo,data,table){
+mxDbAddData <- function(data,table,dbInfo=mxConfig$dbInfo){
 
   stopifnot(class(data)=="data.frame")
   stopifnot(class(table)=="character")
@@ -607,7 +608,7 @@ mxDbAddData <- function(dbInfo,data,table){
 }
 
 
-mxDbUpdate <- function(dbInfo,table,column,idCol="id",id,value){
+mxDbUpdate <- function(table,column,idCol="id",id,value,dbInfo=mxConfig$dbInfo){
     
    query <- sprintf("
       UPDATE %1$s
@@ -627,9 +628,8 @@ mxDbUpdate <- function(dbInfo,table,column,idCol="id",id,value){
 
 
 #' Remove old results from db query
-#' @param dbInfo Named list with dbName,host,port,user and password
 #' @export
-mxDbClearAll <- function(dbInfo){
+mxDbClearAll <- function(dbInfo=mxConfig$dbInfo){
   d <- dbInfo
   drv <- dbDriver("PostgreSQL")
   cons <- dbListConnections(drv)
@@ -645,4 +645,71 @@ mxDbClearAll <- function(dbInfo){
 }
 
 
+
+#' Write spatial data frame to postgis
+#'
+#' Convert spatial data.frame to postgis table. Taken from https://philipphunziker.wordpress.com/2014/07/20/transferring-vector-data-between-postgis-and-r/
+#'
+#' @param spatial.df  Spatial  data frame object
+#' @param schemaname Target schema table
+#' @param tablename Target table name
+#' @param overwrite Overwrite if exists
+#' @param keyCol Set new primary key
+#' @param srid Set the epsg code / SRID
+#' @param geomCol Set the name of the geometry column
+mxDbWriteSpatial <- function(spatial.df=NULL, schemaname="public", tablename, overwrite=FALSE, keyCol="gid", srid=4326, geomCol="geom") {
+
+  library(rgeos)
+
+  tryCatch({
+
+    d <- mxConfig$dbInfo
+    drv <- dbDriver("PostgreSQL")
+    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    on.exit(dbDisconnect(con))
+
+
+    # Create well known text and add to spatial DF
+    spatialwkt <- writeWKT(spatial.df, byid=TRUE)
+    spatial.df$wkt <- spatialwkt
+
+    # Add temporary unique ID to spatial DF
+    spatial.df$spatial_id <- 1:nrow(spatial.df)
+
+    # Set column names to lower case
+    names(spatial.df) <- tolower(names(spatial.df))
+
+    # Upload DF to DB
+    data.df <- spatial.df@data
+    rv <- dbWriteTable(con, c(schemaname, tablename), data.df, overwrite=overwrite, row.names=FALSE)
+
+    # Create geometry column and clean up table
+    schema.table <- paste(schemaname, ".", tablename, sep="")
+    query1 <- sprintf("ALTER TABLE %s ADD COLUMN %s GEOMETRY;", schema.table, geomCol)
+    query2 <- sprintf("UPDATE %s SET %s = ST_GEOMETRYFROMTEXT(t.wkt) FROM %s t  WHERE t.spatial_id = %s.spatial_id;",
+      schema.table, geomCol, schema.table, schema.table)
+    query3 <- sprintf("ALTER TABLE %s DROP COLUMN spatial_id;",schema.table)
+    query4 <- sprintf("ALTER TABLE %s DROP COLUMN wkt;",schema.table)
+    query5 <- sprintf("SELECT UpdateGeometrySRID('%s','%s','%s',%s);",schemaname,tablename,geomCol,srid)
+
+
+    er <- dbGetQuery(con, statement=query1)
+    er <- dbGetQuery(con, statement=query2)
+    er <- dbGetQuery(con, statement=query3)
+    er <- dbGetQuery(con, statement=query4)
+    er <- dbGetQuery(con, statement=query5)
+
+
+
+
+    if(!is.null(keyCol)){
+      query6 <- sprintf("ALTER TABLE %s ADD COLUMN %s SERIAL PRIMARY KEY;", schema.table, keyCol)
+      er <- dbGetQuery(con, statement=query6)
+    }
+
+  },finally={
+    return(TRUE)  
+  })
+
+}
 

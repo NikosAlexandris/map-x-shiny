@@ -4,11 +4,9 @@
 \alias{mxGetViewData}
 \title{Get view data as list}
 \usage{
-mxGetViewData(dbInfo, viewId, select = NULL)
+mxGetViewData(viewId, select = NULL)
 }
 \arguments{
-\item{dbInfo}{Named list with dbName,host,port,user and password}
-
 \item{viewId}{Vector of view id(s) for which to retrieve data}
 
 \item{select}{Vector of columns to retrieve}

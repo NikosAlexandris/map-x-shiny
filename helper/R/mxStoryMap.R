@@ -89,15 +89,15 @@ mxParseStory <- function(txtorig,knit=T,toc=F){
 
 
 #' Get story map text
-#' @param dbInfo Named list containing information for db connection : host, password, etc.
 #' @param id Id of the story map to get
 #' @param textColumn Column name containting the story map unparsed text
 #' @return Story map unparsed text
 #' @export
-mxGetStoryMapText <- function(dbInfo,id,textColumn="content_b64"){
+mxGetStoryMapText <- function(id,textColumn="content_b64"){
   tblName <- mxConfig$storyMapsTableName
+  stopifnot(!is.null(tblName))
   res <- data.frame()
-  if(mxDbExistsTable(dbInfo,tblName)){
+  if(mxDbExistsTable(tblName)){
     q <- sprintf("SELECT %1$s FROM %2$s WHERE \"id\"='%3$s' and \"archived\"='f'",
       textColumn,
       tblName,
@@ -111,9 +111,9 @@ mxGetStoryMapText <- function(dbInfo,id,textColumn="content_b64"){
   return(res)
 }
 #' @export
-mxGetStoryMapName <- function(dbInfo){
+mxGetStoryMapName <- function(){
   tblName <- mxConfig$storyMapsTableName
-  if(!mxDbExistsTable(dbInfo,tblName)) return(data.frame())
+  if(!mxDbExistsTable(tblName)) return(data.frame())
   q <- sprintf("SELECT name FROM %1$s WHERE \"archived\"='f'",tblName)
   res <- mxDbGetQuery(q) 
   return(res)

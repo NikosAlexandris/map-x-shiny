@@ -7,27 +7,8 @@
 #                 |_|           
 # login and restriction  management
 
-#
-# initialise  session when document is ready
-#
-#observeEvent(input$documentIsReady,{
   
-  tempSecret <-  mxCreateSecret()
-  
-  mxSetCookie(
-    cookie=list(t=session$token,s=tempSecret),
-    read=T
-    )
-  
-  mxReact$tempSecret <- tempSecret
-  mxReact$userLogged <- FALSE
-  mxReact$userRole <- character(0)
-  mxReact$userName <- character(0)
-  mxReact$userId <- integer(0)
-  mxReact$sessionToken <- session$token
-#})
-
-
+  mxReact$userData <- list()
 
 # Language selection
 observeEvent(input$selectLanguage,{
@@ -35,8 +16,7 @@ observeEvent(input$selectLanguage,{
   if(!noDataCheck(selLanguage)){
     mxReact$selectLanguage = selLanguage
     mxSetCookie(
-      cookie=list("lang"=selLanguage),
-      read=FALSE
+      cookie=list("mx_language"=selLanguage),
       ) 
   } 
 })
@@ -44,32 +24,96 @@ observeEvent(input$selectLanguage,{
 
 
 
+mxAutoLogUser <- function(email=NULL,session=shiny::getDefaultReactiveDomain()){
+  res = FALSE
+  if(!noDataCheck(email)){
+    ck <- session$input$cookies
+    if(!is.null(ck)){
+      dat <- session$input$cookies$mx_data
+      if(length(dat)>0 && 'auto_log' %in%  names(dat)){
+      }
+    }
+
+  }
+
+
+
+}
+
+
+mxCreateUser <-function(email){
+
+
+}
+
+
+
+
+# email validation 
+
+observe({
+  email <- input$loginUserEmail
+  val <- mxEmailIsValid(email)
+  msg <- ""
+  allowLogin <- FALSE
+  if(!val){
+    msg <- "Please enter a valid email to register or to log in"
+  }else{
+    known <- mxEmailIsKnown(email) 
+    if(known){ 
+      msg <- "This email is valid and registered. Click on the login button to get a secret key"
+    }else{
+      msg <- "This email is valid and not yet registered. Click on login button to register."
+    }
+    allowLogin <- TRUE
+  }
+  mxActionButtonState("btnLogin",disable=!allowLogin)
+
+  mxUpdateText("loginValidation",msg)
+})
+
+
+
+
+observe({
+  dat <- mxDbDecrypt(input$cookies$mx_data)
+  if(isTRUE(dat$auto_log))
+    mxDebugMsg(sprintf("user %s will be logged in",dat$user))
+})
+
+
 # if the user press the login button and is not yet logged, write a cookie
 # the cookie will be read again server side.
 observeEvent(input$btnLogin,{
-  if ( mxReact$userLogged == FALSE ) {
-    
-    lUser <- digest(input$loginUser,serialize=F)
-    lKey <- digest(input$loginKey,serialize=F)
 
-    if (!noDataCheck(lUser) && !noDataCheck(lKey)) {
-      if (input$btnLogin > 0) {
-        lSec <- mxCreateSecret() # send a temp secret, only for this request.
-        res <- list(
-          l = lUser,
-          k = lKey,
-          s = lSec
-          )
-        # NOTE: save the secret in reactive elemement
-        mxReact$tempSecret <- lSec
-        mxSetCookie(
-          cookie=res,
-          nDaysExpires=10,
-          read=TRUE
-          )
-    }}
+
+  email <- input$loginUserEmail
+  userdata <- mxReact$userData
+  cookiedata <- mxDbDecrypt(input$cookies$mx_data) 
+
+  if(!mxEmailIsValid(input$loginUserEmail)) return()
+  if(length(mxReact$userData)>0) return()
+
+  if(isTRUE(cookiedata$auto_log)){
+    mxDebugMsg("btn login pressed, but user already logged")
+    return()
+  }else{
+    if(!mxEmailIsValid(email)){
+      mxDebugMsg(sprintf("email %s is not valid !",email))
+    }else{
+      if(mxEmailIsKnown(email)){ 
+        mxDebugMsg(sprintf("email %s is known",email))
+      }else{ 
+        mxDebugMsg(sprintf("email %s is already registered",email))
+      }
+    }
   }
-  })
+
+
+  browser()
+  return()
+
+})
 
 # If a read option was set during a mxSetCookie, this will be reevaluate.
 
@@ -148,17 +192,11 @@ observeEvent(input$readCookie,
 
 
 observeEvent(input$btnLogout,{
-  mxReact$userLogged <- FALSE
-  mxReact$userRole <- character(0)
-  mxReact$userName <- character(0)
-  mxReact$userId <- integer(0)
-  mxUpdateValue(id="loginUser",value="")
-  mxUpdateValue(id="loginKey",value="")
-  mxReact$tempSecret <- mxCreateSecret()
+  mxReact$userData <- NULL
+  mxUpdateValue(id="loginUserEmail",value="")
   mxSetCookie(
-    cookie=list(s="",k="",l="",d="",t=""),
     deleteAll=TRUE,
-    read=FALSE
+    reloadPage=TRUE
     )
 })
 

@@ -19,7 +19,7 @@ observe({
   update <- mxReact$viewsListUpdate
   mxCatch(title="Populate views from db",{ 
     start <- Sys.time()
-    mxReact$views <- mxMakeViewList(dbInfo,cntry)
+    mxReact$views <- mxMakeViewList(cntry)
     mxDebugMsg(paste("Time for generating views list=",Sys.time()-start))
 })
 })
@@ -52,11 +52,11 @@ observeEvent(input$mxRequestMeta,{
   # the trick. We can also imagine single request with a join
   # 
   # Get view data. Could be any column. We only keep the first result
-  viewData <- mxGetViewData(dbInfo,vId,c("style","layer"))[[1]]
+  viewData <- mxGetViewData(vId,c("style","layer"))[[1]]
   # get the view description
   viewDesc <- viewData$style$description
   # get layer meta data
-  layerMeta <- mxGetLayerMeta(dbInfo,viewData$layer)
+  layerMeta <- mxGetLayerMeta(viewData$layer)
   # merge
   layerMeta$`View description` <- viewDesc
   # convert te layer meta to an html list
@@ -89,8 +89,7 @@ observeEvent(input$mxRequestMeta,{
 observe({
   f<-input$filterLayer
   if(!noDataCheck(f) && ! isTRUE(f == mxConfig$noFilter)){
-    ext <- dbGetFilterCenter(
-      dbInfo=dbInfo,
+    ext <- mxDbGetFilterCenter(
       table=f$layer,
       column=f$column,
       value=f$value,

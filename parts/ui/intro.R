@@ -23,19 +23,19 @@ tags$section(id="sectionTop",class="mx-section-container mx-section-top containe
         hr()
         ),
       div(class="col-xs-12",
-        div(class="col-lg-4 col-sm-4 col-xs-12",
-          usrInput("loginUser", "User name")
+        div(class="col-lg-8 col-sm-8 col-xs-12",
+          usrInput("loginUserEmail", "User email")
           ),
-        div(class="col-lg-4 col-sm-4 col-xs-12",
-          pwdInput("loginKey", "Key")
-          ),
+ #       div(class="col-lg-4 col-sm-4 col-xs-12",
+ #         pwdInput("loginKey", "Key")
+ #         ),
         div(class="col-lg-4 col-sm-4 col-xs-12",
           tags$ul(class="list-inline",
             tags$li(
               actionButton("btnLogin", icon("sign-in")
                 )
               ),
-            tags$li(
+           tags$li(
               actionButton("btnLogout", icon("sign-out")
                 )
               ),

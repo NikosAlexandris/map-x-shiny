@@ -9,16 +9,18 @@ var inFile = [
   "src/ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js",
   "src/bootstrap/js/bootstrap.min.js",
   "src/bootstrapTour/js/bootstrap-tour.min.js",
-  "src/mapx/js//mapxChartJsConf.js",
+  "src/mapx/js/patchShiny.js",
+  "src/mapx/js/patchLeaflet.js",
+  "src/mapx/js/cookies.js",
+  "src/mapx/js/chart.js",
   "src/mapx/js/pwd.js",
   "src/mapx/js/md5.js",
-  "src/mapx/js/lang_ui.js",
   "src/mapx/js/base64.js",
-  "src/mapx/js/lang_tours.js",
+  "src/mapx/js/tour.js",
+  "src/mapx/js/language.js",
   "src/jqueryUI/custom/jquery-ui.min.js",
   "src/mapx/js/mapx.js"
 ];
-
 
 var result = UglifyJS.minify(inFile,{
   mangle : true,
@@ -31,5 +33,6 @@ fs.writeFile(outFile, result.code, function(err) {
   }
   console.log("Writing " + outFile + " done !\n" + "Input files:\n",inFile);
 }); 
+
 
 

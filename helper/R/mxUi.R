@@ -37,7 +37,7 @@ pwdInput <- function(inputId, label) {
 #' @export
 usrInput <- function(inputId, label) {
   tagList(
-    tags$input(id = inputId, placeholder=label,class="mxLoginInput usernameInput", value="")
+    tags$input(id = inputId, placeholder=label,class="mxLoginInput usernameInput", value="",autocomplete="off",autocorrect="off", autocapitalize="off",spellcheck="false")
     )
 }
 
@@ -59,7 +59,7 @@ usrInput <- function(inputId, label) {
 mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionButton=NULL,background=TRUE,addCancelButton=FALSE,addOnClickClose=TRUE,defaultButtonText="OK",style=NULL,class=NULL,hideCloseButton=FALSE,draggable=TRUE,fixed=TRUE){ 
 
   classModal <- "panel-modal"
-  rand <- randomName()
+  rand <- randomString(splitIn=1,addLetters=T)
 
   idBack <- paste(id,rand,"background",sep="_")
   idContent <- paste(id,rand,"content",sep="_")
@@ -175,7 +175,7 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
 #' @param show Vector of item number. Collapse all item except those in this list. E.g. c(1,5) will open items 1 and 5 by default. 
 #' @param itemList Nested named list of items, containing title and content items. E.g. list("foo"=list("title"="foo","content"="bar"))
 #' @examples 
-#' amAccordionGroup(id='superTest',
+#' mxAccordionGroup(id='superTest',
 #'  itemList=list(
 #'    'a'=list('title'='superTitle',content='acontent'),
 #'    'b'=list('title'='bTitle',content='bContent'))

@@ -4,11 +4,9 @@
 \alias{mxDbExistsTable}
 \title{Check if table exists in postgresql}
 \usage{
-mxDbExistsTable(dbInfo, table)
+mxDbExistsTable(table, dbInfo = mxConfig$dbInfo)
 }
 \arguments{
-\item{dbInfo}{Named list with dbName,host,port,user and password}
-
 \item{table}{Name of the table to check}
 }
 \description{

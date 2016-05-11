@@ -52,19 +52,6 @@ observe({
   }
 })
 
-#
-#observeEvent(input$mapxMap_center,{
-#  center <- input$mapxMap_center
-#  
-# res <-  dbGetValByCoord(dbInfo,table="mx_country_un",column="iso3code",lat=center$lat,lng=center$lng,distKm=20)
-#iso3 <- res$result[["iso3code"]]
-#
-#if(!noDataCheck(iso3)){
-# updateSelectInput(session,"selectCountry",selected=iso3)
-#}
-#})
-#
-
 
 #
 # UI by user privilege
@@ -386,7 +373,7 @@ observe({
   err = character(0)
 
   # email
-  validEmail <- isTRUE(grep("(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)",em,perl=T) > 0)
+  validEmail <- mxEmailIsValid(em)
 
   # layer
   validLayer <- isTRUE(sl != mxConfig$noData )
@@ -447,22 +434,20 @@ observeEvent(input$btnDrawActionConfirm,{
   # get actual geojson from client
   gj <- mxReact$drawActionGeoJson 
   # table for polygon
-  tp <- randomName("mx_poi_")
+  tp <- randomString("mx_poi_")
   # table for inner join (result)
-  tr <- randomName("tmp__poi_res")
+  tr <- randomString("tmp__poi_res")
   # columns to import
-  lc <- mxDbListColumns( dbInfo, sl )
+  lc <- mxDbListColumns( sl )
   # add geojson to tp
-  dbAddGeoJSON(
-    geojsonList=gj,
-    tableName=tp,
-    dbInfo=dbInfo
+  mxDbAddGeoJSON(
+    geojsonList = gj,
+    tableName = tp
     )
   # test if tp is available
-  stopifnot(tp %in% mxDbListTable(dbInfo))
+  stopifnot(tp %in% mxDbListTable())
   # do an overlap analysis
   mxAnalysisOverlaps(
-    dbInfo,
     sl,
     tp,
     tr,
@@ -473,7 +458,7 @@ observeEvent(input$btnDrawActionConfirm,{
 
 if(cr>0){
 qr <- sprintf("SELECT * FROM %s",tr)
-tmp <- dbGetGeoJSON(dbInfo,query=qr)
+tmp <- mxDbGetGeoJSON(query=qr)
 de <- sprintf("Polygon of interest %1$s based on %2$s",tp,sl)
 if( file.exists(tmp)){
   # creating a gist ! alternative : create a geojson in www/data/poi
@@ -512,23 +497,10 @@ ms <- sprintf(
 
 mxDbGetQuery(sprintf("DROP TABLE IF EXISTS %s",tr))
 
+sub <- sprintf("map-x : polygon of interest %1$s",tp)
 
-sendEmail <- sprintf("echo '%1$s' | mail -s 'map-x : polygon of interest %2$s' -a 'From: %3$s' %4$s",
-  ms,
-  tp,
-  am,
-  em
-  )
+mxSendMail(to=em,body=ms,subject=sub,wait=FALSE)
 
-
-if( mxConfig$hostname != "map-x-full" ){
-  if(!exists("remoteInfo"))stop("No remoteInfo found in /settings/settings.R")
-  r <- remoteInfo  
-  remoteCmd(host="map-x-full",cmd=sendEmail)
-}else{
-  mxDebugToJs(sendEmail)
-  system(sendEmail)
-}
 
 output$panelAlert <- renderUI( mxPanelAlert(
     title="message",

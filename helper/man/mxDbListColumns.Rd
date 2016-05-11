@@ -4,7 +4,7 @@
 \alias{mxDbListColumns}
 \title{List existing column from postgresql table}
 \usage{
-mxDbListColumns(dbInfo, table)
+mxDbListColumns(table, dbInfo = mxConfig$dbInfo)
 }
 \arguments{
 \item{dbInfo}{Named list with dbName,host,port,user and password}

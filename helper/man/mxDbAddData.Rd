@@ -4,7 +4,7 @@
 \alias{mxDbAddData}
 \title{Add data to db}
 \usage{
-mxDbAddData(dbInfo, data, table)
+mxDbAddData(data, table, dbInfo = mxConfig$dbInfo)
 }
 \description{
 Add data to db

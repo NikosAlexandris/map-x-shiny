@@ -4,11 +4,9 @@
 \alias{mxGetStoryMapText}
 \title{Get story map text}
 \usage{
-mxGetStoryMapText(dbInfo, id, textColumn = "content_b64")
+mxGetStoryMapText(id, textColumn = "content_b64")
 }
 \arguments{
-\item{dbInfo}{Named list containing information for db connection : host, password, etc.}
-
 \item{id}{Id of the story map to get}
 
 \item{textColumn}{Column name containting the story map unparsed text}

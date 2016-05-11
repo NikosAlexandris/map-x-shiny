@@ -33,11 +33,19 @@ observe({
   if(
     isTRUE(!noDataCheck(usr)) && 
     isTRUE(!noDataCheck(iso3)) && 
-    isTRUE(mxDbExistsTable(dbInfo,tblName))
+    isTRUE(mxDbExistsTable(tblName))
     ){
 
       # db : id,user,country,name,desc,content_b64,content_ascii
-      q <- sprintf("SELECT id, name FROM %1$s WHERE country='%2$s' AND \"archived\"='f' order by \"dateModified\" desc",tblName,iso3)
+      q <- sprintf("
+        SELECT id, name 
+        FROM %1$s 
+        WHERE country='%2$s' AND \"archived\"='f' 
+        ORDER by \"dateModified\" desc",
+        tblName,
+        iso3
+        )
+
       res <- mxDbGetQuery(q) 
 
       storyIds <- res$id
@@ -58,7 +66,7 @@ observe({
 observeEvent(input$selectStoryId,{
 
   id <- input$selectStoryId
-  story <-  mxGetStoryMapText(dbInfo,id)
+  story <-  mxGetStoryMapText(id)
 
   if(noDataCheck(story)) story = "Write a story ..."
 

@@ -16,6 +16,7 @@ library(jsonlite)
 library(WDI)
 library(countrycode)
 library(devtools)
+library(jed)
 
 # upload and manage spatial data 
 library(RPostgreSQL)

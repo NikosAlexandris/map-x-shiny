@@ -4,7 +4,7 @@
 \alias{mxDbListTable}
 \title{List existing table from postgresql}
 \usage{
-mxDbListTable(dbInfo)
+mxDbListTable(dbInfo = mxConfig$dbInfo)
 }
 \arguments{
 \item{dbInfo}{Named list with dbName,host,port,user and password}

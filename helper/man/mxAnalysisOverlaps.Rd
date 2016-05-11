@@ -4,7 +4,7 @@
 \alias{mxAnalysisOverlaps}
 \title{Overlaps analysis}
 \usage{
-mxAnalysisOverlaps(dbInfo, inputBaseLayer, inputMaskLayer, outName,
+mxAnalysisOverlaps(inputBaseLayer, inputMaskLayer, outName,
   dataOwner = "mapxw", sridOut = 4326, varToKeep = "gid")
 }
 \description{

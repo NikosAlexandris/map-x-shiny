@@ -41,10 +41,10 @@ tagList(
           loadUi("parts/ui/footer.R")
           )
         ),
-      tags$footer( 
+      tags$footer(
+        tags$div(id="cookies",class="shinyCookies"),
         tags$script( src="dist/assets.js" ),
-        #tags$script( src="src/mapx/js/mapx.js" ),
-        uiOutput("mapxInit")
+        tags$script( src="src/mapx/js/init.js" )
         )
       )
     )

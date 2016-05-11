@@ -4,11 +4,9 @@
 \alias{mxGetLayerMeta}
 \title{Get layer meta stored in default layer table}
 \usage{
-mxGetLayerMeta(dbInfo, layer)
+mxGetLayerMeta(layer)
 }
 \arguments{
-\item{dbInfo}{Named list with dbName,host,port,user and password}
-
 \item{layer}{Postgis layer stored in layer table. Should have a meta field.}
 }
 \description{
