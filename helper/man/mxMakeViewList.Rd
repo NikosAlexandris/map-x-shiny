@@ -4,7 +4,7 @@
 \alias{mxMakeViewList}
 \title{extract views from the db and create a list}
 \usage{
-mxMakeViewList(cntry)
+mxMakeViewList(country, visibility, userId)
 }
 \arguments{
 \item{cntry}{Country iso3 code}

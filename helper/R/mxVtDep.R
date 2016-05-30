@@ -15,7 +15,8 @@ leafletVectorTilesDependencies <- function() {
       name = "leaflet-vector-tiles-lib",
       version = "0.1.7",
       src = "www/src/leafletMapboxVectorTiles/",
-      script = "Leaflet.MapboxVectorTile.min.js"
+      #script = "Leaflet.MapboxVectorTile.min.js"
+      script = "Leaflet.MapboxVectorTile.js"
       ),
     htmltools::htmlDependency(
       name = "leaflet-vector-tiles-binding",
@@ -109,10 +110,11 @@ glMakeUrl <- function(
 #' @export
 addVectorTiles <- function(
   map,
+  userId="1",
   protocol="http",
-  url="localhost",
+  host="localhost",
   port=3030,
-  table=NULL,
+  layer=NULL,
   dataColumns=NULL,
   geomColumn="geom", # should be auto resolved by PGRestAPI
   idColumn="gid", # should be auto resolved by PGRrestAPI
@@ -123,18 +125,33 @@ addVectorTiles <- function(
   onLoadFeedback=c('once','never','always')
 ) {
   onLoadFeedback <- match.arg(onLoadFeedback)
-  layer <- paste0(table,"_",geomColumn)
+  #layer <- paste0(layer,"_",geomColumn)
   cols <- unique(c(idColumn,dataColumns))
-  cols <- cols[!cols %in% "geom"]
-  cols <- sprintf("?fields=%s",paste(cols,collapse=",")) 
-  url <- sprintf("%s://%s:%s/services/postgis/%s/%s/vector-tiles/{z}/{x}/{y}.pbf%s",
-    protocol,
-    url,
-    port,
-    table,
-    geomColumn,
-    cols
-    )
+  cols <- paste0(cols[!cols %in% geomColumn],collapse=",")
+  cols <- gsub("\\s+","",cols)
+
+  key <- mxDbGetQuery(sprintf("select key from mx_users where id=%1$s;",userId))$key
+  stopifnot(!noDataCheck(key))
+
+  
+
+
+#  hex <- mxDbEncrypt(list(
+      #user="1",
+      #layer=layer,
+      #variables=cols
+      #))
+
+  url <- sprintf('%1$s://%2$s:%3$s/tile/{z}/{x}/{y}.mvt?t=%4$s&l=%5$s&v=%6$s&u=%7$s',
+   protocol,
+   host,
+   port,
+   key,
+   layer,
+   cols,
+   userId
+  )
+ 
   map$dependencies <- c(map$dependencies, leafletVectorTilesDependencies())
   options = list(
     debug=debug,

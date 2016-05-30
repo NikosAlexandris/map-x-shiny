@@ -19,7 +19,7 @@ mxAccordionGroup(id, style = NULL, show = NULL, itemList)
 Create a bootstrap accordion element, based on a named list.
 }
 \examples{
-amAccordionGroup(id='superTest',
+mxAccordionGroup(id='superTest',
  itemList=list(
    'a'=list('title'='superTitle',content='acontent'),
    'b'=list('title'='bTitle',content='bContent'))

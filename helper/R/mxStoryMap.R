@@ -88,26 +88,34 @@ mxParseStory <- function(txtorig,knit=T,toc=F){
 }
 
 
-#' Get story map text
+#' Get story map data
 #' @param id Id of the story map to get
-#' @param textColumn Column name containting the story map unparsed text
-#' @return Story map unparsed text
+#' @return Story map content and visibility
 #' @export
-mxGetStoryMapText <- function(id,textColumn="content_b64"){
+mxGetStoryMapData <- function(id){
+
+  if(noDataCheck(id)) return()
+
   tblName <- mxConfig$storyMapsTableName
+  
   stopifnot(!is.null(tblName))
-  res <- data.frame()
+
+  res <- character(0)
+  
   if(mxDbExistsTable(tblName)){
-    q <- sprintf("SELECT %1$s FROM %2$s WHERE \"id\"='%3$s' and \"archived\"='f'",
-      textColumn,
+    q <- sprintf("SELECT content,visibility FROM %1$s WHERE \"id\"='%2$s'",
       tblName,
       id
       )
-    res <- mxDbGetQuery(q) 
+
+    storyData <- mxDbGetQuery(q)
+
+    res <- list(
+      content = jsonlite::fromJSON(storyData$content),
+      visibility = jsonlite::fromJSON(storyData$visibility)
+      )
   }
-  if(textColumn %in% names(res)){
-  res <- mxDecode(res$content_b64)
-  }
+
   return(res)
 }
 #' @export

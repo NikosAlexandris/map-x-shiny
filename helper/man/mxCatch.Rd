@@ -5,7 +5,7 @@
 \title{Catch errors}
 \usage{
 mxCatch(title, expression, session = shiny:::getDefaultReactiveDomain(),
-  debug = TRUE, logToJs = TRUE, panelId = "panelAlert", ...)
+  debug = TRUE, logToJs = FALSE, panelId = "panelAlert", ...)
 }
 \arguments{
 \item{title}{Title of the alert}

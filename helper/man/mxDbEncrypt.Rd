@@ -5,9 +5,9 @@
 \alias{mxDbEncrypt}
 \title{Encrypt or decrypt data using postgres pg_sym_encrypt}
 \usage{
-mxDbEncrypt(data, ungroup = FALSE)
+mxDbEncrypt(data, ungroup = FALSE, key = mxConfig$key)
 
-mxDbDecrypt(data, key = mxConfig$key)
+mxDbDecrypt(data = NULL, key = mxConfig$key)
 }
 \arguments{
 \item{data}{vector, list or data.frame to encrypt or decrypt}

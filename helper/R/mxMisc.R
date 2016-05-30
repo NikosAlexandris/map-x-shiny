@@ -72,27 +72,38 @@ mxUpdateChartRadar <- function(
   compValues
   ){
   stopifnot(is.vector(values) || is.vector(label))
- 
+
+  colorMain = 'rgba(119,119, 119, 0.3)'
+  colorMainBorder = 'rgba(119,119, 119, 0.5)'
+  colorComp = 'rgba(255, 164, 0, 0.3)'
+  colorCompBorder = 'rgba(255, 164, 0, 0.5)'
+
+
+
   res <- list()
   res$id <- id
   res$labels <- labels
   res$idLegend <- idLegend
   res$dataMain <-  list(
-      label = main,
-      fillColor = 'rgba(119,119, 119, 0.6)',
-      strokeColor = 'rgba(119,119, 119, 0.6)',
-      highlightFill = 'rgba(119,119, 119, 0.6)',
-      highlightStroke = 'rgba(119,119, 119, 0.6)',
-      data = values
-      )
+    label = main,
+    backgroundColor = colorMain,
+    borderColor = colorMainBorder,
+    pointBackgroundColor = colorMain,
+    pointBorderColor = colorMainBorder,
+    pointHoverBackgroundColor =colorMain,
+    pointHoverBorderColor = colorMainBorder,
+    data = values
+    )
   res$dataComp <- list(
-      label = compMain,
-      fillColor = 'rgba(255, 164, 0, 0.8)',
-      strokeColor = 'rgba(255, 164, 0, 0.9)',
-      highlightFill = 'rgba(255, 164, 0, 0.8)',
-      highlightStroke = 'rgba(255, 164, 0, 1)',
-      data = compValues
-      )
+    label = compMain,
+    backgroundColor = colorComp,
+    borderColor = colorCompBorder,
+    pointBackgroundColor = colorComp,
+    pointBorderColor = colorCompBorder,
+    pointHoverBackgroundColor =colorComp,
+    pointHoverBorderColor = colorCompBorder,
+    data = compValues
+    )
 
   session$sendCustomMessage(
     type="updateChart",
@@ -164,7 +175,7 @@ mxCatch <- function(
   expression,
   session=shiny:::getDefaultReactiveDomain(),
   debug=TRUE,
-  logToJs=TRUE,
+  logToJs=FALSE,
   panelId="panelAlert",...){
   tryCatch({
     expression
@@ -295,51 +306,6 @@ subPunct<-function(str,sep='_',rmTrailingSep=T,rmLeadingSep=T,rmDuplicateSep=T,u
 }
 
 
-#' Retrieve map views table 
-#'
-#' Get a list of available map-x views in given table, e.g. mx_views 
-#'
-#' @param table Table name containing views info
-#' @param validated Boolean filter validated dataset. Default = TRUE
-#' @param archived Boolean filter to get archived data. Default =FALSE
-#' @param country ISO 3 code to filter country. 
-#' @export
-mxGetViewsTable <- function(table="mx_views",validated=TRUE,archived=FALSE,country="AFG"){
-
-  country = paste0("'",country,"'",collapse=",")
-
-  if(isTRUE(table %in% mxDbListTable())){
-
-    q <- sprintf(
-      "SELECT * FROM %s 
-      WHERE validated is %s 
-      AND archived is %s 
-      AND country 
-      IN (%s)"
-      ,table
-      ,validated
-      ,archived
-      ,country
-      )
-
-    res <- mxDbGetQuery(q)
-
-    return(res)
-
-  }else{
-    mxDebugMsg(
-      paste(
-        "mxGetViewsList: table"
-        ,table
-        ," content requested, but not found in db."
-        )
-      )
-  }
-
-
-}
-
-
 #' Toggle disabling of given button, based on its id.
 #'
 #' Action or other button can be disabled using the attribute "disabled". This function can update a button state using this method.
@@ -373,7 +339,8 @@ mxActionButtonState <- function(id,disable=FALSE,warning=FALSE,session=shiny:::g
 #' @export
 remoteCmd <- function(host=NULL,user=NULL,port=NULL,cmd=NULL,vagrant=TRUE,sshConfig="settings/sshConfig"){
   res=NULL
-  if(!is.null(cmd)){
+  if(!is.null(cmd) && nchar(cmd)>0){
+   
     if(vagrant){
       res =  system(sprintf("ssh %s -F %s -C \"%s\"",host,sshConfig,cmd),intern=TRUE)
 
@@ -421,6 +388,8 @@ addPaletteFun <- function(sty,pal){
 #' @param style map-x style
 #' @export 
 mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="mapxMap"){
+  
+  
   tit <- style$title
   col <- style$colors
   pal <- style$paletteFun
@@ -447,7 +416,6 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
 
   # debug messages
   mxDebugMsg("Begin style")
-  start <- Sys.time()
 
   # set id of legends based on style group id.
   legendId <- sprintf("%s_legends",grp)
@@ -498,6 +466,9 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
   # Apply style
   #jsSty <- sprintf("mxSetStyle('%1$s',%2$s,'%3$s',false)",grp,sList,lay)
 
+
+
+
   session$sendCustomMessage(
     type="setStyle",
     list(
@@ -506,10 +477,6 @@ mxSetStyle<-function(session=shiny:::getDefaultReactiveDomain(),style,mapId="map
       style=sList
       )
     )
-  # print timing
-  stop <- Sys.time() - start
-  mxDebugMsg(paste("End style. Timing=",stop))
-  cat(paste(paste0(rep("-",80),collapse=""),"\n"))
 }
 
 
@@ -779,15 +746,19 @@ mxGetLayerMeta <- function(layer){
   }
   # query
   query <- sprintf(
-    "SELECT meta FROM %1$s WHERE \"layer\"='%2$s' AND \"validated\"='t' AND \"archived\"='f'",
+    "SELECT meta FROM %1$s WHERE \"layer\"='%2$s'",
     layerTable,
     layer
     )
 
   res <- mxDbGetQuery(query)$meta
+  res <- res[length(res)]
 
-  res <- jsonlite::fromJSON(mxDecode(res))
-
+  if(isTRUE(nchar(res)>0)){
+    res <- jsonlite::fromJSON(res)
+  }else{
+    res <- list()
+  }
   return(res)
 }
 
@@ -823,12 +794,103 @@ mxGetViewData <- function(viewId,select=NULL){
       dat[[i]] <- as.list(res[i,]) ## as.list on single column data.frame : names are removed
       names(dat[[i]]) <- select
       if(hasStyle){
-        dat[[i]]$style <- jsonlite::fromJSON(mxDecode(dat[[i]]$style))
+        dat[[i]]$style <- jsonlite::fromJSON(dat[[i]]$style)
       }
     }   
   }
   return(dat)
 }
+#' extract views from the db and create a list
+#' @param cntry Country iso3 code
+#' @return list of views data and style 
+#' @export
+mxMakeViewList <- function(country,visibility,userId){
+  views = list()
+  if(!noDataCheck(country)){
+    viewsDf <- mxGetViewsTable(
+      table=mxConfig$viewsListTableName,
+      country=country,
+      userId=userId,
+      visibility=visibility
+      )
+    if(isTRUE(nrow(viewsDf)>0)){
+      # create list of map views
+      for(i in viewsDf$id){
+        views[[i]] <- as.list(viewsDf[viewsDf$id==i,])
+        views[[i]]$style <- fromJSON(views[[i]]$style)
+      }
+    }
+  }
+  return(views)
+}
+
+
+#' Retrieve map views table 
+#'
+#' Get a list of available map-x views in given table, e.g. mx_views 
+#'
+#' @param table Table name containing views info
+#' @param validated Boolean filter validated dataset. Default = TRUE
+#' @param archived Boolean filter to get archived data. Default =FALSE
+#' @param country ISO 3 code to filter country. 
+#' @export
+mxGetViewsTable <- function(table="mx_views",validated=TRUE,archived=FALSE,country="AFG",visibility="public",userId=""){
+
+  classesOrig = as.character(mxConfig$class)
+  country = paste0("'",country,"'",collapse=",")
+  visibility = paste0("'",visibility,"'",collapse=",")
+  classes = paste0("'",classesOrig,"'",collapse=",")
+
+
+
+  orderClass = paste(
+    sapply(classesOrig,
+      function(x){
+        rank = which(classesOrig==x) 
+        sprintf("WHEN '%s' then %i",x,rank)
+      }),
+    collapse=" ")
+ 
+  orderClass = paste('CASE "class"',orderClass,"ELSE 50 END",sep=" ")
+
+
+  if(any(sapply(c(country,visibility,orderClass),noDataCheck))) stop("Get views from db : missing values")
+
+  if(isTRUE(mxDbExistsTable(table))){
+
+    q <- sprintf(
+      "SELECT * FROM %s 
+      WHERE archived is %s 
+      AND country IN (%s)
+      AND class IN (%s)
+      AND ( visibility ?| array[%s] OR editor = '%s' )
+      ORDER BY %s
+      "
+      ,table
+      ,archived
+      ,country
+      ,classes
+      ,visibility
+      ,userId
+      ,orderClass
+      )
+
+    res <- mxDbGetQuery(q)
+    return(res)
+
+  }else{
+    mxDebugMsg(
+      paste(
+        "mxGetViewsList: table"
+        ,table
+        ," content requested, but not found in db."
+        )
+      )
+  }
+
+
+}
+
 
 
 #' Encrypt or decrypt data using postgres pg_sym_encrypt
@@ -929,33 +991,16 @@ mxCreateSecret =  function(n=20){
   randomString(20)
 }
 
-#' extract views from the db and create a list
-#' @param cntry Country iso3 code
-#' @return list of views data and style 
-#' @export
-mxMakeViewList <- function(cntry){
-  views = list()
-  if(!noDataCheck(cntry)){
-    viewsDf <- mxGetViewsTable(mxConfig$viewsListTableName,country=cntry)
-    if(isTRUE(nrow(viewsDf)>0)){
-      # create list of map views
-      for(i in viewsDf$id){
-        views[[i]] <- as.list(viewsDf[viewsDf$id==i,])
-        views[[i]]$style <- fromJSON(mxDecode(views[[i]]$style))
-      }
-    }
-  }
-  return(views)
-}
-
 
 #' Check if given email is valid
 #' @param email String email address to verify
 #' @return named logic vector
 #' @export
 mxEmailIsValid <- function(email=NULL){
+
   res = FALSE
   if(!noDataCheck(email)){
+    email <- as.character(email)
     tryCatch({
       # regex expression
       # see http://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
@@ -1034,16 +1079,18 @@ mxAnalysisOverlaps <- function(inputBaseLayer,inputMaskLayer,outName,dataOwner="
 
   msg <- character(0)
 
-  if(!outName %in% mxDbListTable()){
+  if(!mxDbExistsTable(outName)){
 
     # get geometry type. 
     # NOTE: qgis seems confused if the geom type is not updated.
     geomType <- mxDbGetQuery(
-      sprintf("select GeometryType(geom) FROM %s limit 1",
+      sprintf("select GeometryType(geom) as gt FROM %s limit 1",
         inputBaseLayer
         )
-      )[[1]]
+      )$gt
+
     varBase <- paste0(sprintf("a.%s",varToKeep[!varToKeep %in% "geom"]),collapse=",")
+
     createTable <- gsub("\n|\\s+"," ", sprintf("
         CREATE TABLE %1$s AS
         SELECT
@@ -1095,8 +1142,8 @@ mxAnalysisOverlaps <- function(inputBaseLayer,inputMaskLayer,outName,dataOwner="
 
 #' Create a formated list of available palettes
 #' @export
-mxCreatePaletteList <- function(palettes){
-  pals <- palettes
+mxCreatePaletteList <- function(){
+  pals <- RColorBrewer::brewer.pal.info
   # Get palettes names
   colsPals <- row.names(pals)
   # create UI visible names 
@@ -1353,7 +1400,7 @@ mxSendJson <- function(pathToJson,objName,session=getDefaultReactiveDomain()){
 #' @param body String. Text of the body
 #' @param subject. String. Test for the subject 
 #' @export
-mxSendMail <- function(from=mxConfig$mapxBotEmail,to,body,subject,wait=FALSE){
+mxSendMail <- function(from=mxConfig$mapxBotEmail,to=NULL,body="",subject="",wait=FALSE){
 
 
   stopifnot(
@@ -1362,6 +1409,16 @@ mxSendMail <- function(from=mxConfig$mapxBotEmail,to,body,subject,wait=FALSE){
     is.character(body),
     is.character(subject)
     )
+
+  if(!all(
+      c(mxEmailIsValid(from),
+        mxEmailIsValid(to),
+        isTRUE(is.character(body)),
+        isTRUE(is.character(subject)),
+        isTRUE(nchar(body)>0),
+        isTRUE(nchar(subject)>0)
+      )
+    )) stop("mxSendMail : bad input")
 
   sendEmail <- sprintf("echo '%1$s' | mailx -a 'Content-Type: text/html' -s '%2$s' -a 'From: %3$s' %4$s",
     body,
@@ -1388,17 +1445,132 @@ mxSendMail <- function(from=mxConfig$mapxBotEmail,to,body,subject,wait=FALSE){
 #' @param usertable name of the table
 #' @return boolean exists
 #' @export
-mxEmailIsKnown <- function(email=NULL,usertable="tmp_users_testjson"){
-if(is.null(email)) return()
-q <- sprintf(
-  "SELECT count(\"id\")
-  FROM %1$s 
-  WHERE email='%2$s' 
-  AND data#>>'{\"admin\",\"active\"}'='true'",
-  usertable,
-  email
-  )
-res <- mxDbGetQuery(q)
-return(isTRUE(res$count==1))
+mxEmailIsKnown <- function(email=NULL,usertable="mx_users",active=TRUE,validated=TRUE){
+  if(is.null(email)) return()
+  email <- as.character(email)
+  q <- sprintf(
+    "SELECT count(\"id\")
+    FROM %1$s 
+    WHERE email='%2$s'
+    AND validated='%3$s'
+    AND hidden='%4$s' ",
+    usertable,
+    email,
+    ifelse(validated,"true","false"),
+    ifelse(!active,"true","false")
+    )
+  res <- mxDbGetQuery(q)
+  return(isTRUE(nrow(res)>0 && res$count > 0))
 }
+
+
+#' Recursive search and filter on named list
+#' @param li List to evaluate
+#' @param column Named field to search on (unique)
+#' @param operator Search operator ('>','<','==','>=','<=','!=','%in%')
+#' @param search Value to search
+#' @param filter Named field to keep
+#' @return list or named vector if filter is given
+#' @export
+mxRecursiveSearch <- function(li,column="",operator="==",search="",filter=""){
+
+  res <- NULL
+  stopifnot(operator %in% c('>','<','==','>=','<=','!=','%in%'))
+  expr <- paste("li[[column]]",operator,'search')
+  if( is.list(li)  && length(li) > 0 ){ 
+    if( column %in% names(li) &&  eval(parse(text=expr)) ){
+      return(li)
+    }else{     
+      val <- lapply(li,function(x) mxRecursiveSearch(
+          li=x,
+          search=search,
+          operator=operator,
+          column=column,
+          filter=filter
+          )
+        )
+      val <- val[sapply(val,function(x) !is.null(x))]
+      if(length(val)>0){
+        if(is.null(filter) || nchar(filter)==0){
+          res <- val
+        }else{
+          res <- unlist(val)
+          res <- res[grepl(paste0(filter,collapse='|'),names(res))]
+        }
+        return(res)
+      }
+    }
+  }
+}
+
+#' Extract value from a list using path
+#' @param li Input named list
+#' @param path Path inside the list
+#' @return value extracted or NULL
+#' @export
+mxGetListValue <- function(li,path){
+
+  if(!is.list(li) || length(li) == 0) return()
+  
+  out = NULL
+  
+  res <- try(silent=T,{
+    out<-li[[path]]
+  })
+
+
+  return(out)
+
+} 
+
+mxSetListValue <- function(li,path,value){
+
+  if(!is.list(li) || length(li) == 0) return()
+   
+  res <- try(silent=T,{
+    li[[path]]<-value
+  })
+
+
+  return(li)
+
+} 
+
+#' Return the highest role for a given user
+#' @param project Project to look for
+#' @param userInfo object of class mxUserInfoList produced with mxDbGetUserInfoList 
+#' @param useWorld Boolean keep result for project "world" in the result
+#' @export
+mxGetMaxRole <- function(project,userInfo,useWorld=T){
+
+  stopifnot(isTRUE("mxUserInfoList" %in% class(userInfo)))
+
+  userRoles <- mxGetListValue(userInfo,c("data","admin","roles"))
+  if(isTRUE(useWorld)){
+    roles <- userRoles[c(project,'world')]
+  }else{
+    roles <- userRoles[c(project)]
+  }
+
+  res <- lapply(roles,
+    function(x){
+      res <- NULL
+      if(!is.null(x)){
+        res <- mxRecursiveSearch(mxConfig$roles,"role","==",x)
+      }
+      return(res)
+    }
+    )
+  res <- res[!sapply(res,is.null)]
+  levels <-  lapply(res,
+    function(x){
+      res <- NULL
+      if(!is.null(x))
+        x[[1]]$level
+    }
+    )
+  minLevel <- which.min(levels)
+  res[minLevel][[1]][[1]]
+}
+
 

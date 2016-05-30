@@ -4,7 +4,7 @@
 \alias{mxCreatePaletteList}
 \title{Create a formated list of available palettes}
 \usage{
-mxCreatePaletteList(palettes)
+mxCreatePaletteList()
 }
 \description{
 Create a formated list of available palettes

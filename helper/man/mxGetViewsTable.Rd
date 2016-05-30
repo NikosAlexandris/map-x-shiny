@@ -5,7 +5,7 @@
 \title{Retrieve map views table}
 \usage{
 mxGetViewsTable(table = "mx_views", validated = TRUE, archived = FALSE,
-  country = "AFG")
+  country = "AFG", visibility = "public", userId = "")
 }
 \arguments{
 \item{table}{Table name containing views info}

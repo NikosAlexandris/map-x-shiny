@@ -2,7 +2,8 @@
 % Please edit documentation in R/mxMisc.R
 \name{mxAnalysisOverlaps}
 \alias{mxAnalysisOverlaps}
-\title{Overlaps analysis}
+\title{Get cookie from session HTTP request
+Overlaps analysis}
 \usage{
 mxAnalysisOverlaps(inputBaseLayer, inputMaskLayer, outName,
   dataOwner = "mapxw", sridOut = 4326, varToKeep = "gid")

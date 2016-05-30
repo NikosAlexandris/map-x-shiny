@@ -4,7 +4,7 @@
 \alias{mxDbClearAll}
 \title{Remove old results from db query}
 \usage{
-mxDbClearAll(dbInfo = mxConfig$dbInfo)
+mxDbClearAll()
 }
 \description{
 Remove old results from db query

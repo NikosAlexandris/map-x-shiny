@@ -4,15 +4,15 @@
 \alias{mxSetCookie}
 \title{Save named list of value into cookie}
 \usage{
-mxSetCookie(session = getDefaultReactiveDomain(), cookie = NULL,
-  nDaysExpires = NULL, deleteAll = FALSE, read = TRUE)
+mxSetCookie(cookie = NULL, expireDays = NULL, deleteAll = FALSE,
+  reloadPage = FALSE, session = getDefaultReactiveDomain())
 }
 \arguments{
-\item{session}{Shiny session object. By default: default reactive domain.}
-
 \item{cookie}{Named list holding paired cookie value. e.g. (list(whoAteTheCat="Alf"))}
 
-\item{nDaysExpires}{Integer of days for the cookie expiration}
+\item{expireDays}{Integer of days for the cookie expiration}
+
+\item{session}{Shiny session object. By default: default reactive domain.}
 
 \item{read}{Boolean. Read written cookie}
 }

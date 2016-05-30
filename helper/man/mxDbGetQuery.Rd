@@ -4,14 +4,13 @@
 \alias{mxDbGetQuery}
 \title{Get query result from postgresql}
 \usage{
-mxDbGetQuery(query, stringAsFactors = FALSE, dbInfo = mxConfig$dbInfo)
+mxDbGetQuery(query, stringAsFactors = FALSE, onError = function(x) {     x
+  })
 }
 \arguments{
-\item{dbInfo}{Named list with dbName,host,port,user and password}
-
-\item{SQL}{query}
+\item{query}{SQL query}
 }
 \description{
-Shortcut to create a connection, get the result of a query and close the connection, using a dbInfo list.
+Wrapper to execute a query
 }
 

@@ -2,33 +2,96 @@
 
 #' Get query result from postgresql
 #'
-#' Shortcut to create a connection, get the result of a query and close the connection, using a dbInfo list. 
+#' Wrapper to execute a query 
 #'
-#' @param dbInfo Named list with dbName,host,port,user and password
-#' @param SQL query
+#' @param query SQL query
 #' @export
-mxDbGetQuery <- function(query,stringAsFactors=FALSE,dbInfo=mxConfig$dbInfo,onWarning=function(x){},onError=NULL){
+mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){x}){
   res <- NULL
+  data <- NULL
 
-  qry <- query
-  d <- dbInfo
-  drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+  tryCatch({    
+    suppressWarnings({
+
+      res <- postgresqlExecStatement(mxDbAutoCon(), gsub("\n","",query))
+      if(dbGetInfo(res)$isSelect!=0){
+        temp <- postgresqlFetch(res)
+        if( dbGetRowCount(res) > 0 ){ 
+          data <- temp
+        }
+      }
+    })
+  },
+  error = onError
+  )
 
   on.exit({ 
-    dbDisconnect(con)
-    mxDbClearAll(dbInfo)
+    mxDbClearAll()
   })
 
-  tryCatch({
-      res <- postgresqlExecStatement(con, qry)
-      res <- postgresqlFetch(res)
-  },
-  error = onError,
-  warning = onWarning
-  )
+  return(data)
+
+}
+
+#' Update a single value of a table
+#' @param table Table to update
+#' @param column Column to update
+#' @param idCol Column of identification
+#' @param id Identification value
+#' @param value Replacement value
+#' @param expectedRowsAffected Number of row expected to be affected. If the update change a different number of row than expected, the function will rollback
+#' @return Boolean worked or not
+#' @export
+mxDbUpdate <- function(table,column,idCol="id",id,value,expectedRowsAffected=1){   
+
+  if(is.list(value)) value <- jsonlite::toJSON(value,auto_unbox=T)
+
+  on.exit(mxDbClearAll())
+
+  res <- try({
+    query <- gsub("\n","",sprintf("
+        UPDATE %1$s
+        SET \"%2$s\"='%3$s'
+        WHERE \"%4$s\"='%5$s'",
+        table,
+        column,
+        value,
+        idCol,
+        id
+        ))
+
+    con <- mxDbAutoCon()
+
+    dbGetQuery(con,"BEGIN TRANSACTION")
+    rs <- dbSendQuery(con,query)   
+    ra <- dbGetInfo(rs,what="rowsAffected")[[1]]
+    if(isTRUE(is.numeric(expectedRowsAffected) && isTRUE(ra != expectedRowsAffected)) ){
+      dbRollback(con)
+      stop(
+        sprintf(
+          "Error, number of rows affected does not match expected rows affected %s vs %s",
+          ra,
+          expectedRowsAffected
+          )
+        )
+    }else{
+      mxDebugMsg(sprintf("Number of row affected=%s",ra))
+      dbCommit(con)
+    }
+  })
+
+  if("try-error" %in% res){
+    res <- FALSE
+  }else{
+    res <- TRUE
+  }
   return(res)
 }
+
+
+
+
+
 
 #' Transfert postgis feature by sql query to sp object
 #' @param query PostGIS spatial sql querry.
@@ -36,20 +99,14 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,dbInfo=mxConfig$dbInfo,onWa
 #' @export
 mxDbGetSp <- function(query) {
   if(!require('rgdal')|!require(RPostgreSQL))stop('missing rgdal or RPostgreSQL')
+
   d<- mxConfig$dbInfo
   tmpTbl <- sprintf('tmp_table_%s',round(runif(1)*1e5))
   dsn <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
     d$dbname,d$host,d$port,d$user,d$password
     )
-  drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(
-    drv, 
-    dbname=d$dbname, 
-    host=d$host, 
-    port=d$port,
-    user=d$user, 
-    password=d$password
-    )
+  
+  con <- mxDbAutoCon()
 
   tryCatch({
 
@@ -82,8 +139,7 @@ mxDbGetSp <- function(query) {
     on.exit({
       sql <- sprintf("DROP TABLE %s",tmpTbl)
       dbSendQuery(con,sql)
-      dbClearResult(dbListResults(con)[[1]])
-      dbDisconnect(con) 
+      mxDbClearAll()
     })
 
     return(out)
@@ -148,25 +204,24 @@ mxDbGetGeoJSON<-function(query,fromSrid="4326",toSrid="4326",asList=FALSE){
 mxDbGetLayerExtent<-function(table=NULL,geomColumn='geom'){
 
   if(is.null(table)) stop('Missing table name')
- 
-  dbInfo<- mxConfig$dbInfo
 
-    if(table %in% mxDbListTable(dbInfo)){
 
-     q <- sprintf("SELECT ST_Extent(%s) as table_extent FROM %s;",geomColumn,table)
+  if(mxDbExistsTable(table)){
 
-      ext <- mxDbGetQuery(q)[[1]] %>% 
-      strsplit(split=",")%>%
-      unlist() %>%
-      gsub("[a-z,A-Z]|\\(|\\)","",.) %>%
-      strsplit(split="\\s") %>%
-      unlist() %>%
-      as.numeric() %>%
+    q <- sprintf("SELECT ST_Extent(%s)::text as table_extent FROM %s;",geomColumn,table)
+
+    res <- mxDbGetQuery(q)$table_extent %>%
+      gsub(" ",",",.) %>%
+      gsub("[a-zA-Z]|\\(|\\)","",.)%>%
+      strsplit(.,",")%>%
+      unlist()%>%
+      as.numeric()%>%
       as.list()
-      names(ext)<-c("lng1","lat1","lng2","lat2")
-      return(ext)
 
-    }
+    names(res)<-c("lng1","lat1","lng2","lat2")
+
+    return(res)
+  }
 }
 
 
@@ -220,7 +275,6 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
 
     if(noDataCheck(table) || noDataCheck(column) || isTRUE(column=='gid'))return() 
 
-  dbInfo<- mxConfig$dbInfo
 
       timing<-system.time({
 
@@ -325,12 +379,10 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
 mxDbGetLayerCentroid<-function(table=NULL,geomColumn='geom'){
   if(is.null(table)) stop('Missing arguments')
   
-  dbInfo<- mxConfig$dbInfo
-  tryCatch({
-    if(table %in% dbListTables(con)){
+    if(mxDbExistsTable(table)){
       
       query <- sprintf(
-        "SELECT ST_asText(ST_centroid(ST_union(%s))) 
+        "SELECT ST_asText(ST_centroid(ST_union(%s)))::text 
         FROM %s 
         WHERE 
         ST_isValid(%s) = true;"
@@ -350,12 +402,9 @@ mxDbGetLayerCentroid<-function(table=NULL,geomColumn='geom'){
       as.list()
       names(ext)<-c("lng","lat")
 
-    dbDisconnect(con)
       return(ext)
     }
-  },finally={
-    dbDisconnect(con)
-  })
+
 }
 
 #' Get query extent, based on a pattern matching (character)
@@ -376,7 +425,7 @@ mxDbGetFilterCenter<-function(table=NULL,column=NULL,value=NULL,geomColumn='geom
     }
 
     q = sprintf("
-      SELECT ST_Extent(%1$s) 
+      SELECT ST_Extent(%1$s)::text as data_extent 
       FROM (SELECT %1$s FROM %2$s WHERE %3$s %5$s %4$s ) t
       WHERE ST_isValid(%1$s)",
       geomColumn,
@@ -386,16 +435,19 @@ mxDbGetFilterCenter<-function(table=NULL,column=NULL,value=NULL,geomColumn='geom
       operator
       )
 
-    ext <- mxDbGetQuery(q)[[1]]
+    ext <- mxDbGetQuery(q)$data_extent
 
     if(noDataCheck(ext))return(NULL)
+
+
     res <- ext %>%
-    strsplit(split=",")%>%
-    unlist()%>%
-    strsplit(split=" ")%>%
-    unlist()%>%
-    gsub("[a-z,A-Z]|\\(|\\)","",.)%>%
-    as.numeric()
+      gsub(" ",",",.) %>%
+      gsub("[a-zA-Z]|\\(|\\)","",.)%>%
+      strsplit(.,",")%>%
+      unlist()%>%
+      as.numeric()%>%
+      as.list()
+
     names(res)<-c('lng1', 'lat1', 'lng2', 'lat2')
 
     return(res)
@@ -413,6 +465,7 @@ mxDbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,tableName=NULL,ar
 
 
   dbInfo<- mxConfig$dbInfo
+  d <- dbInfo
 
       # NOTE : no standard method worked.
       # rgdal::writeOGR (require loading in r AND did not provide options AND did not allow mixed geometry) or gdalUtils::ogr2ogr failed (did not set -f option!).
@@ -420,11 +473,10 @@ mxDbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,tableName=NULL,ar
   gL <- geojsonList
   gP <- geojsonPath
   tN <- tableName
-  d <- dbInfo
   timestamp <- format(Sys.time(),"%Y_%m_%d_%H_%M_%S")
   aN <- paste0(archivePrefix,"_",tN,"_",timestamp)
-  tE <- mxDbExistsTable(d,tN)
-  aE <- mxDbExistsTable(d,aN)
+  tE <- mxDbExistsTable(tN)
+  aE <- mxDbExistsTable(aN)
 
 
   if(!is.null(gL) && typeof(gL) == "list"){
@@ -487,8 +539,8 @@ mxDbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,tableName=NULL,ar
     -overwrite
     -nln '%1$s'
     -nlt 'PROMOTE_TO_MULTI'
-    '%2$s'
-    '%3$s'
+    \"%2$s\"
+    \"%3$s\"
     OGRGeoJSON
     ",tN,tD,gP)
     cmd <- gsub("\n\\s+"," ",cmd)
@@ -514,17 +566,12 @@ mxDbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,tableName=NULL,ar
 #'
 #' @param dbInfo Named list with dbName,host,port,user and password
 #' @export
-mxDbListTable<- function(dbInfo=mxConfig$dbInfo){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbListTables(con)
-
-    dbDisconnect(con)
-    return(res)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
+mxDbListTable<- function(){
+  res <- dbListTables(mxDbAutoCon())
+  on.exit({
+    mxDbClearAll()
+  })
+  return(res)
 }
 
 #' Check if table exists in postgresql
@@ -533,38 +580,47 @@ mxDbListTable<- function(dbInfo=mxConfig$dbInfo){
 #'
 #' @param table Name of the table to check
 #' @export
-mxDbExistsTable<- function(table,dbInfo=mxConfig$dbInfo){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbExistsTable(con,table)
-    dbDisconnect(con)
-    return(res)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
+mxDbExistsTable<- function(table){
+  res <- dbExistsTable(mxDbAutoCon(),table)
+
+  on.exit({
+    mxDbClearAll()
+  })
+
+  return(res)
 }
 
 
 
 #' List existing column from postgresql table
 #'
-#' Shortcut to create a connection, get the list of column and close the connection, using a dbInfo list. 
+#' Shortcut to get column name for a table
 #'
 #' @param dbInfo Named list with dbName,host,port,user and password
 #' @export
-mxDbListColumns <- function(table,dbInfo=mxConfig$dbInfo){
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbListFields(con,table)
-    dbDisconnect(con)
-    return(res)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
+mxDbGetColumnsNames <- function(table){
+  query <- sprintf("select column_name as res from information_schema.columns where table_schema='public' and table_name='%s'",
+    table
+    )
+  res <- mxDbGetQuery(query)$res
+
+  return(res)
 }
 
+#' List existing column type from postgresql table
+#'
+#' Shortcut to get column type for a table
+#'
+#' @param table Name of the table to evaluate
+#' @export
+mxDbGetColumnsTypes <- function(table){
+  query <- sprintf("select data_type as res from information_schema.columns where table_schema='public' and table_name='%s'",
+    table
+    )
+  res <- mxDbGetQuery(query)$res
+  
+  return(res)
+}
 
 
 
@@ -573,74 +629,126 @@ mxDbListColumns <- function(table,dbInfo=mxConfig$dbInfo){
 #'
 #' 
 #'
-mxDbAddData <- function(data,table,dbInfo=mxConfig$dbInfo){
+mxDbAddData <- function(data,table){
 
   stopifnot(class(data)=="data.frame")
   stopifnot(class(table)=="character")
 
-  tryCatch({
-    d <- dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    res <- dbListTables(con)
-    tExists <- isTRUE(table %in% res)
-    tAppend <- FALSE
-    if(tExists){
-      tNam <- names(table)
-      rNam <- dbListFields(con,table)
-      if(!all(tNam %in% rNam)){
-        wText <- sprintf("mxDbAddData: remote table %1$s has fields: '%2$s', table to append: '%3$s'",
-          table,
-          paste(rNam,collapse="; "),
-          paste(tNam,collapse="; ")
-          )
-        stop(wText)
-      }else{
-        tAppend = TRUE
-      }
+  tAppend <- FALSE
+  tExists <- FALSE
+ 
+  tExists <- mxDbExistsTable(table)
+
+  if(tExists){
+    tNam <- sort(tolower(names(data)))
+    rNam <- sort(tolower(mxDbGetColumnsNames(table)))
+    if(!isTRUE(identical(tNam,rNam))){
+      browser()
+      wText <- sprintf("mxDbAddData: append to %1$s. Name(s) not in remote table: '%2$s', remote name not in local table '%3$s'",
+        table,
+        paste(tNam[!tNam %in% rNam],collapse="; "),
+        paste(rNam[!rNam %in% tNam],collapse="; ")
+        )
+      stop(wText)
+    }else{
+      tAppend = TRUE
     }
-
-    dbWriteTable(con,name=table,value=data,append=tAppend,row.names=F)
-
-    dbDisconnect(con)
-  },finally=if(exists('con'))dbDisconnect(con)
-  )
+  }
+  dbWriteTable(mxDbAutoCon(),name=table,value=data,append=tAppend,row.names=F)
+  on.exit({
+    mxDbClearAll()
+  })
 }
 
 
-mxDbUpdate <- function(table,column,idCol="id",id,value,dbInfo=mxConfig$dbInfo){
-    
-   query <- sprintf("
-      UPDATE %1$s
-      SET \"%2$s\"='%3$s'
-      WHERE \"%4$s\"='%5$s'",
-      table,
-      column,
-      value,
-      idCol,
-      id
+
+mxDbTimeStampFormater <- function(ts){
+if(!isTRUE("POSIXct" %in% class(ts))) stop("need a POSIXct object")
+ts <- format(ts,"%d-%m-%Y %H:%M:%S")
+sprintf("to_timestamp('%1$s','dd-mm-yyyy hh24:mi:ss')",ts)
+}
+
+
+mxDbAddRow <- function(data,table){
+
+  
+  tExists <- mxDbExistsTable(table)
+  if(!tExists) stop(sprintf("mxDbAddRow : table %s does not exists",table))
+
+  if(!is.list(data)) data <- as.list(data)
+
+  tName <- names(data)
+  tClass <- sapply(data,class)
+  rName <- mxDbGetColumnsNames(table)
+
+  
+
+  if(!all(tName %in% rName)){
+   wText <- sprintf("mxDbAddData: append to %1$s. Name(s) not in remote table: '%2$s', remote name not in local table '%3$s'",
+        table,
+        paste(tName[!tName %in% rName],collapse="; "),
+        paste(rName[!rName %in% tName],collapse="; ")
+        )
+      stop(wText)
+
+  
+  }  # handle date
+  dataProc <- lapply(data,function(x){
+    switch(class(x)[[1]],
+      "character"={
+       sprintf("'%1$s'",gsub("'","''",x))
+
+      },
+      "POSIXct"={
+        mxDbTimeStampFormater(x)
+      },
+      "logical"={
+        tolower(x)
+      },
+      "numeric"={
+        sprintf("%i::numeric",x)
+      },
+      "integer"={
+        sprintf("%i::integer",x)
+      },
+      sprintf("'%1$s'",x)
       )
-    res <- mxDbGetQuery(query)
+  })
 
-    return(res)
+
+  q <- sprintf(
+    "INSERT INTO %1$s (%2$s) VALUES (%3$s)",
+    table,
+    paste(paste0("\"",tName,"\""),collapse=","),
+    paste(dataProc,collapse=",")
+    )
+ 
+  mxDbGetQuery(q)
+
+
 }
+
+mxDbAddRowBatch <- function(df,table){
+
+  stopifnot(is.data.frame(df))
+  stopifnot(mxDbExistsTable(table))
+
+  for(i in 1:nrow(df)){
+  dat <- df[i,]
+  mxDbAddRow(dat,table)
+  }
+
+}
+
 
 
 
 #' Remove old results from db query
 #' @export
-mxDbClearAll <- function(dbInfo=mxConfig$dbInfo){
-  d <- dbInfo
-  drv <- dbDriver("PostgreSQL")
-  cons <- dbListConnections(drv)
-  if(length(cons)>0){
-    lapply(cons,function(x){
-      nR <- dbListResults(x)
-      if(length(nR)>0){
-        lapply(nR,dbClearResult)
-      }
-      dbDisconnect(x)
-  })
+mxDbClearAll <- function(){
+  nR <- dbListResults(mxDbAutoCon())
+  if(length(nR)>0){
+    lapply(nR,dbClearResult)
   }
 }
 
@@ -661,14 +769,8 @@ mxDbWriteSpatial <- function(spatial.df=NULL, schemaname="public", tablename, ov
 
   library(rgeos)
 
-  tryCatch({
 
-    d <- mxConfig$dbInfo
-    drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    on.exit(dbDisconnect(con))
-
-
+  con <- mxDbAutoCon()
     # Create well known text and add to spatial DF
     spatialwkt <- writeWKT(spatial.df, byid=TRUE)
     spatial.df$wkt <- spatialwkt
@@ -682,6 +784,7 @@ mxDbWriteSpatial <- function(spatial.df=NULL, schemaname="public", tablename, ov
     # Upload DF to DB
     data.df <- spatial.df@data
     rv <- dbWriteTable(con, c(schemaname, tablename), data.df, overwrite=overwrite, row.names=FALSE)
+
 
     # Create geometry column and clean up table
     schema.table <- paste(schemaname, ".", tablename, sep="")
@@ -707,9 +810,179 @@ mxDbWriteSpatial <- function(spatial.df=NULL, schemaname="public", tablename, ov
       er <- dbGetQuery(con, statement=query6)
     }
 
-  },finally={
-    return(TRUE)  
+ on.exit({
+    mxDbClearAll()
+  })
+}
+
+#' Experimental db conection in config list
+#' 
+#' @export
+mxDbAutoCon <- function(){
+
+  res <- NULL
+  oldCon <- list()
+
+  test <- try(silent=T,{
+
+    maxCon <- mxConfig$dbMaxConnections 
+       # get list of existing connection
+    drv <- dbDriver("PostgreSQL")
+    oldCon <- dbListConnections(drv)
+    createNew <- TRUE
+    oldConLength <- length(oldCon)
+
+    #mxDebugMsg(sprintf("mxDbAutoCon : found %s connections",oldConLength))
+    if(oldConLength >= maxCon){
+      # select randomly one connection NOTE: What if there is pending rows on this connection ?
+      res <- sample(oldCon,1)[[1]]
+      if(!isPostgresqlIdCurrent(res)){
+        #mxDebugMsg("mxDbAutoCon : selected connection is not valid, try to set a new one")
+        createNew = TRUE
+        postgresqlCloseConnection(res)
+      }else{
+      createNew = FALSE
+      }
+    }
+
+    if(createNew){
+      #mxDebugMsg("mxDbAutoCon : create a new connection")
+      # extract and control dbInfo list
+      d <- mxConfig$dbInfo
+      allParam <- all(c("dbname","host","port","user","password") %in% names(d))
+      allFilled <- all(!sapply(d,noDataCheck))
+      stopifnot(all(allParam,allFilled))
+      # create a new connection
+      res <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+    }
   })
 
+  if("try-error" %in% class(test)){
+    mxDebugMsg(test)
+    stop("mxDbAutoCon can't connect to the database")
+  }
+
+    return(res)
 }
+
+#' Get user info
+#' @param email user email
+#' @param userTable DB users table
+#' @return list containing data from the user
+#' @export 
+mxDbGetUserInfoList <- function(id=NULL,email=NULL,userTable="mx_users"){
+  
+  emailIsGiven <- !is.null(email)
+  idIsGiven <- !is.null(id)
+  col <- "id"
+
+  if(
+    (emailIsGiven && idIsGiven) ||
+    (!emailIsGiven && !idIsGiven) 
+    ) stop("Get user details : one of id or email should be provided.")
+ 
+  if(emailIsGiven) {
+    col <- "email"
+    id <- paste0("'",email,"'")
+  }
+  
+  quer <- sprintf(
+    "SELECT id,email,data::text as data 
+    FROM %1$s
+    WHERE %2$s = %3$s
+    LIMIT 1 
+    ",
+    userTable,
+    col,
+    id
+    )
+
+  res <- as.list(mxDbGetQuery(quer))
+  if(length(res)<1){
+   res <- list()
+  }else{
+   res$data <- jsonlite::fromJSON(res$data)
+  }
+  class(res) <- c(class(res),"mxUserInfoList")
+  return(res)
+}
+
+
+#' Add 
+mxDbCreateUser <- function(email=NULL,timeStamp=""){
+
+  userTable <- mxConfig$userTableName 
+  dat <- jsonlite::toJSON(mxConfig$defaultData,auto_unbox=T)
+
+  stopifnot(mxEmailIsValid(email))
+  stopifnot(mxDbExistsTable(userTable))
+
+  #
+  # Set username
+  #
+  getCurId <- sprintf(
+    "SELECT last_value as id FROM public.%s_id_seq",
+    userTable
+    )
+  nextId <- mxDbGetQuery(getCurId,onError=function(x){stop(x)})
+  if( nrow(nextId) > 0 && 'id' %in% names(nextId) ){
+    nextId <- nextId$id + 1
+  }else{
+    stop("Error in mxDbCreateUser")
+  }
+  userName <- paste0(mxConfig$defautUserName,"_",nextId,sep="") 
+
+  #
+  # Insert new user
+  #
+  insertString <- gsub("\n","",sprintf(
+      "insert into mx_users (username,email,key,validated,hidden,date_validated,date_last_visit,data) values  (
+      '%1$s',
+      '%2$s',
+      '%3$s',
+      '%4$s',
+      '%5$s',
+      '%6$s',
+      '%7$s',
+      '%8$s')",
+    userName,
+    email,
+    randomString(),
+    "true",
+    "false",
+    timeStamp,
+    timeStamp,
+    dat
+    )
+  )
+
+
+  mxDbGetQuery(insertString,onError=function(x){stop(x)})
+
+}
+
+#' drop layer
+#' layerName Layer (table + entry + views) to delete from db
+#' @export
+mxDbDropLayer <- function(layerName){
+  qt <- sprintf("SELECT EXISTS( SELECT layer FROM mx_layers where layer='%1$s') as test",layerName)
+  qv <- sprintf("SELECT EXISTS( SELECT layer FROM mx_views where layer='%1$s') as test",layerName)
+
+  existsTable <- isTRUE(mxDbExistsTable(layerName))
+  existsEntry <- isTRUE(mxDbGetQuery(qt)$test)
+  existsViews <- isTRUE(mxDbGetQuery(qv)$testk)
+
+  if(existsTable){
+    mxDbGetQuery(sprintf("DROP table %1$s",layerName))
+  }
+  if(existsEntry){ 
+    mxDbGetQuery(sprintf("DELETE FROM mx_layers where layer='%1$s'",layerName))
+  }
+
+  if(existsViews){ 
+    mxDbGetQuery(sprintf("DELETE FROM mx_views where layer='%1$s'",layerName))
+  }
+
+}
+
 

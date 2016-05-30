@@ -24,7 +24,7 @@ loadUi<-function(path){
 #' @export
 pwdInput <- function(inputId, label) {
     tagList(
-    tags$input(id = inputId,placeholder=label,class="mxLoginInput",type="password", value="")
+    tags$input(id = inputId,placeholder=label,class="mx-login-input",type="password", value="")
     )
 }
 
@@ -35,10 +35,17 @@ pwdInput <- function(inputId, label) {
 #' @param inputId Input id
 #' @param label Label to display
 #' @export
-usrInput <- function(inputId, label) {
-  tagList(
-    tags$input(id = inputId, placeholder=label,class="mxLoginInput usernameInput", value="",autocomplete="off",autocorrect="off", autocapitalize="off",spellcheck="false")
-    )
+usrInput <- function(inputId, label,class="form-control") {
+    tags$input(
+      id = inputId, 
+      placeholder=label,
+      class=paste("mx-login-input",class),
+      value="",
+      autocomplete="off",
+      autocorrect="off", 
+      autocapitalize="off",
+      spellcheck="false"
+      )
 }
 
 #' Create a modal panel
@@ -128,7 +135,7 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
     backg,
     div( 
       id=idContent,
-      class=paste(class,classModal,"panel-modal-content"),
+      class=paste(class,classModal,"panel-modal-content col-xs-12 col-sm-6 col-sm-offset-3 col-lg-4 col-lg-offset-4"),
       style=style,
       closeButton,
       div(class=paste('panel-modal-head'),  
@@ -157,9 +164,9 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
 mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,message=NULL,listActionButton=NULL,...){ 
   title = match.arg(title)
   switch(title,
-    'error'={title=h2(icon("exclamation-circle"),toupper(title))},
-    'warning'={title=h2(icon("exclamation-triangle"),toupper(title))},
-    'message'={title=h2(icon("info-circle"),toupper(title))} 
+    'error'={title=h2(icon("frown-o"))},
+    'warning'={title=h2(icon("frown-o"))},
+    'message'={title=h2(icon("info-circle"))} 
     )
   mxPanel(class="panel-overall panel-fixed",title=title,subtitle=subtitle,html=message,listActionButton=listActionButton,style="position:fixed;top:100px",...)
 }
@@ -190,23 +197,23 @@ mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
     showItem<-ifelse(cnt %in% show,'collapse in','collapse')
     stopifnot(!is.list(x) || !is.null(x$title) || !char(x$title)<1 || !is.null(x$content) || !nchar(x$content)<1)
     if(is.null(x$condition))x$condition="true"
-    div(style=style,class=paste("panel panel-default",x$class),`data-display-if`=x$condition,
-      div(class="panel-heading mx-panel-header",
-        h4(class="panel-title",
+    div(style=style,class=paste("mx-accordion-item",x$class),`data-display-if`=x$condition,
+      div(class="mx-accordion-header",
+        h4(class="mx-accordion-title",
           a('data-toggle'="collapse", 'data-parent'=paste0('#',id),href=paste0("#",ref),x$title)
           )
         ),
-      div(id=ref,class=paste("panel-collapse",showItem),
-        div(class="panel-body mx-panel-content",x$content)
+      div(id=ref,class=paste("mx-accordion-collapse",showItem),
+        div(class="mx-accordion-content",x$content)
         )
       )
   })
 
-  return(div(class="panel-group",id=id,
+  return(div(class="mx-accordion-group",id=id,
       contentList
-      ))
+      )
+    )
 }
-
 #' Custom file input 
 #'
 #' Default shiny fileInput has no option for customisation. This function allows to fully customize file input using the label tag.
@@ -436,9 +443,9 @@ cl = mxConfig$class
         #        revision       1     -none-  numeric
         #        validated      1     -none-  logical
         #        archived       1     -none-  logical
-        #        dateCreated    1     POSIXct numeric
-        #        dataModifed    1     POSIXct numeric
-        #        dateValidated  1     POSIXct numeric
+        #        date_created    1     POSIXct numeric
+        #        date_modifed    1     POSIXct numeric
+        #        date_validated  1     POSIXct numeric
         #        dateArchived   1     POSIXct numeric
         #        style         25     -none-  list
         #
@@ -564,17 +571,17 @@ cl = mxConfig$class
         tags$button(
           id=itIdBtnReport,
           class="btn btn-default btn-sm mx-layer-button mx-hide",
-          onclick="console.log('btnShowReport')",
-          "EITI Report"),
+          onclick="classToggle('infoBox')",
+          "Company report"),
         tags$script(
-          sprintf("
-            $('#%1$s').on('click',function(){
-              mxConfig.mapInfoBox.toggle(700,true);
-             var trigger = Math.random();
-          Shiny.onInputChange('tenke',trigger); 
-        })",
-            itIdBtnReport
-            ),
+          #sprintf("
+            #$('#%1$s').on('click',function(){
+              #mxConfig.mapInfoBox.toggle(700,true);
+             #var trigger = Math.random();
+          #Shiny.onInputChange('tenke',trigger); 
+        #})",
+            #itIdBtnReport
+            #),
           sprintf("
             $('#%1$s').change(function(){
               if( this.value == 'TENKE FUNGURUME MINING' ){

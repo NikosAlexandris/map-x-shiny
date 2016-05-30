@@ -4,8 +4,8 @@
 \alias{addVectorTiles}
 \title{Add vector tiles for a given PGRestAPI postgres endpoint.}
 \usage{
-addVectorTiles(map, protocol = "http", url = "localhost", port = 3030,
-  table = NULL, dataColumns = NULL, geomColumn = "geom",
+addVectorTiles(map, userId = "1", protocol = "http", host = "localhost",
+  port = 3030, layer = NULL, dataColumns = NULL, geomColumn = "geom",
   idColumn = "gid", id = NULL, group = "default", debug = FALSE,
   zIndex = 100, onLoadFeedback = c("once", "never", "always"))
 }

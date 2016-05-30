@@ -4,7 +4,7 @@
 \alias{usrInput}
 \title{User name input}
 \usage{
-usrInput(inputId, label)
+usrInput(inputId, label, class = "form-control")
 }
 \arguments{
 \item{inputId}{Input id}
