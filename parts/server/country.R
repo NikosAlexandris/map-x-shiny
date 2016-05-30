@@ -38,6 +38,9 @@ observeEvent(input$selectCountry,{
         column='data',
         value=dat$data
         )
+
+  
+
     }
 
 

@@ -230,6 +230,36 @@ observeEvent(mxReact$viewsToDisplay,{
 })
 
 
+
+observeEvent(mxReact$selectCountry,{
+  vToRemove = c(
+    mxReact$vToCalc,
+    mxReact$vToShow,
+    mxReact$viewsToDisplay
+    )
+
+  vToRemove<-vToRemove[ !vToRemove %in% mxConfig$noData ]
+
+ proxyMap <- leafletProxy("mapxMap")
+
+    proxyMap  %>% clearControls() 
+
+  if(length(vToRemove)==0) return()
+  
+      for(v in vToRemove){ 
+
+        proxyMap %>%
+      clearGroup(as.character(v))
+  }
+})
+
+
+
+
+
+
+
+
 # Views to hide
 observeEvent(mxReact$vToHide,{
   mxCatch(title="View to hide",{
