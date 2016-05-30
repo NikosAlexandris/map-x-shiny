@@ -50,25 +50,27 @@ mxConfig$dbInfo <- list(
   )
 mxConfig$key <- digest("<put_a_strong_key_here>")
 
+mxConfig$dbMaxConnections = 5;
+
 
 # get info about the host
 mxConfig$os <- Sys.info()['sysname']
 mxConfig$hostname <- Sys.info()['nodename']
 
 
-if ( mxConfig$hostname == mxConfig$remoteHostname ) {
-  mxConfig$protocolVt <- "http"
-  mxConfig$protocolVtPublic <- "http"
-  mxConfig$portVt <- 80
-  mxConfig$portVtPublic <- 8080
-  mxConfig$hostVt <- "localhost"
-}else{
-  mxConfig$protocolVt <- "http"
-  mxConfig$protocolVtPublic <- "http"
-  mxConfig$portVt <- 8080
-  mxConfig$portVtPublic <- 8080
-  mxConfig$hostVt <- "localhost"
-} 
+#if ( mxConfig$hostname == mxConfig$remoteHostname ) {
+  #mxConfig$protocolVt <- "http"
+  #mxConfig$protocolVtPublic <- "http"
+  #mxConfig$portVt <- 80
+  #mxConfig$portVtPublic <- 8080
+  #mxConfig$hostVt <- "localhost"
+#}else{
+  #mxConfig$protocolVt <- "http"
+  #mxConfig$protocolVtPublic <- "http"
+  #mxConfig$portVt <- 8080
+  #mxConfig$portVtPublic <- 8080
+  #mxConfig$hostVt <- "localhost"
+#} 
 
 
 
@@ -80,7 +82,7 @@ if ( mxConfig$hostname == mxConfig$remoteHostname ) {
 # set general parameters. Modify with caution :)
 
 # default country code "ISO_3166-1_alpha-3"
-mxConfig$defaultCountry <- "COD"
+mxConfig$defaultCountry <- "cod"
 # default language code "ISO 639-2"
 mxConfig$defaultLanguage <- "eng"
 # available languages
@@ -102,9 +104,32 @@ mxConfig$defaultGroup <- "G1"
 # column column used in postgis
 mxConfig$defaultGeomCol <- "geom"
 # cookies expiration in days
-mxConfig$cookiesExpireDays <- 10 
+mxConfig$cookiesExpireDays <- 30 
 # default email adress for sender
 mxConfig$mapxBotEmail <- "bot@mapx.io"
+# default username
+mxConfig$defautUserName <- "user"
+# default roles for new users
+mxConfig$defaultRoles <- list(
+  world = "public"
+  )
+
+# default data for new users
+mxConfig$defaultData <- list(
+  user=list(
+    preferences=list(
+      language = mxConfig$defaultLanguage,
+      last_project = mxConfig$defaultCountry
+      )
+    ),
+  admin=list(
+    roles=mxConfig$defaultRoles
+    )
+  )
+
+
+
+
 
 
 # style
@@ -156,79 +181,80 @@ mxConfig$projectTree  <- list(
       ),
     list(
       name = "cod",
-      children = list()
+      children=list()
       )
     )
   )
 
 
-mxRecSearch <- function(li,name="afg"){
-  if(is.list(li) && length(li)>0){ 
-    if("name" %in% names(li) && li$name==name){
-      return(rapply(li,unlist))
-    }else{
-      if("children" %in% names(li)){
-        lapply(li[['children']])
-      }
-
-      for(i in 1:length(li)){
-
-
-        subLi = li[[li]]
-        if("children" %in% names)
-        print(i)
-        browser()
-        mxRecSearch(li[[i]],name)
-      }
-    }
-  }else{
-   return()
-  }
-
-}
-
-
-
-
-
-# NOTE: each role is related to specific project : admin cod will not be able to change roles of user from afg
-# only members of higher group levels can modify other members data
-# tools : analysis tool
-# read : read views and story maps (targeting is role)
-#
-#
-
+# role definition
+# note : could be searched with function
+#mxRecursiveSearch(mxConfig$roles,"role","==","admin")
 mxConfig$roles <- list(
-  "guest"=list(
-    action = c("tools","read"),
-    readers = c("")
+  list(
+    role="public",
+    level=4,
+    desc =list(
+      access = c("map","storymap","country"),
+      read = c("public")
+      )
     ),
-  "user"=list(
-    action=c("tools","read","create","update"),
-    readers=c("self","editor","admin","superuser")
+  list(
+    role="user",
+    level=3,
+    desc=list(
+      access = c("map","storymap","country","view_creator","storymap_creator","tools"),
+      read = c("self","user","public"),
+      publish = c("self","user","editor"),
+      edit = c("self"),
+      profile = c("self")
+      )
     ),
-  "editor"=list(
-    action=c("tools","read","create","update","edit"),
-    readers=c("self","editor","admin","superuser","user")
+  list(
+    role="editor",
+    level=2,
+    desc = list(
+      access = c("map","storymap","country","view_creator","storymap_creator","tools"),
+      read = c("self","user","public","editor"),
+      publish = c("self","user","public","editor"),
+      edit = c("self","user"),
+      profile = c("self")
+      )
     ),
-  "admin"=list(
-    action=c("tools","read","write","edit","manage"),
-    target=c("temporary","self","editor","admin","superuser","public")
+  list(
+    role="admin",
+    level=1,
+    desc = list(
+      access = c("map","storymap","country","admin","view_creator","storymap_creator","tools","data_upload"),
+      read = c("self","user","public","editor","admin"),
+      publish = c("self","user","public","editor","admin"),
+      edit = c("self","user","editor","admin"),
+      profile = c("self","user","editor")
+      )
     ),
-  "superuser"=list(
-    action=c("read","write","edit","publish","upload","manage","config"),
-    target=c("temporary","self","editor","admin","superuser","public") 
-)
-)
-
-
-# roles
-mxConfig$rolesVal <- list(
-  "superuser" = 10000,
-  "admin" = 1000,
-  "user" = 100,
-  "visitor" = 0
+  list(
+    role="superuser",
+    level=0,
+    desc = list(
+      access = c("map","storymap","country","admin","config","view_creator","storymap_creator","tools","data_upload"),
+      read = c("self","public","user","editor","admin","superuser"),
+      publish = c("self","user","public","editor","admin","superuser"),
+      edit = c("self","user","editor","admin","superuser"),
+      profile = c("self","user","editor","admin","superuser")
+      )
+    )
   )
+
+
+
+
+## roles
+#mxConfig$rolesVal <- list(
+  #"superuser" = 10000,
+  #"admin" = 1000,
+  #"user" = 100,
+  #"visitor" = 0
+  #)
 # input file formating
 # https://en.wikipedia.org/wiki/GIS_file_formats
 # http://www.w3schools.com/tags/att_input_accept.asp
@@ -265,8 +291,15 @@ mxConfig$mapPanelModeAvailable <- c(
   "mx-mode-creator",
   "mx-mode-story-reader"
   )
+
+
+# name of user table
+mxConfig$userTableName = "mx_users" 
+
 # Name of the table containing layers meta data
 mxConfig$layersTableName = "mx_layers"
+# default cookie name
+mxConfig$defaultCookieName = "mx_data"
 # Name of the table containing the views data
 mxConfig$viewsListTableName = "mx_views"
 # Name of the table containing story maps
@@ -280,7 +313,7 @@ mxConfig$prefixArchiveViews = "mx_archived_views"
 # NOTE: touch "restart.txt" reactivate nodejs application launched by NGINX + passenger.
 mxConfig$restartPgRestApi = "touch /home/vagrant/tools/pgrestapi/tmp/restart.txt"
 # set palette colors for ui
-mxConfig$colorPalettes <- mxCreatePaletteList(RColorBrewer::brewer.pal.info)
+mxConfig$colorPalettes <- mxCreatePaletteList()
 # country data
 # http://unstats.un.org/unsd/methods/m49/m49alpha.htm
 # http://eiti.org/countries/reports/compare/download/xls
@@ -306,17 +339,30 @@ mxConfig$tileProviders = list(
   "MapBox Satellite" = "mapbox",
   "Nasa" = "nasa"
   )
+
+
+# config wms source
+mxConfig$wmsSources = list(
+  "forestCover"="http://50.18.182.188:6080/arcgis/services/ForestCover_lossyear/ImageServer/WMSServer",
+  "columbia.edu"="http://sedac.ciesin.columbia.edu/geoserver/wms",
+  "preview.grid.unep.ch"="http://preview.grid.unep.ch:8080/geoserver/wms",
+  "sampleserver6.arcgisonline.com"="http://sampleserver6.arcgisonline.com/arcgis/services/911CallsHotspot/MapServer/WMSServer",
+  "nowcoast.noaa.gov"="http://nowcoast.noaa.gov/arcgis/services/nowcoast/analysis_meteohydro_sfc_qpe_time/MapServer/WmsServer"
+  )
+
+
+
 # Set data classes
 mxConfig$class = list(
-  "Development" = "dev",
-  "Energy"="nrg",
-  "Environment" = "env",
   "Extractives" = "ext",
-  "Stresses" = "str",
+  "Development" = "dev",
   "Social" = "soc",
+  "Environment" = "env",
+  "Stresses" = "str",
+  "Energy"="nrg",
   "Customs" = "cus",
   "Infrastructure" = "nfr",
-  "Mes Aynak Area" = "maa",
+  "Pilot sites" = "maa",
   "Boundaries" = "bnd"
   )
 
@@ -436,7 +482,7 @@ mxData$pwd <- rbind(
   )
 
 mxData$pwd <- as.data.frame(mxData$pwd,stringsAsFactors=F)
-mxData$pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 
+#mxData$pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 
 
-
-
+# login time in minutes
+mxConfig$loginTimerMinutes <- 20

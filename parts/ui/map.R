@@ -7,6 +7,81 @@
 #                 |_|           
 # map content
 
+uiMapCreatorLayer <- tagList(
+  tags$div(id="mxUiMapCreatorView",class="",
+    selectInput(
+      inputId="selNewLayerClass",
+      label="Layer class",
+      choice=mxConfig$class
+      ),
+    selectInput("selNewLayerVisibility",
+      label= "Layer visibility",
+      choices=mxConfig$noData
+      ),
+    conditionalPanel(condition=sprintf(
+        "(input.selNewLayerClass != '%1$s' && input.selNewLayerVisibility != '%1$s')",
+        mxConfig$noData
+        ),
+      tagList(
+        textInput("txtNewLayerTags","Additional tags","default"),
+        tags$textarea(
+          id="txtNewLayerMeta",
+          rows=10,
+          cols=30,
+          placeholder="Sources...",
+          spellcheck="false",
+          mxConfig$bibDefault
+          ),
+        mxFileInput("fileNewLayer",
+          label="Choose a file (geojson)",
+          multiple=FALSE,
+          fileAccept=mxConfig$inputDataExt$vector$GeoJSON
+          ),
+        div(id="outLayerFileMsg"),
+        div(id="outNewLayerErrors"),                
+        div(id="outNewLayerNameValidation")
+        )
+      )
+    )
+  )
+
+uiMapCreatorView <- tagList(
+  tags$div(id="mxUiMapCreatorLayer",class="",
+    selectInput("selLayer","Layer",choices=mxConfig$noData),
+selectInput("selNewViewVisibility",
+      label= "View visibility",
+      choices=mxConfig$noData
+      ),
+    conditionalPanel(condition=sprintf(
+        "input.selLayer != '%1$s' && input.selNewViewVisibility != '%1$s'",
+        mxConfig$noData
+        ),
+      tagList(
+        textInput("mapViewTitle","Title",mxConfig$noData),
+        conditionalPanel(condition=sprintf("input.mapViewTitle != '%s'",mxConfig$noData),
+          selectInput("selColumnVar","Variable to display",choices=mxConfig$noData),
+          conditionalPanel(condition=sprintf("input.selColumnVar != '%s'",mxConfig$noData),
+          textInput("txtVarUnit","Suffix for labels"),
+          selectInput("selPalette","Colors",choices=""),
+          selectInput("selColumnVarToKeep","Variable(s) to keep",choices="",multiple=T),
+          numericInput("selOpacity","Opacity",min=0,max=1,value=0.6,step=0.1),
+          numericInput("selSize","Size point / line",min=0,max=100,value=5,step=0.1),
+          selectInput("mapViewClass","View class",choices=mxConfig$class),
+          tags$textarea(
+            id="txtViewDescription",
+            rows=10,
+            cols=30,
+            placeholder="Description...",
+            spellcheck="false"
+            ),
+          actionButton("btnViewCreatorSave","Save view")
+          )
+          )
+        )
+      )
+    )
+  )
+
 
 uiMapCreator <- tagList(
   #
@@ -15,47 +90,16 @@ uiMapCreator <- tagList(
   tags$section(id="sectionMapcreator",class="section-map-creator mx-mode-creator container-fluid mx-hide",
     mxAccordionGroup(id="mapCreator",
       itemList=list(
-        "data"=list("title"="Upload new data",content=tagList(
-          
-            selectInput("selNewLayerClass","Layer class",choice=mxConfig$class),
-            textInput("txtNewLayerTags","Additional tags","default"),
-            #selectInput("selNewLayerYear","Layer year",choices=mxConfig$yearsAvailable),
-            tags$textarea(
-              id="txtNewLayerMeta",
-              rows=10,
-              cols=30,
-              placeholder="Sources...",
-              spellcheck="false",
-              mxConfig$bibDefault
-              ),
-            mxFileInput("fileNewLayer",
-              label="Choose a file (geojson)",
-              multiple=FALSE,
-              fileAccept=mxConfig$inputDataExt$vector$GeoJSON
-              ),
-            div(id="outLayerFileMsg"),
-            div(id="outNewLayerErrors"),                
-            div(id="outNewLayerNameValidation")
+        "data"=list(
+          "title"="Upload new data",
+          content=tagList(
+            uiMapCreatorLayer
             )
           ),
-        "style"=list("title"="Create a view",content=tagList(
-            selectInput("selLayer","Layer",choices=""),
-            textInput("mapViewTitle","Title",mxConfig$noData),
-            selectInput("selColumnVar","Variable to display",choices=""),
-            textInput("txtVarUnit","Suffix for labels"),
-            selectInput("selPalette","Colors",choices=""),
-            selectInput("selColumnVarToKeep","Variable(s) to keep",choices="",multiple=T),
-            numericInput("selOpacity","Opacity",min=0,max=1,value=0.6,step=0.1),
-            numericInput("selSize","Size point / line",min=0,max=100,value=5,step=0.1),
-            selectInput("mapViewClass","View class",choices=mxConfig$class),
-            tags$textarea(
-              id="txtViewDescription",
-              rows=10,
-              cols=30,
-              placeholder="Description...",
-              spellcheck="false"
-              ),
-            actionButton("btnViewCreatorSave","Save view")
+        "style"=list(
+          "title"="Create a view",
+          content=tagList(
+            uiMapCreatorView
             )
           )
         )
@@ -78,61 +122,54 @@ uiMapCreator <- tagList(
       )
 
 
-    uiMapConfig <- tagList(
-      #
-      # MAP CONFIG
-      #
-      tags$section(
-        id="sectionMapConfig",
-        class="mx-mode-config mx-hide container-fluid",
-        div(class="row",
-          div(class="col-lg-12", 
-            mxAccordionGroup(id="mapConfig",show=1,
-              itemList=list(
-                "baseMap"=list("title"="Additional maps",content=tagList(
-                    h4('Set base map'),
-                    selectInput(
-                      "selectConfigBaseMap",
-                      "Select a satellite imagery source",
-                      choices=list(
-                        mxConfig$noLayer,
-                        `MapBox satellite`="mapboxsat",
-                        `Here satellite`="heresat"
-                        )
-                      ),
-                    #selectInput(
-                    #  'selectConfigBaseMap',
-                    #  'Replace base map',
-                    #  choices=mxConfig$tileProviders
-                    #  ),
-                    h4('Add wms'),
-                    selectInput("selectWmsServer",
-                      "Select a predefined WMS server",
-                      choices=list(
-                        "forestCover"="http://50.18.182.188:6080/arcgis/services/ForestCover_lossyear/ImageServer/WMSServer",
-                        "columbia.edu"="http://sedac.ciesin.columbia.edu/geoserver/wms",
-                        "preview.grid.unep.ch"="http://preview.grid.unep.ch:8080/geoserver/wms",
-                        "sampleserver6.arcgisonline.com"="http://sampleserver6.arcgisonline.com/arcgis/services/911CallsHotspot/MapServer/WMSServer",
-                        "nowcoast.noaa.gov"="http://nowcoast.noaa.gov/arcgis/services/nowcoast/analysis_meteohydro_sfc_qpe_time/MapServer/WmsServer"
-                        )
-                      ),
-                    textInput("txtWmsServer","Edit WMS server"),
-                    tags$ul(class="list-inline banner-social-buttons",
-                      tags$li(actionButton("btnValidateWms",icon("refresh")))
-                      ),
-                    textOutput("msgWmsServer"),
-                    selectInput("selectWmsLayer","Select available layer",choices=""),
-                    tags$ul(class="list-inline banner-social-buttons",
-                      tags$li(actionButton("btnRemoveWms",icon("times")))
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
+
+uiMapConfigBaseMap = tagList(
+  selectInput(
+    "selectConfigBaseMap",
+    "Select a satellite imagery source",
+    choices=list(
+      mxConfig$noLayer,
+      `MapBox satellite`="mapboxsat",
+      `Here satellite`="heresat"
       )
+    )
+  )
+
+uiMapConfigWms = tagList(
+  selectInput("selectWmsServer",
+    "Select a predefined WMS server",
+    choices=mxConfig$wmsSources
+    ),
+  textInput("txtWmsServer","Edit WMS server"),
+  tags$ul(class="list-inline banner-social-buttons",
+    tags$li(actionButton("btnValidateWms",icon("refresh")))
+    ),
+  textOutput("msgWmsServer"),
+  selectInput("selectWmsLayer","Select available layer",choices=""),
+  tags$ul(class="list-inline banner-social-buttons",
+    tags$li(actionButton("btnRemoveWms",icon("times")))
+    )
+  )
+
+
+
+uiMapConfig <- tagList(
+  #
+  # MAP config
+  #
+  tags$section(
+    id="sectionMapConfig",
+    class="section-map-creator mx-mode-config container-fluid mx-hide",
+    tagList(
+      h3("Add a base map"),
+      uiMapConfigBaseMap,
+      hr(),
+      h3("Add a wms layer"),
+      uiMapConfigWms
+      )
+    )
+  )
+
 
 
     uiMapToolbox <- tagList(
@@ -188,10 +225,15 @@ uiMapCreator <- tagList(
       #
       # editor
       #
-      tags$textarea(id="txtStoryMapEditor", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
-      #buttons
       span("Drag and drop views from the menu; Drag and drop coordinates from the box below :"),
       div(id="txtLiveCoordinate",draggable=TRUE),
+      selectizeInput(
+        label = "Set the story visibility",
+        inputId="selStoryVisibility",
+        choices=mxConfig$noData
+        ),
+      tags$textarea(id="txtStoryMapEditor", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
+      #buttons
       tags$script(
         "
         document.getElementById('txtLiveCoordinate')
@@ -205,7 +247,7 @@ uiMapCreator <- tagList(
         tags$li(
           actionButton(
             inputId="btnStoryMapEditorUpdate",
-            class="btn-icon",
+            class="btn-icon btn-square",
             label=icon("save")
             )
           )
@@ -217,12 +259,30 @@ uiMapCreator <- tagList(
       #
       # Tabset with creator components
       #
-      div(class="mx-allow-story-edit mx-hide",
-        tabsetPanel(type="pills",
-          tabPanel("Edit", uiStoryEditor),
-          tabPanel("New", uiStoryNew)
+ mxAccordionGroup(id="storyCreator",
+      itemList=list(
+        "edit"=list(
+          "title"="Edit selected story",
+          "condition"="input.selectStoryId.length>0",
+          content=tagList(
+            uiStoryEditor
+            )
+          ),
+        "new"=list(
+          "title"="Create a story",
+          content=tagList(
+            uiStoryNew
+            )
           )
         )
+      )
+
+   #   div(class="mx-allow-story-edit mx-hide",
+        #tabsetPanel(type="pills",
+          #tabPanel("Edit", uiStoryEditor),
+          #tabPanel("New", uiStoryNew)
+          #)
+        #)
       )
 
     uiMapStoryModal <- tagList(
@@ -249,21 +309,17 @@ uiMapCreator <- tagList(
 
 
     uiMapStorySelector <- tagList(
-        selectizeInput(
-          inputId="selectStoryId", 
-          label="", 
-          choices ="",
-          options = list(
-            placeholder = 'Select a story',
-            onInitialize = I(
-              'function() {
-                this.setValue("");
-                this.on("change",function(v){console.log(v)})
-              }'
-              )
-            )
-        ) 
+      selectizeInput(
+        inputId="selectStoryId", 
+        label="", 
+        choices ="",
+        options = list(
+          placeholder = 'Select a story'
+          )
+        )
       )
+
+
 
 
 
@@ -275,7 +331,9 @@ uiMapCreator <- tagList(
 
       tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",
         div(id="mxStoryLimitTrigger"),
-        div(id="mxStoryText")
+        conditionalPanel(condition="input.selectStoryId.length>0",  
+          div(id="mxStoryText")
+          )
         )
       )
 
@@ -294,9 +352,9 @@ uiMapCreator <- tagList(
       tags$li(
         tags$button(
           mx_set_lang="title.mapLeft.hide",
-          id='btnViewsCollapse',
-          class="btn-icon",
-          icon("angle-double-left")
+          onClick="classToggle('mapLeftPanel')",
+          class="btn-icon btn-square",
+          icon("bars")
           )
         ),
       #
@@ -305,44 +363,42 @@ uiMapCreator <- tagList(
       tags$li(
         actionButton('btnViewsExplorer',
           mx_set_lang="title.mapLeft.explorer",
-          class="btn-icon",
+          class="btn-icon btn-square",
           label=icon("globe")
           )
         ),
       tags$li(
         actionButton('btnViewsCreator',
           mx_set_lang="title.mapLeft.creator",
-          class="btn-icon mx-hide mx-allow-creator",
+          class="btn-icon btn-square mx-hide mx-allow-creator",
           label=icon("plus")
           )
         ), 
       tags$li(
         actionButton('btnStoryReader',
           mx_set_lang="title.mapLeft.storyReader",
-          class="btn-icon mx-hide mx-allow-story-reader",
-          `data-toggle`="collapse",
-          `data-target`="#mxStorySelectorBox",
+          class="btn-icon btn-square mx-hide mx-allow-story-reader",
           label=icon("book")
           )
         ),
       tags$li(
         actionButton('btnViewsConfig',
           mx_set_lang="title.mapLeft.config",
-          class="btn-icon",
+          class="btn-icon btn-square",
           label=icon("sliders")
           )
         ),
       tags$li(
         actionButton('btnViewsToolbox',
           mx_set_lang="title.mapLeft.toolbox",
-          class="btn-icon",
+          class="btn-icon btn-square",
           label=icon("cubes")
           )
         ),
       tags$li(
         actionButton('btnDraw',
           mx_set_lang="title.mapLeft.draw",
-          class="btn-icon",
+          class="btn-icon btn-square",
           label=icon("pencil")
           )
         ),
@@ -357,30 +413,21 @@ uiMapCreator <- tagList(
         ),
       tags$li(
         div(class="mx-mode-story-reader mx-hide",
-        actionButton('btnStoryCreator',
+        tags$button(id='btnStoryCreator',
           mx_set_lang="title.mapLeft.storyEdit",
-          class="btn-icon mx-mode-story-edits mx-hide",
-          label=icon("pencil-square-o")
+          onClick="classToggle('storyMapModal')",
+          class="btn btn-icon btn-square mx-mode-story-edits mx-hide",
+          icon("pencil-square-o")
           )
         )
       ),  
     tags$li(
-      actionButton("btnZoomToLayer",
-        class="btn-icon mx-mode-creator mx-hide",
+      actionButton(inputId="btnZoomToLayer",
+        class="btn-icon btn-square mx-mode-creator mx-hide",
         label=icon("binoculars")
         )
-      ),
-    tags$li(
-      actionButton('btnViewsRefresh',
-        class="btn-icon mx-mode-creator mx-hide",
-        label=icon("refresh")
-        )
-      )
-
+      ) 
     )
-
-
-
 
 
   tags$section(id="sectionMap",class="mx-section-container mx-hide",
@@ -392,9 +439,9 @@ uiMapCreator <- tagList(
       #
       # INFO BOX
       #
-      div(id="info-box",
-        div(id="info-box-container",
-          uiOutput("info-box-content")
+      div(id="infoBox",class="info-box mx-hide",
+        div(class="info-box-container",      
+          uiOutput("infoBoxContent",class="info-box-content")
           )
         ),
       #
@@ -410,27 +457,35 @@ uiMapCreator <- tagList(
         #
         # TOOLBOX      
         #      
-        div(class="mx-dropdown-content map-tool-box-items",
+        div(class="mx-dropdown-content map-tool-box-items mx-hide",
           id="mapToolsMenu",
           uiLeftNav
           ),
         #
         # MENU 
         #
-        div(id="map-left-panel", class="col-xs-7 col-sm-6 col-md-5 col-lg-4",
+        div(id="mapLeftPanel",class="map-left-panel col-xs-7 col-sm-6 col-md-5 col-lg-4",
           #
           # HEADER
           #
-          div(id="map-left-panel-head",  
+          div(id="mapLeftPanelHead",  
             #
             # MENU
             #
             tags$div(class="mx-dropdown map-tool-box-container",
               tags$div(
-                onclick="toggleDropDown('mapToolsMenu')",
+                onclick="classToggle('mapToolsMenu')",
                 id='btnMapTools',
                 class="mx-btn-dropdown",
                 tags$span(class='fa fa-bars')
+                )
+              ),
+            tags$div(class="mx-dropdown map-tool-box-container mx-hide mx-mode-story-reader", style="float:right",
+              tags$div(
+                onclick="classToggle('mxStorySelectorBox')",
+                id='btnMapTools',
+                class="mx-btn-dropdown",
+                tags$span(class='fa fa-search')
                 )
               ),
             #
@@ -443,7 +498,7 @@ uiMapCreator <- tagList(
             # STORY SELECTOR
             #
             div(
-              id="mxStorySelectorBox",class="collapse mx-mode-story-reader",
+              id="mxStorySelectorBox",class="mx-hide mx-mode-story-reader",
               uiMapStorySelector
               )
             ),

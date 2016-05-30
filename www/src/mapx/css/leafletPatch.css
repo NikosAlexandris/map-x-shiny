@@ -4,8 +4,9 @@ leaflet modification
 .legend svg text {
   fill: #FFF;
 }
-.leaflet-right {
-  padding-top: 70px;
+
+.leaflet-control-zoom .leaflet-bar .leaflet-control {
+  z-index:1001;
 }
 
 .leaflet-tile-loaded {
@@ -22,7 +23,6 @@ leaflet modification
   width: 250px;
   overflow-x: hidden;
   right: 0px;
-
 }
 
 .info:hover {

@@ -1,0 +1,24 @@
+.mx-accordion-header {
+}
+.mx-accordion-header  a:hover {
+  color: white;
+  text-decoration: none;
+  border-bottom:1px solid white
+}
+.mx-accordion-header  a:focus {
+  color: white;
+  text-decoration: none;
+  border-bottom:2px solid white
+}
+
+.mx-accordion-group {
+  padding:10px;
+}
+
+.mx-accordion-item {
+    border-left: 1px solid #fff;
+    padding: 5px 0px 0px 20px;
+}
+.mx-accordion-content {
+    min-height: 300px;
+}

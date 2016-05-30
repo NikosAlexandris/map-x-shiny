@@ -10,31 +10,45 @@
 mxUiEnable(id="sectionCountry",enable=TRUE) 
 
 
-#
-# Update ui with country data
-#
 
-
-# Country selection
-observe({
+#
+# Country input selection
+#
+observeEvent(input$selectCountry,{
   selCountry = input$selectCountry
   if(!noDataCheck(selCountry) && mxReact$userLogged){
-    mxReact$selectCountry = selCountry
-    mxConsoleText(toupper(paste("country=",selCountry)))
-    mxSetCookie(
-      cookie=list("country"=selCountry),
-      read=FALSE
-      )
+    mxReact$selectCountry <- selCountry
+    dat <- mxReact$userInfo
+    selCountryOld <- mxGetListValue(
+      li=dat,
+      path=c("data","user","preferences","last_project")
+      ) 
+
+    if(!identical(toupper(selCountryOld),toupper(selCountry))){
+      dat <- mxSetListValue(
+        li=dat,
+        path=c("data","user","preferences","last_project"),
+        value=selCountry
+        )
+      
+      mxDbUpdate(
+        table=mxConfig$userTableName,
+        idCol='id',
+        id=dat$id,
+        column='data',
+        value=dat$data
+        )
+    }
+
+
+
   }
 })
 
 
-
-
-
 observe({
   cSelect <- mxReact$selectCountry
-
+  
   if(!noDataCheck(cSelect)){
     if(cSelect %in% names(mxData$countryStory)){
       cInfo  <- mxData$countryStory[[cSelect]]
@@ -114,36 +128,57 @@ observe({
     }
 
     # output ui and text
+ 
+    cListChoice <- c(
+      names(mxConfig$countryListChoices$potential),
+      names(mxConfig$countryListChoices$pending)
+      )
 
-    cListChoice <- c(names(mxConfig$countryListChoices$potential),names(mxConfig$countryListChoices$pending))
-    names(cListChoice) <- c(as.character(mxConfig$countryListChoices$potential),as.character(mxConfig$countryListChoices$pending))
-    countryNameNav <- cListChoice[[cSelect]]
-
-
-    navLogo <- img(src="img/logo_white.svg",style="height:16px;vertical-align:middle")
-
-
-    cL <- as.character(div(navLogo,countryNameNav))
-    cM <- as.character(div(navLogo,countryName))
-    cS <- as.character(div(navLogo,cSelect))
-
-    mxUpdateText(id="countryTitleLarge",text=cL)
-    mxUpdateText(id="countryTitleMedium",text=cM)
-    mxUpdateText(id="countryTitleSmall",text=cS)
-    mxUpdateText(id="countryTitleMini",text=cS)
-
-
-    output$countryName <- renderText(countryName)
-
-    # output$countryNameNav <- renderUI(navCountryName)
+    names(cListChoice) <- c(
+      as.character(mxConfig$countryListChoices$potential),
+      as.character(mxConfig$countryListChoices$pending)
+      )
+    countryNameNav <- cListChoice[[toupper(cSelect)]]
 
 
 
-    output$countryMetrics <- renderUI(countryMetrics)
+    cL <- tags$div(
+      class="visible-lg-inline",
+      countryNameNav # full name
+      )
 
+    cM <- tags$div(
+      class="visible-md-inline",
+      countryName # short name
+      )
 
+    cS <- tags$div(
+      class="visible-sm-inline visible-xs-inline",
+      cSelect # iso 3 code
+      )
 
-    output$countryNarrative <- renderUI(countryNarrative)
+    mxUpdateText(id="countryTitle",text=
+      tagList(
+        cL,cM,cS
+        )
+      )
+
+    mxUpdateText(
+      id="countryName",
+      text=countryNameNav
+      )
+
+    mxUpdateText(
+      id="countryMetrics",
+      text=countryMetrics
+      )
+    mxUpdateText(
+      id="countryNarrative",
+      text=countryNarrative
+      )
+    #output$countryName <- renderText(countryName)
+    #output$countryMetrics <- renderUI(countryMetrics)
+    #output$countryNarrative <- renderUI(countryNarrative)
   }
 })
 
@@ -159,8 +194,7 @@ observe({
   idx <- input$selectIndicator
   cnt <- mxReact$selectCountry
   msg <- ""
-
-  if(!noDataCheck(idx) && !noDataCheck(cnt) && FALSE){
+  if(!noDataCheck(idx) && !noDataCheck(cnt)){
 
     mxCatch("Plot WDI data",{
 

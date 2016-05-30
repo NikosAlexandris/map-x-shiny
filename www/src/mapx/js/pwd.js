@@ -43,7 +43,8 @@ jQuery(function($) {
   var usernameInputBinding = new Shiny.InputBinding();
   $.extend(usernameInputBinding, {
     find: function(scope) {
-      return $(scope).find('input[class="mxLoginInput usernameInput"]');
+      return $(scope).find('.mx-login-input');
+      
     },
     getId: function(el) {
       return Shiny.InputBinding.prototype.getId.call(this, el) || el.name;

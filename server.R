@@ -7,12 +7,23 @@
 #                 |_|           
 # main server function
 
-
+ 
 shinyServer(function(input, output, session) {
   mxCatch(title="Main server function",{
-
-   
     #
+    # DB control
+    #
+    if(!mxDbExistsTable("mx_users")) stop("Users table missing")
+
+    observe({
+      session$onFlushed(once=TRUE,function(){
+        mxUiEnable(id="sectionLoading",enable=FALSE)
+})
+    })
+
+
+
+   #
     # Initial reactive values
     #
     mxReact <- reactiveValues()
@@ -45,7 +56,6 @@ shinyServer(function(input, output, session) {
     #
     observe({
       if(isTRUE(mxReact$allowMap)){
-        mxDebugMsg("map module loading")
         source("parts/server/map.R",local=TRUE)
         source("parts/server/wms.R",local=TRUE)
         source("parts/server/tenke.R",local=TRUE)

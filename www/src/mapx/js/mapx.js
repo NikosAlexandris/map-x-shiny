@@ -1,55 +1,105 @@
 
 
+
+
 var storyMapLayer = {store:[]};
 
 /* Object to hold ui and style state*/
 var leafletvtId = {};
 
-var mxConfig = {
-  mapPanelMode : null,
-  mapInfoBox : {
-    id : "#info-box",
-    enabled : true,
-    height : "0px",
-    defaultHeightCollapsed : "0px",
-    defaultHeightEnabled : "200px",
-    toggle : function(height,enabled){
-      if(enabled === false){
-        this.enabled = false; 
-      }
-      if(enabled === true){
-        this.enabled = true;
-      }
-      if(this.enabled){
-        if(typeof height !== "undefined"){
-          this.height = height;
-        }else{
+// https://davidwalsh.name/javascript-debounce-function
+// Returns a function, that, as long as it continues to be invoked, will not
+// be triggered. The function will be called after it stops being called for
+// N milliseconds. If `immediate` is passed, trigger the function on the
+// leading edge, instead of the trailing.
+function debounce(func, wait, immediate) {
+  var timeout;
+  return function() {
+    var context = this, args = arguments;
+    var later = function() {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    var callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+}
 
-          this.height = this.defaultHeightEnabled;
-        }
-        $(this.id).animate({height:this.height},500);
-      }else{ 
-        $(this.id).animate({height:this.defaultHeightCollapsed},500);
-      }
-      console.log("mxConfig info box changes: height="+this.height+" enabled="+this.enabled);
-      this.enabled =! this.enabled;
+
+// got to anchor without changing url
+function goTo(id){
+  var dest = document.getElementById(id) ;
+  if(typeof(dest) != "undefined"){
+    if(id != "sectionTop"){
+      classAdd("navbarTop","top-nav-collapse");
+    }else{
+      classRemove("navbarTop","top-nav-collapse");
     }
-  },
-  leftPanel : {
-    id : "map-left-panel",
-    modes :{
-      fw:"map-left-panel-full-width",
-      d:"map-left-panel-default",
-      c:"map-left-panel-collapse"
-    },
-    mode : "map-left-panel-default",
-    set:function(m){
-      m = this.modes[m];
-      el = document.getElementById(this.id);
-      el.className = m;
-    }
+    dest.scrollIntoView(false);
   }
-};
+  return false;
+}
+
+
+
+function classAdd(id,cl){
+  var el = document.getElementById(id),
+  oldCl = el.className.split(" "),
+  idx = oldCl.indexOf(cl),
+  hasClass = idx > -1;
+  if(!hasClass){
+    oldCl.push(cl);
+    el.className = oldCl.join(" ");
+  }
+}
+
+function classRemove(id,cl){
+  var el = document.getElementById(id),
+  oldCl = el.className.split(" "),
+  idx = oldCl.indexOf(cl),
+  hasClass = idx > -1;
+  if(hasClass){
+    oldCl.pop(idx);
+    el.className = oldCl.join(" ");
+  }
+}
+
+function classToggle(id,cl) {
+  if(typeof(cl)=="undefined"){
+    cl = "mx-hide";
+  }
+  var el = document.getElementById(id),
+  oldCl = el.className.split(" "),
+  idx = oldCl.indexOf(cl),
+  hasClass = idx>-1 ;
+
+  if(hasClass){
+    oldCl.pop(idx);
+  }else{
+    oldCl.push(cl);
+  }
+  el.className = oldCl.join(" ");
+}
+
+
+// request meta for a layer
+function  mxRequestMeta(viewId){
+  var trigger = new Date();
+  Shiny.onInputChange("mxRequestMeta", { 
+    id:viewId, 
+    time:trigger
+  }
+  );
+}
+
+// change background each times
+function changeBg(){
+  bgClasses = ["mx-top-bg-1","mx-top-bg-2","mx-top-bg-3"];
+  var bgClass = bgClasses[Math.floor(Math.random()*bgClasses.length)];
+  $("#sectionTop").addClass(bgClass);
+}
 
 
 
@@ -64,9 +114,11 @@ function utf8_to_b64( str ) {
   return window.btoa(unescape(encodeURIComponent( str )));
 }
 
-function toggleDropDown(id) {
-  document.getElementById(id).classList.toggle("mx-dropdown-show");
-}
+//function toggleDropDown(id) {
+  //document.getElementById(id).classList.toggle("mx-dropdown-show");
+/*}*/
+
+
 
 // http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript
 function makeid(){
@@ -356,32 +408,12 @@ function mxSetFilter(layer,id,column,value){
       }
       return style;
     };
-    leafletvtId[id].setStyle(sty,layer+"_geom");
+    leafletvtId[id].setStyle(sty,layer);
   }else{
     mxSetStyle(id,vtStyle,layer,true);
   }
 }
 
-
-// https://davidwalsh.name/javascript-debounce-function
-// Returns a function, that, as long as it continues to be invoked, will not
-// be triggered. The function will be called after it stops being called for
-// N milliseconds. If `immediate` is passed, trigger the function on the
-// leading edge, instead of the trailing.
-function debounce(func, wait, immediate) {
-  var timeout;
-  return function() {
-    var context = this, args = arguments;
-    var later = function() {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-    var callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) func.apply(context, args);
-  };
-}
 
 
 
@@ -453,7 +485,7 @@ function mxFilterDate_orig(id,date,lay){
     return style;
   };
 
-  leafletvtId[id].setStyle(sty,lay+"_geom");
+  leafletvtId[id].setStyle(sty,lay);
 }
 
 var mxFilterDate = debounce(mxFilterDate_orig,50);
@@ -541,7 +573,7 @@ function mxSetRange_orig(id,min,max,lay){
     return style;
   };
 
-  leafletvtId[id].setStyle(sty,lay+"_geom");
+  leafletvtId[id].setStyle(sty,lay);
 }
 
 var mxSetRange = debounce(mxSetRange_orig,50);
@@ -550,6 +582,8 @@ var mxSetRange = debounce(mxSetRange_orig,50);
 // mx set style
 //
 function mxSetStyle_orig(id,vtStyle,lay,overwrite){
+
+  console.log("mxSetStyle requested");
   // check if the provided style is the same as this already applied  
   if(!overwrite){
     if(vtStyle == leafletvtId[id].vtStyle){
@@ -609,7 +643,7 @@ function mxSetStyle_orig(id,vtStyle,lay,overwrite){
     return style;
   };
 
-  leafletvtId[id].setStyle(sty,lay+"_geom");
+  leafletvtId[id].setStyle(sty,lay);
 }
 
 var mxSetStyle = debounce(mxSetStyle_orig,50);
@@ -651,111 +685,6 @@ function defaultStyle(feature) {
       break;
   }
   return style;
-}
-
-
-// Update map panel elements interaction 
-//
-function updateMapElement(){
-  //
-  // Panel animation
-  //
-  var idViews = "#map-left-panel",
-  idBtnViews = "#btnViewsCollapse",
-  idInfo = "#info-box" ,
-  idBtnInfo = "#btnInfoClick",
-  idTitlePanel = "#titlePanelMode",
-  idBtnStoryExpand = "#btnStoryEditorExpand",
-  idMapLeftContent = ".map-left-content",
-  idContainerStoryExpand = "#storyEditorContainer",
-
-  // 
-  //idSection = "#sectionMap",
-  //idBody = $('body'),
-  //idBtn = $("#btnStopMapScroll");
-  //idBtn = $(".btn-stop-map-scroll");
-
-  // set default state
-  toggleScrollMap = true,
-  toggleCollapseViews = true,
-  toggleCollapseInfoClick = true,
-  toggleStoryEditorExpand = true;
-  //
-  //  map panel lock button 
-  //
-/*  idBtn.click(function(){ */
-    //if(toggleScrollMap){
-      //idBtn.html("<i class='fa fa-lock'>");
-      //$('html, body').stop().animate({
-        //scrollTop: $(idSection).offset().top - $(".navbar-fixed-top").height() 
-      //}, 100, 'easeOutQuad');
-      //idBody.addClass('noscroll');
-    //}else{
-      //idBtn.html("<i class='fa fa-unlock'>");
-      //idBody.removeClass('noscroll');
-    //}
-    //toggleScrollMap = !toggleScrollMap ;
-  //});
-
-  // Story map editor expand
-
-/*  $(idBtnStoryExpand).click(function(){*/
-    //if(toggleStoryEditorExpand){ 
-      //$(idContainerStoryExpand).addClass("editor-full-width");
-      //$(idContainerStoryExpand).draggable({ 
-        ////handle: idContainerStoryExpand,
-        //cancel: "#txtStoryMap",
-        //containment: $(idSection),
-        //cursor: "crosshair"
-      //});
-      //$(idBtnStoryExpand).html("<i class='fa fa-compress'></i>");
-      //$('html, body').stop().animate({
-        //scrollTop: $(idSection).offset().top - $(".navbar-fixed-top").height() 
-      //}, 100, 'easeOutQuad');
-      //idBody.addClass('noscroll');
-    //}else{
-      //$(idContainerStoryExpand).removeClass("editor-full-width");
-      //$(idBtnStoryExpand).html("<i class='fa fa-expand'></i>");
-      //if(toggleScrollMap){
-        //idBody.removeClass('noscroll');
-      //}
-    //}
-    //toggleStoryEditorExpand = !toggleStoryEditorExpand;
-
-  /*});*/
-
-
-  // add a click function to btn collapse views 
-  $(idBtnViews).click(function(){
-
-     var  mapLeftWidth = $(idViews).width()*2;
-
-    if(toggleCollapseViews){
-      $(idViews).animate({left: - mapLeftWidth },500);
-      //$(idInfo).animate({left:"70px"},500);
-      $(idBtnViews).html("<i class='fa fa-angle-double-right'>");
-      $(idTitlePanel).css({opacity:"0"});
-      $(idMapLeftContent).css({opacity:"0"});
-    }else{ 
-      $(idViews).animate({left:"0px"},500);
-      //$(idInfo).animate({left:"600px"},500);
-      $(idBtnViews).html("<i class='fa fa-angle-double-left'>");
-      $(idTitlePanel).css({opacity:"1"});
-      $(idMapLeftContent).css({opacity:"1"});
-    }
-    toggleCollapseViews = !toggleCollapseViews;
-  });
-
-  // add a click function to btn info panel
-  $(idBtnInfo).click(function(){
-    mxConfig.mapInfoBox.toggle();
-  });
-
-  /* add scroll listener to story map */
-
-  var storyCont = $("#mapLeftScroll");
-  storyCont.on("scroll",updateStoryMaps);
-
 }
 
 

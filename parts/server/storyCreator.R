@@ -27,26 +27,31 @@ observeEvent(input$btnSaveNewStory,{
     
     timeNow <- Sys.time()
 
-    df <- data.frame(
+    defaultVisibility = as.character(jsonlite::toJSON("self"))
+
+    newStory <- list(
       id=newId,
-      user=as.integer(mxReact$userId),
       country=mxReact$selectCountry,
       name=input$txtStoryName,
-      desc=as.character(NA),
-      content_b64=as.character(NA),
-      content_ascii=as.character(NA),
-      editor = mxReact$userId,
-      reviever = "",
-      revision = 0,
+      description=as.character(NA),
+      editor = as.integer(mxReact$userInfo$id),
+      reviewer = 0L,
+      revision = 0L,
       validated = TRUE,
       archived = FALSE,
-      dateCreated = timeNow,
-      dateArchived = as.POSIXct(as.Date(0,origin="1970/01/01")),
-      dateModified = timeNow,
-      dateValidated = timeNow
+      date_created = timeNow,
+      date_modified = timeNow,
+      date_validated = timeNow,
+      content= as.character(jsonlite::toJSON(as.character(NA))),
+      visibility = defaultVisibility 
       )
 
-    mxDbAddData(table=mxConfig$storyMapsTableName, data=df )
+    mxDbAddRow(
+      data=newStory,
+      table=mxConfig$storyMapsTableName
+      )
+
+
     mxReact$updateStorySelector<-runif(1)
     updateTextInput(session,'txtStoryName',value="")
  
@@ -68,16 +73,27 @@ observe({
 observeEvent(input$btnStoryMapEditorUpdate,{
   mxCatch(title="Input story map text",{
   storyText <- input$txtStoryMapEditor
+  storyVisibility <- input$selStoryVisibility 
+
   if( isTRUE(mxReact$allowStoryCreator)){
     storyId <- input$selectStoryId
       if(nchar(storyText)>0){
         mxCatch(title="Saving story",{
           mxDbUpdate(
             table = mxConfig$storyMapsTableName,
-            column = "content_b64",
+            column = "content",
+            idCol = "id",
             id = storyId,
-            value = mxEncode(storyText) 
+            value = jsonlite::toJSON(storyText) 
             )
+        mxDbUpdate(
+            table = mxConfig$storyMapsTableName,
+            column = "visibility",
+            idCol = "id",
+            id = storyId,
+            value = jsonlite::toJSON(storyVisibility) 
+            )
+
          mxReact$storyMap <- storyText
         })
     }

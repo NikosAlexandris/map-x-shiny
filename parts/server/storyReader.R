@@ -20,55 +20,122 @@ observe({
 # available story
 observe({
   if(mxReact$mapPanelMode != "mapStoryReader") return()
+  # default
+  choice <- mxConfig$noData
+  # take reactivity on select input
 
-  update <- mxReact$updateStorySelector
-  usr <- mxReact$userId
-  iso3 <- mxReact$selectCountry
+  cntry <- toupper(mxReact$selectCountry)
+  # reactivity after updateVector in postgis
+  update <- mxReact$updateStorySelector 
+
+  usr <- mxReact$userInfo
+  storyPath <- c("data","user","preferences","last_story")
+  visibility <- paste0("'",usr$role$desc$read,"'",collapse=",")
+
+  if(!noDataCheck(visibility)){
+    mxCatch("Update input: get list of story maps",{
+
+      sql <- gsub("\n","",sprintf(
+          "SELECT id, name 
+          FROM mx_story_maps
+          WHERE country='%1$s' AND
+          ( visibility ?| array[%2$s] OR editor = '%3$s' )",
+          cntry,
+          visibility,
+          usr$id
+          ))
 
 
-  tblName <- mxConfig$storyMapsTableName
-  storyIds <- list()
- 
-  # validation
-  if(
-    isTRUE(!noDataCheck(usr)) && 
-    isTRUE(!noDataCheck(iso3)) && 
-    isTRUE(mxDbExistsTable(tblName))
-    ){
-
-      # db : id,user,country,name,desc,content_b64,content_ascii
-      q <- sprintf("
-        SELECT id, name 
-        FROM %1$s 
-        WHERE country='%2$s' AND \"archived\"='f' 
-        ORDER by \"dateModified\" desc",
-        tblName,
-        iso3
-        )
-
-      res <- mxDbGetQuery(q) 
+      res <- mxDbGetQuery(sql)
 
       storyIds <- res$id
       names(storyIds) <-res$name
-   
-      updateSelectizeInput(session,
-        "selectStoryId",
-        choices=storyIds,
-        server=TRUE,
-        selected=storyIds[1]
-        )
-    }
+
+      if(!noDataCheck(storyIds)){
+        choice = c(storyIds,choice)  
+      }
+      isolate({
+
+        idOld <- mxGetListValue(
+          li=usr,
+          path=storyPath
+          )
+
+        if(noDataCheck(idOld)){
+          id = input$selectStoryId
+        }else{
+          id = idOld
+        }
+
+        if(noDataCheck(id)) id = choice
+
+        updateSelectizeInput(session,
+          "selectStoryId",
+          choices=c(storyIds,choice),
+          server=TRUE,
+          selected=input$selectStoryId
+          )
+      })
+
+})
+  }
+
+
 })
 
-# retrieve story map text by id
 
+#
+# retrieve story map text by id
+#
 
 observeEvent(input$selectStoryId,{
 
   id <- input$selectStoryId
-  story <-  mxGetStoryMapText(id)
 
-  if(noDataCheck(story)) story = "Write a story ..."
+  if(noDataCheck(id)) return()
+
+  #
+  # Save id in database
+  #
+
+  dat <- mxReact$userInfo
+  storyPath = c("data","user","preferences","last_story")
+
+  idOld <- mxGetListValue(
+      li=dat,
+      path=storyPath
+      ) 
+
+   if(!identical(idOld,id)){
+      dat <- mxSetListValue(
+        li=dat,
+        path=storyPath,
+        value=id
+        )
+      
+      mxDbUpdate(
+        table=mxConfig$userTableName,
+        idCol='id',
+        id=dat$id,
+        column='data',
+        value=dat$data
+        )
+    }
+
+  story <-  mxGetStoryMapData(id)
+  if(!noDataCheck(story$visibility)){
+  updateSelectizeInput(
+    session,
+    inputId="selStoryVisibility",
+    selected=story$visibility
+    )
+  }
+
+  if(noDataCheck(story$content)){
+    story = "Write a story ..."
+  }else{
+    story = story$content
+  }
 
   mxReact$storyMap <- story
 

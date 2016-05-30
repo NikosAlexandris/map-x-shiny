@@ -26,6 +26,8 @@ observe({
     source("parts/server/views.R",local=TRUE)
     # Inital mode
     mxReact$mapPanelMode="mapViewsExplorer"
+
+    output$infoBoxContent <- renderUI(includeHTML("parts/ui/tenke-info.html"))
   }
 })
 
@@ -35,12 +37,17 @@ observe({
     source("parts/server/creator.R",local=TRUE)
   }
 })
+
+# Allow data upload
+observe({
+  if(mxReact$allowDataUpload){
+    source("parts/server/upload.R",local=TRUE)
+  }
+})
 # Allow story map 
 observe({
   if(mxReact$allowStoryReader){
     source("parts/server/storyReader.R",local=TRUE)
-    #NOTE: we need to source storyCreator inside story reader. 
-    #TODO: give the sesstion environment instead of local=TRUE ?
   }
 })
 
@@ -63,7 +70,9 @@ observe({
 observe({
   mxUiEnable(id="btnViewsCreator",enable=mxReact$allowViewsCreator) 
 })
-
+observe({
+  mxUiEnable(id="tabDataUpload",enable=mxReact$allowDataUpload) 
+})
 observe({
   mxUiEnable(id="btnViewsToolbox",enable=mxReact$allowToolbox) 
 })
@@ -106,7 +115,7 @@ observeEvent(input$btnViewsCreator,{
 observeEvent(input$btnStoryReader,{
   mxToggleMapPanels("mx-mode-story-reader")
   mxReact$mapPanelMode="mapStoryReader"
-  mxUpdateText(id="titlePanelMode",text="Story map")
+  mxUpdateText(id="titlePanelMode",text="Story maps")
 })
 
 
@@ -323,15 +332,13 @@ observeEvent(input$leafletDrawGeoJson,{
     layers <- c(mxConfig$noData,unlist(layers))
     actions <- c(
       mxConfig$noData,
-      "Get current attributes"="summary",
-      "Observe for changes over time"="changeOverTime",
-      "Observe location change"="changeOverLocation"
+      "Get current attributes"="summary"
       )
 
     ui <- tagList(
       selectInput("selDrawLayer","Select a layer",choices=layers),
       selectInput("selDrawAction","Select an action",choices=actions),
-      textInput("txtDrawEmail","Enter your email",value=mxReact$userEmail),
+      textInput("txtDrawEmail","Enter your email",value=mxReact$userInfo$email),
       div(id="txtValidationDraw")
       )
 
@@ -360,6 +367,7 @@ observeEvent(input$leafletDrawGeoJson,{
 #
 
 
+
 observe({
 
   # intuts
@@ -376,11 +384,11 @@ observe({
   validEmail <- mxEmailIsValid(em)
 
   # layer
-  validLayer <- isTRUE(sl != mxConfig$noData )
+  validLayer <- !noDataCheck(sl) 
 
 
   # action
-  validAction <- isTRUE(sa != mxConfig$noData)
+  validAction <- !noDataCheck(sa) 
 
   # set messages
   if(!validEmail) err <- c(err,"Please enter a valid email")
@@ -421,8 +429,6 @@ observeEvent(input$btnDrawActionConfirm,{
   sl <- input$selDrawLayer
   # selected action
   sa <- input$selDrawAction
-  # user name
-  un <- mxReact$userName
   # out message
   ms <- character(0)
   # url of the result
@@ -434,19 +440,20 @@ observeEvent(input$btnDrawActionConfirm,{
   # get actual geojson from client
   gj <- mxReact$drawActionGeoJson 
   # table for polygon
-  tp <- randomString("mx_poi_")
+  tp <- tolower(randomString("mx_poi",splitSep="_",splitIn=5,n="30"))
   # table for inner join (result)
-  tr <- randomString("tmp__poi_res")
+  tr <- tolower(randomString("mx_poi",splitSep="_",splitIn=5,n="30"))
   # columns to import
-  lc <- mxDbListColumns( sl )
+  lc <- mxDbGetColumnsNames( sl )
   # add geojson to tp
   mxDbAddGeoJSON(
     geojsonList = gj,
     tableName = tp
     )
   # test if tp is available
-  stopifnot(tp %in% mxDbListTable())
+  stopifnot(mxDbExistsTable(tp))
   # do an overlap analysis
+
   mxAnalysisOverlaps(
     sl,
     tp,
@@ -454,52 +461,60 @@ observeEvent(input$btnDrawActionConfirm,{
     varToKeep = lc
     )
   # get number of row returner
-  cr <- mxDbGetQuery(sprintf("SELECT COUNT(gid) FROM %s",tr))$count
+  cr <- mxDbGetQuery(sprintf("SELECT COUNT(gid) as count FROM %s",tr))$count
 
-if(cr>0){
-qr <- sprintf("SELECT * FROM %s",tr)
-tmp <- mxDbGetGeoJSON(query=qr)
-de <- sprintf("Polygon of interest %1$s based on %2$s",tp,sl)
-if( file.exists(tmp)){
-  # creating a gist ! alternative : create a geojson in www/data/poi
-  ur <- system(sprintf("gist -p %1$s -d '%2$s'",tmp,de),intern=T) 
-  #poiPath<- sprintf("www/data/poi/%1$s.geojson",tp)
-  #ur <- sprintf("https://github.com/fxi/map-x-shiny/blob/master/%s",poiPath)
-  #file.rename(tmp,poiPath)
-  #system(sprintf("git add %1$s",poiPath))
-  #system("git commit -m 'update poi'")
-  #system("git push")
-}
-}
+  if(noDataCheck(cr)) stop("Empty result from layer")
+
+  if(cr>0){
+    qr <- sprintf("SELECT * FROM %s",tr)
+    tmp <- mxDbGetGeoJSON(query=qr)
+    de <- sprintf("Polygon of interest %1$s based on %2$s",tp,sl)
+    if( file.exists(tmp)){
+      # creating a gist ! alternative : create a geojson in www/data/poi
+      ur <- system(sprintf("gist -p %1$s -d '%2$s'",tmp,de),intern=T) 
+      #poiPath<- sprintf("www/data/poi/%1$s.geojson",tp)
+      #ur <- sprintf("https://github.com/fxi/map-x-shiny/blob/master/%s",poiPath)
+      #file.rename(tmp,poiPath)
+      #system(sprintf("git add %1$s",poiPath))
+      #system("git commit -m 'update poi'")
+      #system("git push")
+    }
+  }
 
 # output message
 
-if( cr > 0 && length(ur) > 0){
-  di <- digest(file=tmp)
-  ms <- sprintf(
-    "Dear %1$s,
-    \n Here is the result for your polygon request with id \"%2$s\"
-    \n link to data = %3$s
-    \n Number of rows = %4$s
-    \n MD5 sum = %5$s.
-    Have a nice day !",
-    un,tp,ur,cr,di
-    )
-}else{
-ms <- sprintf(
-  "Dear %1$s,
-  There is no data for the polygon of interest requested.
-  The id of this request is '%2$s'
-  Have a nice day !",
-  un,tp
-  )
-}
+  if( cr > 0 && length(ur) > 0){
+    di <- digest(file=tmp)
+    ms <- sprintf(
+      "Dear map-x user,
+      \n Here is the result for your polygon request with id \"%1$s\"
+      \n link to data = %2$s
+      \n Number of rows = %3$s
+      \n MD5 sum = %4$s.
+      Have a nice day !",
+      tp,ur,cr,di
+      )
+  }else{
+    ms <- sprintf(
+      "Dear map-x-user,
+      There is no data for the polygon of interest requested.
+      The id of this request is '%1$s'
+      Have a nice day !",
+      tp
+      )
+  }
 
 mxDbGetQuery(sprintf("DROP TABLE IF EXISTS %s",tr))
 
 sub <- sprintf("map-x : polygon of interest %1$s",tp)
 
-mxSendMail(to=em,body=ms,subject=sub,wait=FALSE)
+mxSendMail(
+  from=mxConfig$mapxBotEmail,
+  to=em,
+  body=ms,
+  subject=sub,
+  wait=FALSE
+  )
 
 
 output$panelAlert <- renderUI( mxPanelAlert(

@@ -10,8 +10,8 @@ Hash: 889445e87a2acd4cc58440957f3b0d1a
 
 Package: DBI
 Source: CRAN
-Version: 0.4
-Hash: 23cc263d51b7b02ff2a305dce72651ec
+Version: 0.4-1
+Hash: 6524d5c5d30ff74084ac028eeb19eb1b
 
 Package: R.methodsS3
 Source: CRAN
@@ -47,8 +47,8 @@ Hash: fb672e20eb6f3010a3639f855d8ef6de
 
 Package: RPostgreSQL
 Source: CRAN
-Version: 0.4
-Hash: 058b28d752fb52d9c1dfdc2b21d0b5e5
+Version: 0.4-1
+Hash: 42460e37a21dc9e3f1f47c7d8d210592
 Requires: DBI
 
 Package: Rcpp
@@ -64,8 +64,8 @@ Requires: RJSONIO
 
 Package: XML
 Source: CRAN
-Version: 3.98-1.3
-Hash: 689166755239c3300769ca2d600381c6
+Version: 3.98-1.4
+Hash: 9f8bc34c3c3d2967c7d25f8945216ffa
 
 Package: base64enc
 Source: CRAN
@@ -120,16 +120,6 @@ Source: CRAN
 Version: 0.7
 Hash: 84165a31e5cc7574fc0c4466276972fd
 Requires: htmlwidgets, magrittr, xts, zoo
-
-Package: emojifont
-Source: github
-Version: 0.3.3
-Hash: 1a728b5b4f98d8b5ccb9a126c303279c
-Requires: proto, showtext, sysfonts
-GithubRepo: emojifont
-GithubUsername: GuangchuangYu
-GithubRef: master
-GithubSha1: e3b92c6b0b9d8e94670d34418d3b4929c167fe39
 
 Package: evaluate
 Source: CRAN
@@ -211,8 +201,8 @@ GithubSha1: 653ba3aabf3b5685d3804fc64d39748713cdd555
 
 Package: jsonlite
 Source: CRAN
-Version: 0.9.19
-Hash: 4a983f753b6e88ae0f5a6ac152d8cc32
+Version: 0.9.20
+Hash: 7c342f33735452ef1f1512af8bcca066
 
 Package: knitr
 Source: CRAN
@@ -295,11 +285,6 @@ Source: CRAN
 Version: 0.1-7
 Hash: 421d7d6e0fb4bd885ecbd909b6456b8b
 
-Package: proto
-Source: CRAN
-Version: 0.3-10
-Hash: 05d7ad64db29a39d1b02c4b9f1f4edb2
-
 Package: raster
 Source: CRAN
 Version: 2.5-2
@@ -354,18 +339,6 @@ Version: 0.13.2
 Hash: 28d6903a44dc53bd4823fa43ccdc08e5
 Requires: R6, digest, htmltools, httpuv, jsonlite, mime, xtable
 
-Package: showtext
-Source: CRAN
-Version: 0.4-4
-Hash: 30e02a2e1e99dee2702a2bff069a66bf
-Requires: showtextdb, sysfonts
-
-Package: showtextdb
-Source: CRAN
-Version: 1.0
-Hash: 8c320ef3cfafc8cf4ad8bb30100330ae
-Requires: sysfonts
-
 Package: sp
 Source: CRAN
 Version: 1.2-2
@@ -381,11 +354,6 @@ Source: CRAN
 Version: 1.0.0
 Hash: 2676dd5f88890910962b733b0f9540e1
 Requires: magrittr, stringi
-
-Package: sysfonts
-Source: CRAN
-Version: 0.5
-Hash: 851d291db7d0d2e56d49338132ef8d39
 
 Package: urltools
 Source: CRAN

@@ -3,7 +3,7 @@ var UglifyJS = require("uglify-js");
 var outFile = "dist/assets.js";
 var inFile = [
   "src/cookies/cookies.min.js",
-  "src/chartjs/Chart.min.js",
+  "src/chartjs/Chart.js",
   "src/handsontable/handsontable.full.min.js",
   "src/handsontable/shinyskyHandsonTable.js",
   "src/ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js",
@@ -22,6 +22,7 @@ var inFile = [
   "src/mapx/js/mapx.js"
 ];
 
+  //"src/mailcheck/mailcheck.min.js",
 var result = UglifyJS.minify(inFile,{
   mangle : true,
   compress : true

@@ -27,45 +27,47 @@ observe({
     if(!noDataCheck(lay)){
       mxDebugMsg(paste("Ready to add vector tiles",lay," in group",grp))
       isolate({
-        var <- mxStyle$variable 
+        
+        var <- mxStyle$variable
+        varToKeep <- mxStyle$variableToKeep
+        varStored <- mxDbGetColumnsNames(lay)
+
         if(mapViewMode == "mapViewsCreator"){
           # In creator mode, get all the variables 
-          vars <- vtGetColumns(
-            protocol=mxConfig$protocolVt,
-            table=lay,
-            port=mxConfig$portVt
-            )$column_name
           feedback <- "always"
-          #feedBack <- "once" # input$leafletvtLoaded will not be triggered more than once 
+          vars <- varStored
         }else{
           # Other mode, only get variables kept
           vToKeep <- mxStyle$variableToKeep
           vToKeep <- vToKeep[!vToKeep %in% mxConfig$noVariable]
           vars <- unique(c(var,vToKeep))
+          vars <- vars[vars %in% varStored]
           feedback <- "once"
         }
       })
+
       if(!noDataCheck(vars)){
+      
         proxyMap <- leafletProxy("mapxMap",deferUntilFlush=FALSE)
 
         proxyMap %>%
         clearGroup(grp)
 
-
-        proxyMap %>%
+      proxyMap %>%
         addVectorTiles(
-          protocol       = mxConfig$protocolVtPublic,
-          url            = mxConfig$hostVt,
-          port           = mxConfig$portVtPublic,
-          geomColumn     = "geom",
-          idColumn       = "gid",
-          table          = lay,
+          userId         = mxReact$userInfo$id,
+          protocol       = mxConfig$vtInfo$protocol,
+          host           = mxConfig$vtInfo$host,
+          port           = mxConfig$vtInfo$port,
+          geomColumn     = mxConfig$vtInfo$geom,
+          idColumn       = mxConfig$vtInfo$gid,
+          layer          = lay,
           dataColumn     = vars,
           group          = grp,
           onLoadFeedback = feedback
           )  
 
-        mxDebugMsg(paste("Start downloading",lay,"from host",mxConfig$hostVt,"on port:",mxConfig$portVt))
+        mxDebugMsg(paste("Start downloading",lay,"from host",mxConfig$vtInfo$host,"on port:",mxConfig$vtInfo$port))
 
       }
     }
@@ -141,11 +143,6 @@ observeEvent(input$btnZoomToLayer,{
 
 
 
-#
-# Add label map
-#
-
-observe
 
 
 
@@ -233,6 +230,7 @@ observe({
     layClient <- input$leafletvtIsLoaded$lay
 
     mxCatch(title="Set layerStyle()",{
+
       if(
         !noDataCheck(grpLocal) && 
         !noDataCheck(grpClient) && 
@@ -241,7 +239,7 @@ observe({
         ){
         if(
           grpClient == grpLocal && 
-          layClient == sprintf("%s_%s",layLocal,mxConfig$defaultGeomCol)
+          layClient == layLocal
           ){
           sty <- reactiveValuesToList(mxStyle)
           palOk <- isTRUE(sty$palette %in% sty$paletteChoice)

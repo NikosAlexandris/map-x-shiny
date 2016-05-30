@@ -1,0 +1,83 @@
+
+/*
+info box
+ */
+
+
+.info-box{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0px;
+  height:85%;
+  z-index:10000;
+  background: rgb(47, 47, 47);
+}
+
+
+
+.info-box-container {
+  height:100%;
+  padding: 10px;
+  color: white;
+}
+
+.info-box-content {
+  height:100%;
+}
+
+
+.mx-box-item {
+padding: 50px;
+}
+
+.mx-box-item-chart {
+/*  width:75%;*/
+  /*margin:auto;*/
+}
+
+
+
+.mx-title-data {
+  font-weight:100;
+  letter-spacing:0.1em;
+}
+
+
+/* chart js style*/
+
+.radar-legend{
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+
+.radar-legend span{
+  width : 15px;
+  height : 15px ;
+  display : inline-block;
+  margin : 5px;
+}
+
+
+.chart-label ul{
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+
+.chart-label li {
+  font-weight: 200;
+  letter-spacing: 0.1em;
+}
+
+
+.chart-label span{
+  width : 15px;
+  height : 15px ;
+  display : inline-block;
+  margin : 5px;
+}
+
+
+

@@ -15,11 +15,22 @@
 #
 
 observe({
-  cntry <- mxReact$selectCountry
+  country <- mxReact$selectCountry
   update <- mxReact$viewsListUpdate
+  userId <- mxGetListValue(mxReact$userInfo,"id")
+  canRead <- mxGetListValue(mxReact$userInfo,c("role","desc","read"))
+
+
   mxCatch(title="Populate views from db",{ 
+
+if(any(sapply(c(country,userId,canRead),noDataCheck))) stop("Can't retrieve data from db")
     start <- Sys.time()
-    mxReact$views <- mxMakeViewList(cntry)
+    mxReact$views <- mxMakeViewList(
+      country=country,
+      userId=userId,
+      visibility=canRead
+      )
+    mxReact$viewsToDisplay <-  list()
     mxDebugMsg(paste("Time for generating views list=",Sys.time()-start))
 })
 })
@@ -87,24 +98,29 @@ observeEvent(input$mxRequestMeta,{
 # handle company filter
 #
 observe({
-  f<-input$filterLayer
-  if(!noDataCheck(f) && ! isTRUE(f == mxConfig$noFilter)){
-    ext <- mxDbGetFilterCenter(
-      table=f$layer,
-      column=f$column,
-      value=f$value,
-      operator="="
-      )
-    proxyMap <- leafletProxy("mapxMap")
+  mxCatch(title="Company filter",{
+    f<-input$filterLayer
+    if(!noDataCheck(f,noDataVal=mxConfig$noFilter)){
 
-    proxyMap %>% fitBounds(
-      lng1=min(ext[c("lng1","lng2")])-0.3,
-      lat1=min(ext[c("lat1","lat2")])-0.3,
-      lng2=max(ext[c("lng1","lng2")])+0.3,
-      lat2=max(ext[c("lat1","lat2")])+0.3
-      )   
-  }
+      ext <- mxDbGetFilterCenter(
+        table=f$layer,
+        column=f$column,
+        value=f$value,
+        operator="="
+        )
 
+      proxyMap <- leafletProxy("mapxMap")
+
+      
+      proxyMap %>% fitBounds(
+        lng1=ext$lng1,
+        lng2=ext$lng2,
+        lat1=ext$lat1,
+        lat2=ext$lat2
+        )
+
+    }
+})
 })
 
 

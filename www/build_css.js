@@ -9,7 +9,9 @@ var inFile =  [
     "src/ionRangeSlider/css/ion.rangeSlider.css",
     "src/ionRangeSlider/css/ion.rangeSlider.skinNice.css",
     "src/bootstrapTour/css/bootstrap-tour.min.css",
-    "src/mapx/css/mapx.css"
+    "src/mapx/css/mapx.css",
+    "src/mapx/css/infobox.css",
+    "src/mapx/css/accordion.css"
     ];
 
 

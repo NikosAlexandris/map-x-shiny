@@ -16,29 +16,28 @@ tagList(
     tags$link( href="/img/favicon.ico", rel="shortcut icon", type="image/x-icon" )
     ),
   tags$body(
+    tags$section(
+      id="sectionLoading",
+      class="mx-section-container mx-section-top", 
+      tags$h2( "MAP-X LOADING" ),
+      tags$div( id="loading-image" )
+      ),
     tags$div( id="page-wrapper",
       `data-spy`="scroll",
       `data-target`=".navbar-fixed-top",
       `data-offset`="0",
       class="no-scroll",
-      tags$section(
-        id="sectionLoading",
-        class="mx-section-container mx-section-top", 
-        tags$h2( "MAP-X LOADING" ),
-        tags$div( id="loading-image" )
-        ),
       tags$div(class="mx-section-content",
         tagList(
           # alert panels
           uiOutput('panelAlert'),
           # sections
           loadUi("parts/ui/nav.R"),
-          loadUi("parts/ui/intro.R"), 
+          loadUi("parts/ui/home.R"), 
           loadUi("parts/ui/map.R"),
           loadUi("parts/ui/country.R"),
           loadUi("parts/ui/about.R"),
-          loadUi("parts/ui/admin.R"),
-          loadUi("parts/ui/footer.R")
+          loadUi("parts/ui/admin.R")
           )
         ),
       tags$footer(

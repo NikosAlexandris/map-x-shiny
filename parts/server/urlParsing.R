@@ -10,20 +10,45 @@
 #
 # URL parsing and country selection
 #
-observe({
+observeEvent(session$clientData,{
   mxCatch(title="Query url",{
 
-    query <- parseQueryString(session$clientData$url_search,nested=TRUE)
-
+    clientData <- session$clientData
 
     #
-    # COOKIES
+    # vector tiles configuration based on host
     #
-    cookies = list(
-      language = input$cookiesLanguage,
-      country = input$cookiesCountry
-      )
-    # does not work on shiny server   cookies <- mxGetCookies()
+
+    host <- clientData$url_hostname
+
+    if(isTRUE(grepl("mapx",host))){
+      mxConfig$vtInfo <<- list(
+        protocol = "https",
+        port = 80,
+        host = host,
+        geom = "geom",
+        gid = "gid"
+        )
+    }else{
+      mxConfig$vtInfo <<- list(
+        protocol = "http",
+        port = 8080,
+        host = host,
+        geom = "geom",
+        gid = "gid"
+        )
+    }
+
+    query <- parseQueryString(clientData$url_search,nested=TRUE)
+
+    ##
+    ## COOKIES
+    ##
+    #cookies = list(
+    #language = input$cookiesLanguage,
+    #country = input$cookiesCountry
+    #)
+    ## does not work on shiny server   cookies <- mxGetCookies()
 
     #
     # Country selection
@@ -37,36 +62,28 @@ observe({
         )
       ){
       # get country from query
-      cntry <- query$country
-    }else if(
-      !noDataCheck(cookies$country)
-      ){
-      # if no vale from query but something from cookie, use cookie
-      cntry <- cookies$country 
-    }else{
-      # default 
-      cntry <- mxConfig$defaultCountry
+      cntry <- toupper(query$country)
+      updateSelectInput(session,"selectCountry",selected=cntry)
     }
 
-    updateSelectInput(session,"selectCountry",selected=cntry,choices=mxConfig$countryListChoices)
 
     #
     # Language
     #
     # code "ISO 639-2"
-    if(
-      isTRUE(tolower(query$language) %in% mxConfig$languageList)
-      ){
-      # guet lang from query
-      lang <- query$language
-    }else if(
-      !noDataCheck(cookies$language)
-      ){
-      lang <- cookies$language
-    }else{
-      lang <- mxConfig$defaultLanguage
-    }
-    updateSelectInput(session,"selectLanguage",selected=lang)
+    #  if(
+    #isTRUE(tolower(query$language) %in% mxConfig$languageList)
+    #){
+    ## guet lang from query
+    #lang <- query$language
+    #}else if(
+    #!noDataCheck(cookies$language)
+    #){
+    #lang <- cookies$language
+    #}else{
+    #lang <- mxConfig$defaultLanguage
+    #}
+    #updateSelectInput(session,"selectLanguage",selected=lang)
     #
     # views selection
     #

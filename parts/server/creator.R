@@ -17,371 +17,25 @@
   #}
 #})
 
-
-#
-# Parse meta from input
-#
-observe({
-  out = list()
-  try(silent=T,{
-    # Silent because this function can very likely return an error 
-    out <- mxParseListFromText(input$txtNewLayerMeta)
-})
-  mxReact$newLayerMeta = out
-})
-
-
-# new layer name validation
-
-observe({
-  if(mxReact$allowViewsCreator && mxReact$mapPanelMode == "mapViewsCreator" ){
-    err = character(0)
-    info = character(0)
-    out  = character(0)
-    valid = FALSE
-    msgList = character(0)
-
-
-    #
-    # Layer name warning
-    #
-    cty <- mxReact$selectCountry
-    #yea <- input$selNewLayerYear
-    cla <- input$selNewLayerClass
-    sub <- subPunct(input$txtNewLayerTags)
-    met <- mxReact$newLayerMeta
-
-    #newLayerName <- tolower( paste0(cty,"__",yea,"__",cla,"__",sub))
-    newLayerName <- tolower( paste0(cty,"__",cla,"__",sub))
-
-    exist <- mxTextValidation(
-      textToTest = newLayerName,
-      existingTexts = mxReact$layerList,
-      idTextValidation = "outNewLayerNameValidation",
-      existsText = "overwrite",
-      errorColor = "#ff9900"
-      )
-
-    #
-    # other validation
-    #
-
-    #mxDebugToJs(met)
-
-    tagMissing <- isTRUE(nchar(sub) < 2)
-    metMissing <- isTRUE(length(met) < 1)
-
-    if(tagMissing) err <- c(err,"Tag(s) missing")
-    if(metMissing) err <- c(err,"Source entry missing")
-
-
-    if(length(err)>0){
-      outTxt = sprintf("<b style=\"color:%1$s\">(%2$s)</b> %3$s","#FF0000","issue",err,"</br>")
-      outTxt = paste("<hr/><ul class='nav'>",paste("<li>",outTxt,"</li>",collapse="",sep=""),"</ul><hr/>")
-      valid = FALSE
-    }else{
-      outTxt = ""
-      valid = TRUE
-    }
-
-    mxUpdateText(id="outNewLayerErrors",text=HTML(outTxt))
-
-    mxActionButtonState(id="fileNewLayer",disable=!valid, warning=!exist) 
-
-    mxReact$newLayerName <- ifelse(valid,newLayerName,"")
-  }
-})
-
-
-#
-#  FILE HANDLER : VALIDATION AND PSQL 
-#
-
-
-observeEvent(input$fileNewLayer,{
-
-  if(mxReact$allowViewsCreator){
-
-    met <- mxReact$newLayerMeta
-    src <- input$fileNewLayer$datapath
-    nam <- mxReact$newLayerName 
-    cla <- input$selNewLayerClass
-    tgs <- subPunct(input$txtNewLayerTags)
-
-    lInfo = ogrinfo(
-      src,
-      "OGRGeoJSON",
-      ro=TRUE,
-      so=TRUE
-      )
-
-    #
-    # CHECK FILE FORMAT
-    #
-    isGeojson = isTRUE(length(grep("OGRGeoJSON",lInfo)[1])>0) 
-
-    if(!isGeojson){
-      msg <- ("Data imported is not in format 'geojson'")
-      mxUpdateText("outLayerFileMsg",msg)
-      return()
-    }
-
-    #
-    # CHECK SRID 
-    #
-    projOk = isTRUE(
-      length(grep("(AUTHORITY).+(EPSG).+(4326)",lInfo)) > 0 &&
-      length(grep("(GEOGCS).*(WGS 84)",lInfo)) >0
-      )
-
-    if(!projOk){
-      msg <- "Error before importation : srid is not '4326'"
-      mxUpdateText("outLayerFileMsg",msg)
-      return()
-    }
-    #
-    # Return summary list
-    #
-
-    mxReact$newLayerSummary = list(
-      class = cla,
-      tags = tgs,
-      name = nam,
-      meta = met,
-      srid = ifelse(projOk,"4326","nodata"),
-      file = src
-      )
-
-  }
-
-})
-
-
-
-observeEvent(mxReact$newLayerSummary,{
-
-  sl <- mxReact$newLayerSummary 
-  if(TRUE){
-    sl <- HTML(listToHtmlClass(sl,exclude="file"))
-    ui<-tagList(div(class="mx-panel-400",
-        h6("Upload done"),
-        p("Please review DB importation before continuing:"),
-        sl
-        )
-      )
-    bnts <- tagList(
-      actionButton("btnDbImportConfirm","confirm",class="btn-modal")
-      )
-    panModal <- mxPanel(
-      id="panImportModal",
-      title="Import new layer in database.",
-      subtitle="Action handler",
-      html=ui,
-      listActionButton=bnts,
-      addCancelButton=TRUE
-      )
-
-    mxUpdateText(id="panelAlert",ui=panModal)
-  }
-
-})
-
-
-
-#
-# Observe button of confirmation for import into db
-#
-
-observeEvent(input$btnDbImportConfirm,{
-  mxCatch(title="Import to DB",{
-
-
-  panModal <- mxPanel(
-      id="panImportModal",
-      title="Import new layer in database.",
-      subtitle="Format conversion",
-      html=tags$b("Please wait..."),
-      )
-
-    mxUpdateText(id="panelAlert",ui=panModal)
-
-
-
-    # summary layer
-    sl <- mxReact$newLayerSummary 
-    # append in table
-    ap <- FALSE
-    # table name
-    tn <- mxConfig$layersTableName
-    # table list
-    te <- mxDbExistsTable(tn)
-    le <- mxDbExistsTable(sl$name)
-    # Revision number
-    rn <- 0
-    # time now 
-    timeNow <- Sys.time()
-    #
-    # If layer already exists check revision number
-    #
-
-    if( le && te ){
-      # get revision number
-      q <- sprintf("SELECT revision FROM %1$s WHERE layer='%2$s' LIMIT 1",tn,sl$name)
-      res <- mxDbGetQuery(q)$revision
-      # replace revision number if needed
-      if(isTRUE(is.numeric(res))){
-        rn <- res + 1
-      }
-    }
-    #
-    # Save into layer table
-    #
-    mxDbAddGeoJSON(
-      geojsonPath=sl$file,
-      tableName=sl$name,
-      archivePrefix = mxConfig$prefixArchiveLayer
-      )
-    #
-    # get existing columns
-    #
-    cols <- mxDbListColumns(sl$name)
-
-    if(! "mx_date_end" %in% cols && ! "mx_date_start" %in% cols ){
-      if("octroyé" %in% cols && "expire" %in% cols){
-        # TODO: drop old column, validate date formating.
-        # add columns
-        qAdd = sprintf(
-          "ALTER TABLE %s 
-          ADD mx_date_start bigint, 
-          ADD mx_date_end bigint",
-          sl$name
-          )
-        mxDbGetQuery(qAdd)
-        # update date start
-        qStart = sprintf(
-          "UPDATE %s 
-          SET mx_date_start = 
-          extract(epoch from to_timestamp(octroyé,'YYYY/MM/DD'))",
-          sl$name
-          )
-        mxDbGetQuery(qStart)
-        # update date end
-        qEnd = sprintf(
-          "UPDATE %s 
-          SET mx_date_end = 
-          extract(epoch from to_timestamp(expire,'YYYY/MM/DD'))",
-          sl$name
-          )
-
-        mxDbGetQuery(qEnd)
-      }
-
-    }
-
-
-
-    #
-    # Update table layer
-    #
-    # new entry
-
-
-
-    tbl = as.data.frame(stringsAsFactors=FALSE,list(
-        country = mxReact$selectCountry,
-        layer = sl$name,
-        class = sl$class,
-        tags = sl$tags,
-        editor = mxReact$userId,
-        reviewer = mxReact$userId,
-        revision = rn,
-        validated = TRUE,
-        archived = FALSE,
-        dateCreated = timeNow,
-        dateArchived = as.POSIXct(as.Date(0,origin="1970/01/01")),
-        dateModifed = timeNow,
-        dateValidated = timeNow,
-        meta = mxEncode(as.character(jsonlite::toJSON(sl$meta)))
-        )
-      )
-
-    if(rn>0){
-      # update revision
-      mxDbUpdate(
-        table=tn,
-        column="archived",
-        idCol="layer",
-        id=sl$name,
-        value=TRUE
-        )
-      mxDbUpdate(
-        table=tn,
-        column="dateArchived",
-        idCol="layer",
-        id=sl$name,
-        value=timeNow
-        )
-    }
-
-    # append or add data.
-    mxDbAddData(
-      data=tbl,
-      table=tn
-      )
-
-    #
-    # Update pgrestapi
-    #
-
-    if( mxConfig$hostname != mxConfig$remoteHostname ){
-      remoteCmd(host=mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
-    }else{
-      system(mxConfig$restartPgRestApi)
-    }
-
-
-
-
-
-
-
-
-    #
-    # Update layer list
-    #
-    mxDebugMsg("invalidate layer list")
-    mxReact$layerListUpdate <- runif(1)
-
-    panModal <- mxPanel(
-      id="panImportModal",
-      title="Import new layer in database.",
-      subtitle="Action handler",
-      html=p("Importation done. Please check if the layer is available in the views creator.")
-      )
-
-    mxUpdateText(id="panelAlert",ui=panModal)
-
-      })
-})
-
-
 #
 # Btn refresh
 #
 
 
 
-observeEvent(input$btnViewsRefresh,{
-  if(mxReact$allowViewsCreator){
-    mxDebugMsg("Command remote server to restart app")
-    if( mxConfig$hostname != mxConfig$remoteHostname ){
-      remoteCmd(mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
-    }else{
-      system(mxConfig$restartPgRestApi)
-    }
-    mxReact$layerListUpdate <- runif(1) 
-  }
-})
+#observeEvent(input$btnViewsRefresh,{
+  #if(mxReact$allowViewsCreator){
+    #mxDebugMsg("Command remote server to restart app")
+    #if( mxConfig$hostname != mxConfig$remoteHostname ){
+      #remoteCmd(mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
+    #}else{
+      #system(mxConfig$restartPgRestApi)
+    #}
+    #mxReact$layerListUpdate <- runif(1) 
+  #}
+#})
+
+
 
 
 
@@ -394,18 +48,36 @@ observe({
     choice <- mxConfig$noData
     # take reactivity on select input
 
-    cntry <- tolower(mxReact$selectCountry)
+    cntry <- toupper(mxReact$selectCountry)
     # reactivity after updateVector in postgis
     update <- mxReact$layerListUpdate
 
-    mxCatch("Update input: pgrestapi layer list",{
-      layers <- vtGetLayers(protocol=mxConfig$protocolVt,port=mxConfig$portVt,grepExpr=paste0("^",cntry,"_"))
-      if(!noDataCheck(layers)){
-        choice = c(choice,layers)  
-      }
-      updateSelectInput(session,"selLayer",choices=choice)
-      mxReact$layerList = choice
+    usr <- mxReact$userInfo
+    visibility = paste0("'",usr$role$desc$read,"'",collapse=",")
+
+    if(!noDataCheck(visibility)){
+      mxCatch("Update input: get list of layer",{
+
+        sql <- gsub("\n","",sprintf(
+            "SELECT layer 
+            FROM mx_layers 
+            WHERE country='%1$s' AND
+            ( visibility ?| array[%2$s] OR editor = '%3$s' )",
+            cntry,
+            visibility,
+            usr$id
+            ))
+
+
+        layers <- mxDbGetQuery(sql)$layer
+
+        if(!noDataCheck(layers)){
+          choice = c(choice,layers)  
+        }
+        updateSelectInput(session,"selLayer",choices=choice)
+        mxReact$layerList = choice
       })
+    }
   }
 })
 
@@ -431,15 +103,11 @@ observeEvent(input$selLayer,{
     if(!noDataCheck(lay)){
       mxCatch("Update input: layer columns",{
 
-        variables <- vtGetColumns(
-          protocol=mxConfig$protocolVt,
-          table=lay,
-          port=mxConfig$portVt,
-          exclude=c("geom","gid")
-          )$column_name
+        variables <- mxDbGetColumnsNames(lay)
+      
 
         if(!noDataCheck(variables)){
-          vars = variables
+          vars = variables[ !variables %in% c("gid","geom") ]
         } 
         # Date handling 
         hasDate <- isTRUE("mx_date_start" %in% vars) && isTRUE( "mx_date_end" %in% vars)
@@ -453,7 +121,7 @@ observeEvent(input$selLayer,{
     # NOTE: bug with code and parties. After code, no variable can be set on extractive mineral layer 
     varsLess <- vars[!vars %in% c("code","parties")]
     updateSelectInput(session, "selColumnVar", choices=varsLess)
-    updateSelectInput(session, "selColumnVarToKeep", choices=c(vars,mxConfig$noVariable),selected=vars[1])
+    updateSelectInput(session, "selColumnVarToKeep", choices=c(mxConfig$noVariable,vars),selected=vars[1])
   }
 })
 
@@ -466,7 +134,6 @@ observeEvent(input$selColumnVar,{
   if(mxReact$allowViewsCreator){
     lay = input$selLayer
     var = input$selColumnVar
-    isolate({
       if(!noDataCheck(lay) && !noDataCheck(var)){
         # extract layer summary from postgres
         layerSummary <- mxDbGetColumnInfo(lay,var)
@@ -484,7 +151,6 @@ observeEvent(input$selColumnVar,{
         mxStyle$nMissing      <- layerSummary$nNa
         mxStyle$paletteChoice <- paletteChoice
       }
-    })
   }
 })
 
@@ -559,8 +225,12 @@ observeEvent(input$btnViewCreatorSave,{
         vToKeep <- unique(c("mx_date_start","mx_date_end",vToKeep))
       }
       sty$variableToKeep <- vToKeep
-      # save has date state
 
+      #
+      # Visibility
+      #
+
+      visibility <- as.character(jsonlite::toJSON(input$selNewViewVisibility))
 
       #
       # Date handler
@@ -605,31 +275,32 @@ observeEvent(input$btnViewCreatorSave,{
       viewTable <- mxConfig$viewsListTableName
       timeNow <- Sys.time()
 
-      tbl = as.data.frame(stringsAsFactors=FALSE,list(
+      view = list(
           id =  randomString(),
           country = mxReact$selectCountry,
           title = input$mapViewTitle,
           class = input$mapViewClass,
           layer = sty$layer,
-          editor = mxReact$userId,
-          reviever = "",
-          revision = 0,
+          editor = mxReact$userInfo$id,
+          reviewer = 0L,
+          revision = 0L,
           validated = TRUE,
           archived = FALSE,
-          dateCreated = timeNow,
-          dataModifed = timeNow,
-          dateValidated = timeNow,
-          dateArchived = timeNow,
-          style = mxEncode(as.character(jsonlite::toJSON(sty)))
+          date_created = timeNow,
+          date_modified = timeNow,
+          date_validated = timeNow,
+          date_archived = timeNow,
+          style = as.character(jsonlite::toJSON(sty)),
+          visibility = visibility
           )
+
+      browser()
+
+      mxDbAddRow(
+        data = view,
+        table = viewTable
         )
 
-      mxDbAddData(
-        data=tbl,
-        table=viewTable
-        )
-
-      mxDebugMsg(sprintf("Write style %s in table %s", tbl$id, tbl$layer))
       mxReact$viewsListUpdate <- runif(1)
 
 

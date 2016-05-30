@@ -1,4 +1,10 @@
 
+
+
+#
+# restore libraries
+#
+packrat::restore()
 #
 # R libraries (managed using packrat !)
 #
@@ -40,6 +46,8 @@ source('helper/R/mxHandson.R')
 #
 source("settings/config-global.R")
 #
-# configuration specific to the host on wich map-x is launched
+# local configuration, not added to git repo
 #
 source("settings/config-local.R")
+
+

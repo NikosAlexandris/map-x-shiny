@@ -23,12 +23,12 @@ observe({
       #
       # switch analaysis
       #
-   out = NULL
+      out = NULL
       switch(analysis,
-           "overlaps"={
+        "overlaps"={
           # prevent others layer to be evaluated.
-         idA <- layers
-         idB <- layers
+          idA <- layers
+          idB <- layers
 
           if(noDataCheck(idA) || noDataCheck(idB)){
             idA <- mxConfig$noData
@@ -41,21 +41,30 @@ observe({
               choices="",
               multiple=TRUE),
             selectInput("selectOverlapB","Zone",choices=idB,selected=idB[1]),
-            conditionalPanel(condition="(
-              input.selectOverlapA != '' && 
-              input.selectOverlapAVar != '' &&
-              typeof(input.selectOverlapAVar) != 'undefined' &&
-              input.selectOverlapB != ''
-              )",
             actionButton("btnAnalysisOverlaps",icon("play")),
-            span(id="txtAnalysisOverlaps","")
+            span(id="txtAnalysisOverlaps","") 
             )
-          )
-   output$uiAnalysis <- renderUI(out)
+          output$uiAnalysis <- renderUI(out)
         }
-      )
+        )
     }
   }
+})
+
+
+
+# validation
+
+
+observe({
+  layA <- !noDataCheck(input$selectOverlapA)
+  layB <- !noDataCheck(input$selectOverlapB)
+  layAvar <- !noDataCheck(input$selectOverlapAVar)
+  allowLaunchAnalysis <- FALSE
+  if(all(c(layA,layB,layAvar))){
+    allowLaunchAnalysis <- TRUE
+  }
+  mxActionButtonState(id="btnAnalysisOverlaps",disable=!allowLaunchAnalysis) 
 })
 
 
@@ -74,13 +83,12 @@ observe({
     selLayer <- input$selectOverlapA
     if(!noDataCheck(selLayer)){
 
-      vars <- vtGetColumns(
-        protocol=mxConfig$protocolVt,
-        table=selLayer,
-        port=mxConfig$portVt
-        )$column_name
+      vars <- mxDbGetColumnsNames(selLayer)
 
-      vars <- vars[!vars %in% c("geom","gid")]
+      vars <- vars[!vars %in% c(
+        mxConfig$vtInfo$geom,
+        mxConfig$vtInfo$gid
+        )]
       updateSelectInput(session,"selectOverlapAVar",choices=vars)
     }
   }
@@ -108,56 +116,29 @@ observeEvent(input$btnAnalysisOverlaps,{
       # Mmx overlap analysis
       #
       mxAnalysisOverlaps(
-        dbInfo=dbInfo,
         inputBaseLayer = idA,
         inputMaskLayer = idB,
         outName,
         varToKeep=idAVar)
 
       mxUpdateText(id="txtAnalysisOverlaps",text="Analysis done! Update vector tiles...")
-
-      #
-      # UPDATE PGRESTAPI
-      #
-
-
-      if( mxConfig$hostname != mxConfig$remoteHostname ){
-        print("update pgrestapi from darwin") 
-        mxDebugMsg("Command remote server to restart app")
-        remoteCmd(mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
-        Sys.sleep(3)
-      }else{
-        print("update pgrestapi from not darwin")
-        system(mxConfig$restartPgRestApi)
-      }
-
-
-      #
-      # Add layer
-      #
-
-      layers <- vtGetLayers(
-        protocol=mxConfig$protocolVt,
-        port=mxConfig$portVt,
-        grepExpr=paste0("^tmp_")
-        )
-      
-      
-      if(outName %in% layers){
+ 
+      if(mxDbExistsTable(outName)){
 
       mxUpdateText(id="txtAnalysisOverlaps",text="Vector tiles available, begin download.")
         proxyMap <- leafletProxy("mapxMap")
         proxyMap %>%
         addVectorTiles(
-          protocol=mxConfig$protocolVtPublic,
-          url=mxConfig$hostVt,
-          port=mxConfig$portVtPublic,
-          geomColumn="geom", # should be auto resolved by PGRestAPI
-          idColumn="gid", # should be auto resolved by PGRrestAPI
-          table=outName,
-          dataColumn=idAVar,
-          group = idLayer,
-          onLoadFeedback="always"
+          userId         = mxReact$userInfo$id,
+          protocol       = mxConfig$vtInfo$protocol,
+          host           = mxConfig$vtInfo$host,
+          port           = mxConfig$vtInfo$port,
+          geomColumn     = mxConfig$vtInfo$geom,
+          idColumn       = mxConfig$vtInfo$gid,
+          layer          = outName,
+          dataColumn     = idAVar,
+          onLoadFeedback = "always",
+          group = "analysis"
           ) 
       }else{
         mxUpdateText(id="txtAnalysisOverlaps",text="something went wrong : layer computed but not available")
@@ -170,20 +151,25 @@ observeEvent(input$btnAnalysisOverlaps,{
 
 
 observe({
-  #
-  # Style layer when loaded
-  #
-  grpClient <- input$leafletvtIsLoaded$grp
-  layClient <- input$leafletvtIsLoaded$lay
-  
-  if(!noDataCheck(grpClient) && grpClient=="analysis"){
-    mxUpdateText(id="txtAnalysisOverlaps",text="Layer rendered, add default style.")
-    jsCode <- sprintf("leafletvtId.analysis.setStyle(defaultStyle,'%s')",layClient)
-    session$sendCustomMessage(
-      type="jsCode",
-      list(code=jsCode)
-      )
-  }
+
+  mxCatch(title="Overlaps analysis, set style",{
+    #
+    # Style layer when loaded
+    #
+    grpClient <- input$leafletvtIsLoaded$grp
+    layClient <- input$leafletvtIsLoaded$lay
+
+    if(!noDataCheck(grpClient) && grpClient=="analysis"){
+      mxUpdateText(id="txtAnalysisOverlaps",text="Layer rendered, add default style.")
+
+      session$sendCustomMessage(
+        type="setStyleDefault",
+        list(
+          group=grpClient
+          )
+        )
+    }
+      })
 })
 
 

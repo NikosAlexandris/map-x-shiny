@@ -208,6 +208,7 @@ LeafletWidget.methods.glSetFilter = function( idGl, idLayer, filter ){
 
 LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,layerId,group,options) {
 
+
   if(typeof group === "undefined"){
     group="default" ;
   }
@@ -284,17 +285,18 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
         }
       }
     },
-    layerOrdering: function(feature) {
-      //This only needs to be done for each type, not necessarily for each feature. But we'll start here.
-      if (feature && feature.properties) {
-        //feature.properties.zIndex =  zIndex;
-      }
-    },
+   // layerOrdering: function(feature) {
+/*       console.log("layer ordering");*/
+      //debugger;
+      ////This only needs to be done for each type, not necessarily for each feature. But we'll start here.
+      //if (feature && feature.properties) {
+        ////feature.properties.zIndex =  zIndex;
+      /*}*/
+    //},
     // DEFAULT STYLE. Will be modified after.
     style: function (feature) {
       var s = {};
-      feature.properties.group == "active"
-        
+      //feature.properties.group == "active"
       s.color = "rgba(0,0,0,0)";
       return s ;
 
@@ -303,16 +305,21 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
 
 
   var vecTile = new L.TileLayer.MVTSource(config);
+
   this.layerManager.addLayer(vecTile, "tile", layerId, group); 
 
   //TODO: avoid this object (used in mxSetStyle) and use the layer manager instead.
   leafletvtId[group] = vecTile;
+
+
+
 
   // get available id keys
   var leafletvtViews = toObject(Object.keys(leafletvtId));
   // update input$leafletvtViews 
   Shiny.onInputChange("leafletvtViews",leafletvtViews);
 
+  //console.log(vecTile);
 
 };
 
