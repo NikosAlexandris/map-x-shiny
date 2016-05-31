@@ -24,7 +24,7 @@ observeEvent(session$clientData,{
     if(isTRUE(grepl("mapx",host))){
       mxConfig$vtInfo <<- list(
         protocol = "https",
-        port = 80,
+        port = "",
         host = host,
         geom = "geom",
         gid = "gid"

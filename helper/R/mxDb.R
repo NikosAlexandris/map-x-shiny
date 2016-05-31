@@ -524,31 +524,41 @@ mxDbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,tableName=NULL,ar
   #
   # Import into db
   #
-  tD <- sprintf("PG:dbname='%s' host='%s' port='%s' user='%s' password='%s'",
-    d$dbname,d$host,d$port,d$user,d$password
-    )
-  cmd = sprintf(
-    "ogr2ogr
-    -t_srs 'EPSG:4326'
-    -s_srs 'EPSG:4326'
-    -geomfield 'geom'
-    -lco FID='gid'
-    -lco GEOMETRY_NAME='geom'
-    -lco SCHEMA='public'
-    -f 'PostgreSQL'
-    -overwrite
-    -nln '%1$s'
-    -nlt 'PROMOTE_TO_MULTI'
-    \"%2$s\"
-    \"%3$s\"
-    OGRGeoJSON
-    ",tN,tD,gP)
-    cmd <- gsub("\n\\s+"," ",cmd)
+ 
 
-    # 
-    # Execute command
-    #
-  system(cmd,intern=TRUE)
+    test <- try(silent=TRUE,{
+      tD <- sprintf("PG:dbname=%s host=%s port=%s user=%s password=%s",
+        d$dbname,d$host,d$port,d$user,d$password
+        )
+
+      cmd = sprintf(
+        "ogr2ogr \\
+        -t_srs \"EPSG:4326\" \\
+        -s_srs \"EPSG:4326\" \\
+        -geomfield \"geom\" \\
+        -lco FID=\"gid\" \\
+        -lco GEOMETRY_NAME=\"geom\" \\
+        -lco SCHEMA=\"public\" \\
+        -f \"PostgreSQL\" \\
+        -overwrite \\
+        -nln \"%1$s\" \\
+        -nlt \"PROMOTE_TO_MULTI\" \\
+        \'%2$s\' \\
+        \'%3$s\' \\
+        \"OGRGeoJSON\""
+        ,tN
+        ,tD
+        ,gP
+        )
+
+      # 
+      # Execute command
+      #
+      system(cmd,intern=TRUE)
+    })
+
+    if("try-catch" %in% class(test)) stop("Something went wrong during the transfert to the database.")
+
   }
 
 

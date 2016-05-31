@@ -299,9 +299,13 @@ uiMapConfig <- tagList(
             )
           )
         ),
-      div(style="width: 100%;padding: 10px;",
-        uiStorySelect,
-        uiStoryCreator
+      div(class="no-scrollbar-container",
+        div(class="no-scrollbar-content",
+          div(style="width: 100%;padding: 10px;",
+            uiStorySelect,
+            uiStoryCreator
+            )
+          )
         )
       )
 

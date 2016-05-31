@@ -292,7 +292,7 @@ observeEvent(input$btnDbImportConfirm,{
         date_modified = timeNow,
         date_validated = timeNow,
         meta = mxToJsonForDb(sl$meta),
-        visibility = mxToJsonForDb(visibility)
+        visibility = mxToJsonForDb(input$selNewLayerVisibility)
         )
 
    

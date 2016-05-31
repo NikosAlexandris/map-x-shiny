@@ -1038,11 +1038,11 @@ select:focus, select:active{
 
 
 .mx-hide {
-  opacity:0;
+  opacity: 0!important;
+  top: -9999px!important;
+  z-index: -1000!important;
   position: absolute !important;
-  top: -9999px !important;
 }
-
 
 .mxLogin, .mxLogin label {
   width=100%;
