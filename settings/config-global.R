@@ -364,6 +364,7 @@ mxConfig$wmsSources = list(
 
 # Set data classes
 mxConfig$class = list(
+  "Pilot sites" = "maa",
   "Extractives" = "ext",
   "Development" = "dev",
   "Social" = "soc",
@@ -372,7 +373,6 @@ mxConfig$class = list(
   "Energy"="nrg",
   "Customs" = "cus",
   "Infrastructure" = "nfr",
-  "Pilot sites" = "maa",
   "Boundaries" = "bnd"
   )
 
