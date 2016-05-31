@@ -294,7 +294,6 @@ observeEvent(input$btnViewCreatorSave,{
           visibility = visibility
           )
 
-      browser()
 
       mxDbAddRow(
         data = view,
