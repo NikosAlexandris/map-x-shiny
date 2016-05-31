@@ -75,10 +75,42 @@ p {
   line-height: 1.5;
 }
 
+p.boxed {
+    border-style: solid;
+    border-width: 1px;
+    padding: 8px 1px 8px 10px;
+    border-color: hsla(0,0%,23%,0.2);
+}
+
+
 
 a {
   color : #fff;
   text-decoration : none;
+}
+
+
+/* truncate text and add ellipses */ 
+/* ! Works also selectively, ie for a single <li></li> */ 
+/* source: http://stackoverflow.com/a/12913510/1172302 */
+.ellipses {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/ */
+.hyphenate {
+  /* Careful, this breaks the word wherever it is without a hyphen */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+  /* Adds a hyphen where the word breaks */
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
 }
 
 
@@ -729,8 +761,9 @@ width:100%;
 }
 
 .mx-logo {
-  height:50px;
-  vertical-align:middle;
+         height: 50px;
+         margin: 0px 20px 0px 20px;
+         vertical-align: middle;
 }
 
 .mx-logo-small {
@@ -1447,38 +1480,166 @@ select:focus, select:active{
 
 .mx-story-section {
     line-height: 2;
-    letter-spacing: 0.1em;
-    margin-bottom: 50%;
-    text-align: center;
+    /* letter-spacing: 0.1em; */
+    /* margin-bottom: 50%; */
+    /* text-align: center; */
+    /* letter-spacing: 0.1rem; */
+    margin-bottom: 12%;
+    text-align: left;
     font-family: sans-serif;
  }
 
-.mx-story-section p{
- margin: 0 0 25px;
-  font-weight : 200;
-  font-size: 18px;
-  line-height: 1.5;
 
+.mx-story-section p {
+    margin : 0 0 25px;
+    font-weight : normal;
+    font-size : 14.5px;
+    line-height : 1.5;
 }
 
-
 .mx-story-section img {
-width:100%;
+    width:100%;
+}
+
+#mxStoryText img {
+    width: 100%;
+}
+
+/* Margin after figure caption */
+#mxStoryText figcaption {
+    padding-bottom: 25px;
+    padding-top: 1rem;
+    font-size: 1.3rem;
+    line-height: 1.5;
 }
 
 .mx-story-dimmed {
-opacity : 0.5;
+opacity : 0.4;
 }
 
 
 #mxStoryText {
     background: white;
     color: black;
+    /* text-align: left; */
+    /* padding-right: 60px; */
+    /* padding-left: 60px; */
+    /* padding-bottom: 3000px; */
+    /* padding: 2% 5% 6% 3000px; */
+    padding-top: 2%;
+    padding-right: 5%;
+    padding-left: 6%;
+    padding-bottom: 3000px;
+    background-color: #fff;
+    color: #3B3B3B;
     text-align: left;
-    padding-right: 60px;
-    padding-left: 60px;
-padding-bottom: 3000px;
+    text-rendering: optimizeLegibility;
 }
+
+
+/* Margin after headings */
+#mxStoryText h1, #mxStoryText h2, #mxStoryText h3, #mxStoryText h4, #mxStoryText  h5, #mxStoryText h6 {
+    margin: 0 0 15px;
+    color: rgba(0,0,0,0.3);
+    font-weight: normal;
+}
+
+#mxStoryText h1 {
+    font-size: 28px;
+    margin: 0 0 15px;
+}
+
+/* Horizontal Rule after each H1 */
+#mxStoryText h1:after, #mxStoryText h2:after {
+    content:' ';
+    display:block;
+    border: 0;
+    border-top: 1px solid #eee;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+}
+
+
+#mxStoryText h2 {
+    font-size: 24px;
+}
+
+#mxStoryText h3 {
+    font-size: 20px;
+}
+
+#mxStoryText h4 {
+    font-size: 17px;
+}
+
+#mxStoryText hr {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 0;
+  border-top: 1px solid #eee;
+}
+
+#mxStoryText section {
+    margin-bottom: 12%;
+}
+
+#mxStoryText p {
+    font-size: 15px;
+}
+
+#mxStoryText a {
+    color: rgb(142, 142, 142);
+    font-weight: bold;
+}
+
+
+#mxStoryText ul {
+    /* http://stackoverflow.com/a/5308785 */
+    list-style: none;
+    padding:0;
+    margin:0;
+    /* */
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+#mxStoryText ol {
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+
+/* http://stackoverflow.com/a/5308785 */
+#mxStoryText li { 
+    padding-left: 1em; 
+    text-indent: -.7em;
+}
+
+#mxStoryText ul > li:before {
+    content: "• ";
+    color: rgb(142, 142, 142);
+}
+/* */
+
+
+#mxStoryText ul > li {
+    margin: 0 0 8px 0;
+}
+
+#mxStoryText ol > li {
+    margin: 0 0 8px 0;
+}
+
+.mx-story-author {
+    font-size: small !important;
+    color: grey;
+}
+
+
 
 
 #mxStoryLimitTrigger{
@@ -1489,7 +1650,6 @@ padding-bottom: 3000px;
   background: none;
   z-index: -1000;
 }
-
 
 
 #txtStoryMap {
