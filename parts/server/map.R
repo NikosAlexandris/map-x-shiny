@@ -16,7 +16,6 @@
 addPaletteFun_cache <- memoise(addPaletteFun)
 mxMakeViews_cache <- memoise(mxMakeViews)
 
-
 #
 # PERMISSION EVENT : loading server files
 #

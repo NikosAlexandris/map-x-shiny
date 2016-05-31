@@ -290,12 +290,16 @@ observeEvent(mxReact$vToHide,{
 # Use 
 observeEvent(mxReact$vToCalc,{
   mxCatch(title="Views to calc",{
+   
     vToCalc <- mxReact$vToCalc
+    vToCalc <- vToCalc[!sapply(vToCalc,noDataCheck)]
     vData <- mxReact$views
-    if(!noDataCheck(vToCalc)){
+
+    if(length(vToCalc)>0){
       for(vtc in vToCalc){
 
         sty <- vData[[vtc]]$style
+
         if(!noDataCheck(sty)){
           mxDebugMsg(paste("First style computation for",vtc))
           mxStyle$layer <- sty$layer

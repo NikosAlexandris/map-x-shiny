@@ -260,7 +260,6 @@ observeEvent(input$btnDbImportConfirm,{
     }
 
 
-    visibility <- as.character(jsonlite::toJSON(input$selNewLayerVisibility))
 
     #
     # Update table layer
@@ -292,8 +291,8 @@ observeEvent(input$btnDbImportConfirm,{
         date_archived = as.POSIXct(as.Date(0,origin="1970/01/01")),
         date_modified = timeNow,
         date_validated = timeNow,
-        meta = as.character(jsonlite::toJSON(sl$meta)),
-        visibility = visibility
+        meta = mxToJsonForDb(sl$meta),
+        visibility = mxToJsonForDb(visibility)
         )
 
    

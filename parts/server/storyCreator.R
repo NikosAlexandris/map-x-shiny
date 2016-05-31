@@ -24,10 +24,8 @@ observeEvent(input$btnSaveNewStory,{
     
 
     newId <- randomString()
-    
+    defaultVisibility = "self"
     timeNow <- Sys.time()
-
-    defaultVisibility = as.character(jsonlite::toJSON("self"))
 
     newStory <- list(
       id=newId,
@@ -42,8 +40,8 @@ observeEvent(input$btnSaveNewStory,{
       date_created = timeNow,
       date_modified = timeNow,
       date_validated = timeNow,
-      content= as.character(jsonlite::toJSON(as.character(NA))),
-      visibility = defaultVisibility 
+      content= mxToJsonForDb(NA),
+      visibility = mxToJsonForDb(defaultVisibility) 
       )
 
     mxDbAddRow(
@@ -51,6 +49,15 @@ observeEvent(input$btnSaveNewStory,{
       table=mxConfig$storyMapsTableName
       )
 
+
+    panModal <- mxPanel(
+      id="panConfirmStorySave",
+      title="New story map saved.",
+      subtitle="Action handler",
+      html=p(sprintf("Story map saved with visibility set as %s",defaultVisibility))
+      )
+
+    mxUpdateText(id="panelAlert",ui=panModal)
 
     mxReact$updateStorySelector<-runif(1)
     updateTextInput(session,'txtStoryName',value="")
@@ -72,11 +79,11 @@ observe({
 
 observeEvent(input$btnStoryMapEditorUpdate,{
   mxCatch(title="Input story map text",{
-  storyText <- input$txtStoryMapEditor
-  storyVisibility <- input$selStoryVisibility 
+    storyText <- input$txtStoryMapEditor
+    storyVisibility <- input$selStoryVisibility 
 
-  if( isTRUE(mxReact$allowStoryCreator)){
-    storyId <- input$selectStoryId
+    if( isTRUE(mxReact$allowStoryCreator)){
+      storyId <- input$selectStoryId
       if(nchar(storyText)>0){
         mxCatch(title="Saving story",{
           mxDbUpdate(
@@ -84,19 +91,28 @@ observeEvent(input$btnStoryMapEditorUpdate,{
             column = "content",
             idCol = "id",
             id = storyId,
-            value = jsonlite::toJSON(storyText) 
+            value = mxToJsonForDb(storyText) 
             )
-        mxDbUpdate(
+          mxDbUpdate(
             table = mxConfig$storyMapsTableName,
             column = "visibility",
             idCol = "id",
             id = storyId,
-            value = jsonlite::toJSON(storyVisibility) 
+            value = mxToJsonForDb(storyVisibility) 
             )
 
-         mxReact$storyMap <- storyText
-        })
-    }
+          panModal <- mxPanel(
+            id="panConfirmStorySave",
+            title="Story map saved.",
+            subtitle="Action handler",
+            html=p(sprintf("Story map saved with visibility set as %s",storyVisibility))
+            )
+
+          mxUpdateText(id="panelAlert",ui=panModal)
+
+          mxReact$storyMap <- storyText
+})
+      }
   }
  })
 })

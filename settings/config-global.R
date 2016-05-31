@@ -127,7 +127,17 @@ mxConfig$defaultData <- list(
     )
   )
 
-
+mxConfig$defaultDataAfg <- list(
+  user=list(
+    preferences=list(
+      language = mxConfig$defaultLanguage,
+      last_project = "AFG"
+      )
+    ),
+  admin=list(
+    roles=c(mxConfig$defaultRoles,list("AFG"="user"))
+    )
+  )
 
 
 
@@ -205,7 +215,7 @@ mxConfig$roles <- list(
     desc=list(
       access = c("map","storymap","country","view_creator","storymap_creator","tools"),
       read = c("self","user","public"),
-      publish = c("self","user","editor"),
+      publish = c("self","editor"),
       edit = c("self"),
       profile = c("self")
       )

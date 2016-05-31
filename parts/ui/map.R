@@ -263,7 +263,7 @@ uiMapConfig <- tagList(
       itemList=list(
         "edit"=list(
           "title"="Edit selected story",
-          "condition"="input.selectStoryId.length>0",
+          "condition"=sprintf("input.selectStoryId.length>0 && input.selectStoryId != '%s'",mxConfig$noData),
           content=tagList(
             uiStoryEditor
             )
