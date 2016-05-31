@@ -44,7 +44,7 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){x}){
 #' @export
 mxDbUpdate <- function(table,column,idCol="id",id,value,expectedRowsAffected=1){   
 
-  if(is.list(value)) value <- jsonlite::toJSON(value,auto_unbox=T)
+  if(is.list(value)) value <- mxToJsonForDb(value)
 
   on.exit(mxDbClearAll())
 
@@ -643,7 +643,6 @@ mxDbAddData <- function(data,table){
     tNam <- sort(tolower(names(data)))
     rNam <- sort(tolower(mxDbGetColumnsNames(table)))
     if(!isTRUE(identical(tNam,rNam))){
-      browser()
       wText <- sprintf("mxDbAddData: append to %1$s. Name(s) not in remote table: '%2$s', remote name not in local table '%3$s'",
         table,
         paste(tNam[!tNam %in% rNam],collapse="; "),
@@ -908,12 +907,13 @@ mxDbGetUserInfoList <- function(id=NULL,email=NULL,userTable="mx_users"){
 }
 
 
+#mxDbAddRow <- function(data,table){
+  
 #' Add 
-mxDbCreateUser <- function(email=NULL,timeStamp=""){
+mxDbCreateUser <- function(email=NULL,timeStamp=Sys.time(),dat=mxConfig$defaultData,userTable=mxConfig$userTableName){
 
-  userTable <- mxConfig$userTableName 
-  dat <- jsonlite::toJSON(mxConfig$defaultData,auto_unbox=T)
 
+  stopifnot("POSIXct" %in% class(timeStamp))
   stopifnot(mxEmailIsValid(email))
   stopifnot(mxDbExistsTable(userTable))
 
@@ -932,34 +932,33 @@ mxDbCreateUser <- function(email=NULL,timeStamp=""){
   }
   userName <- paste0(mxConfig$defautUserName,"_",nextId,sep="") 
 
-  #
-  # Insert new user
-  #
-  insertString <- gsub("\n","",sprintf(
-      "insert into mx_users (username,email,key,validated,hidden,date_validated,date_last_visit,data) values  (
-      '%1$s',
-      '%2$s',
-      '%3$s',
-      '%4$s',
-      '%5$s',
-      '%6$s',
-      '%7$s',
-      '%8$s')",
-    userName,
-    email,
-    randomString(),
-    "true",
-    "false",
-    timeStamp,
-    timeStamp,
-    dat
+  newUser = list(
+    username=userName,
+    email=email,
+    key=randomString(),
+    validated=TRUE,
+    hidden=FALSE,
+    date_validated=timeStamp,
+    date_last_visit=timeStamp,
+    data=mxToJsonForDb(dat)
     )
-  )
 
 
-  mxDbGetQuery(insertString,onError=function(x){stop(x)})
+  mxDbAddRow(newUser,userTable)
 
 }
+
+
+mxToJsonForDb<- function(listInput){
+  jsonlite::toJSON(listInput,auto_unbox=TRUE,simplifyVector = FALSE) %>%
+  gsub("[\x09\x01-\x08\x0b\x0c\x0e-\x1f\x7f]"," ",.)%>%
+    gsub("'","''",.)%>%
+    as.character()
+}
+
+
+
+
 
 #' drop layer
 #' layerName Layer (table + entry + views) to delete from db

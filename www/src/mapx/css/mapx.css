@@ -1038,6 +1038,7 @@ select:focus, select:active{
 
 
 .mx-hide {
+  opacity:0;
   position: absolute !important;
   top: -9999px !important;
 }

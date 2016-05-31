@@ -53,7 +53,8 @@ observe({
     update <- mxReact$layerListUpdate
 
     usr <- mxReact$userInfo
-    visibility = paste0("'",usr$role$desc$read,"'",collapse=",")
+    visibility = usr$role$desc$read
+    visibility = paste0("'",visibility[!visibility %in% 'self'],"'",collapse=",")
 
     if(!noDataCheck(visibility)){
       mxCatch("Update input: get list of layer",{
@@ -230,7 +231,7 @@ observeEvent(input$btnViewCreatorSave,{
       # Visibility
       #
 
-      visibility <- as.character(jsonlite::toJSON(input$selNewViewVisibility))
+      visibility <- input$selNewViewVisibility
 
       #
       # Date handler
@@ -290,11 +291,10 @@ observeEvent(input$btnViewCreatorSave,{
           date_modified = timeNow,
           date_validated = timeNow,
           date_archived = timeNow,
-          style = as.character(jsonlite::toJSON(sty)),
-          visibility = visibility
+          style = mxToJsonForDb(sty),
+          visibility = mxToJsonForDb(visibility)
           )
 
-      browser()
 
       mxDbAddRow(
         data = view,

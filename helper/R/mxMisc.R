@@ -838,7 +838,7 @@ mxGetViewsTable <- function(table="mx_views",validated=TRUE,archived=FALSE,count
 
   classesOrig = as.character(mxConfig$class)
   country = paste0("'",country,"'",collapse=",")
-  visibility = paste0("'",visibility,"'",collapse=",")
+  visibility = paste0("'",visibility[!visibility %in% 'self'],"'",collapse=",")
   classes = paste0("'",classesOrig,"'",collapse=",")
 
 
@@ -893,6 +893,9 @@ mxGetViewsTable <- function(table="mx_views",validated=TRUE,archived=FALSE,count
 
 
 
+
+
+
 #' Encrypt or decrypt data using postgres pg_sym_encrypt
 #' 
 #' 
@@ -905,9 +908,9 @@ mxGetViewsTable <- function(table="mx_views",validated=TRUE,archived=FALSE,count
 mxDbEncrypt <- function(data,ungroup=FALSE,key=mxConfig$key){
 
   if(ungroup){
-      data <- sapply(data, jsonlite::toJSON, auto_unbox=T,simplifyVector=F)
+      data <- sapply(data, mxToJsonForDb)
     }else{
-      data <- jsonlite::toJSON(data,auto_unbox=T,simplifyVector=F)
+      data <- mxToJsonForDb(data)
     }
     q <- sprintf(
       "(SELECT mx_encrypt('%1$s','%2$s') as res)",

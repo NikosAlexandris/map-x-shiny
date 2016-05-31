@@ -30,7 +30,8 @@ observe({
 
   usr <- mxReact$userInfo
   storyPath <- c("data","user","preferences","last_story")
-  visibility <- paste0("'",usr$role$desc$read,"'",collapse=",")
+  visibility <- usr$role$desc$read
+  visibility = paste0("'",visibility[!visibility %in% 'self'],"'",collapse=",")
 
   if(!noDataCheck(visibility)){
     mxCatch("Update input: get list of story maps",{
