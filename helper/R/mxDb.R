@@ -979,7 +979,7 @@ mxDbDropLayer <- function(layerName){
 
   existsTable <- isTRUE(mxDbExistsTable(layerName))
   existsEntry <- isTRUE(mxDbGetQuery(qt)$test)
-  existsViews <- isTRUE(mxDbGetQuery(qv)$testk)
+  existsViews <- isTRUE(mxDbGetQuery(qv)$test)
 
   if(existsTable){
     mxDbGetQuery(sprintf("DROP table %1$s",layerName))
