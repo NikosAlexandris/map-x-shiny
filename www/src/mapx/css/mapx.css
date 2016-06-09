@@ -1476,13 +1476,13 @@ select:focus, select:active{
 }
 
 .mx-story-section {
-    line-height: 2;
+    /* line-height: 2; */
     /* letter-spacing: 0.1em; */
     /* margin-bottom: 50%; */
     /* text-align: center; */
     /* letter-spacing: 0.1rem; */
     margin-bottom: 12%;
-    text-align: left;
+    text-align: justify;
     font-family: sans-serif;
  }
 
@@ -1529,7 +1529,7 @@ opacity : 0.4;
     padding-bottom: 3000px;
     background-color: #fff;
     color: #3B3B3B;
-    text-align: left;
+    text-align: justify;
     text-rendering: optimizeLegibility;
 }
 
@@ -1542,6 +1542,7 @@ opacity : 0.4;
 }
 
 #mxStoryText h1 {
+    text-align: left;
     font-size: 28px;
     margin: 0 0 15px;
 }
@@ -1562,22 +1563,25 @@ opacity : 0.4;
 
 
 #mxStoryText h2 {
+    text-align: left;
     font-size: 24px;
 }
 
 #mxStoryText h3 {
+    text-align: left;
     font-size: 20px;
 }
 
 #mxStoryText h4 {
+    text-align: left;
     font-size: 17px;
 }
 
 #mxStoryText hr {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  border: 0;
-  border-top: 1px solid #eee;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 0;
+    border-top: 1px solid #eee;
 }
 
 #mxStoryText section {
@@ -1593,13 +1597,21 @@ opacity : 0.4;
     font-weight: bold;
 }
 
+#mxStoryText .credit {
+    font-size: smaller;
+    color: rgb(122, 122, 122);
+    text-align: left;
+}
+
+#mxStoryText .credit:before {
+    content: "\00a9\0000a0";
+}
 
 #mxStoryText ul {
     /* http://stackoverflow.com/a/5308785 */
     list-style: none;
     padding:0;
     margin:0;
-    /* */
     list-style-position: inside;
     padding-left: 0;
 }
@@ -1614,6 +1626,7 @@ opacity : 0.4;
 #mxStoryText li { 
     padding-left: 1em; 
     text-indent: -.7em;
+    margin: 0 0 10px 0;
 }
 
 #mxStoryText ul > li:before {
@@ -1649,7 +1662,7 @@ opacity : 0.4;
   bottom: 0px;
   content: "\f0da";
   font-family: fontawesome;
-  font-size: 20px;
+  font-size: 25px;
   color: #474747;
 }
 
