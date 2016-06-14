@@ -334,7 +334,6 @@ uiMapConfig <- tagList(
       #
 
       tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",
-        div(id="mxStoryLimitTrigger"),
         conditionalPanel(condition="input.selectStoryId.length>0",  
           div(id="mxStoryText")
           )
@@ -510,6 +509,7 @@ uiMapConfig <- tagList(
           # CONTENT
           #
           div(class="map-left-content",
+            div(id="mxStoryLimitTrigger",class="mx-mode-story-reader mx-hide"),
             div(class="no-scrollbar-container",
               div(class="no-scrollbar-content",id="mapLeftScroll", 
                 uiMapList,
