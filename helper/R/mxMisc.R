@@ -1506,56 +1506,76 @@ mxRecursiveSearch <- function(li,column="",operator="==",search="",filter=""){
   }
 }
 
-#' Extract value from a list using path
-#' @param li Input named list
+#' Extract value from a list given a path
+#' @param listInput Input named list
 #' @param path Path inside the list
 #' @return value extracted or NULL
 #' @export
-mxGetListValue <- function(li,path){
-
-  if(!is.list(li) || length(li) == 0) return()
-  
+mxGetListValue <- function(listInput,path){
+  if(!is.list(listInput) || length(listInput) == 0) return()
   out = NULL
-  
   res <- try(silent=T,{
-    out<-li[[path]]
+    out<-listInput[[path]]
   })
-
-
   return(out)
-
 } 
 
-mxSetListValue <- function(li,path,value){
+#' Set a value of a list element, given a path
+#'
+#' This function will update a value in a list given a path. If the path does not exist, it will be created. 
+#' If the function find a non list element before reaching destination, it will stop.
+#'
+#' @param path vector with name of path element. e.g. `c("a","b","c")`
+#' @param value value to update or create
+#' @param level starting path level, default is 0
+#' @param export
+mxSetListValue <- function(listInput,path,value,level=0){
+  level <- level+1 
+  p <- path[c(0:level)]
+  #
+  # Create parsable expression to acces non existing list element
+  #
+  liEv = paste0("listInput",paste0(paste0("[[\"",p,"\"]]",sep=""),collapse=""))
 
-  if(!is.list(li) || length(li) == 0) return()
-   
-  res <- try(silent=T,{
-    li[[path]]<-value
-  })
-
-
-  return(li)
-
+  if(is.null(eval(parse(text=liEv)))){
+    #
+    # If the element does not exist, it's a list
+    # 
+    liSet = paste0(liEv,"<-list()")
+    eval(parse(text=liSet))
+  }
+  if(level == length(path)){
+    #
+    # We reached destination, set value
+    #
+    listInput[[p]] <- value
+  }else{
+    #
+    # If we encouter non-list value, stop, it's not expected.
+    #
+    if(!is.list(listInput[[p]])) stop(sprintf("Not a list at %s",paste(p,collapse=",")))
+    listInput <- mxSetListValue(listInput,path,value,level)
+  }
+  return(listInput)
 } 
+
+
+
+
+
+
 
 #' Return the highest role for a given user
 #' @param project Project to look for
 #' @param userInfo object of class mxUserInfoList produced with mxDbGetUserInfoList 
-#' @param useWorld Boolean keep result for project "world" in the result
 #' @export
-mxGetMaxRole <- function(project,userInfo,useWorld=T){
+mxGetMaxRole <- function(project,userInfo){
 
   stopifnot(isTRUE("mxUserInfoList" %in% class(userInfo)))
 
   userRoles <- mxGetListValue(userInfo,c("data","admin","roles"))
-  if(isTRUE(useWorld)){
-    roles <- userRoles[c(project,'world')]
-  }else{
-    roles <- userRoles[c(project)]
-  }
-
-  res <- lapply(roles,
+  roles <- sapply(userRoles,`[[`,"role")
+  res <- sapply(roles,
     function(x){
       res <- NULL
       if(!is.null(x)){
@@ -1564,16 +1584,38 @@ mxGetMaxRole <- function(project,userInfo,useWorld=T){
       return(res)
     }
     )
-  res <- res[!sapply(res,is.null)]
-  levels <-  lapply(res,
-    function(x){
-      res <- NULL
-      if(!is.null(x))
-        x[[1]]$level
-    }
-    )
-  minLevel <- which.min(levels)
-  res[minLevel][[1]][[1]]
+
+  res[which.min(sapply(res,`[[`,'level'))][[1]]
 }
+
+
+#' Format roles from database 
+#' @param x named role list to keyed (location:role value pair)
+mxFormatRole_toKeyed <- function(x){
+  res = list()
+  for(i in names(x)){
+  res=c(res,list(
+      list(
+    project=i,
+    role=x[[i]]
+    )
+    )
+    )
+  }
+  return(res)
+}
+
+#' Format roles from database to roles used in jed format
+#' @param x keyed list to convert to named (location:role value pair)
+ 
+#' @export
+mxFormatRole_toNamed <- function(x){
+  res <- sapply(x,`[[`,"role")
+  names(res) <- sapply(x,`[[`,"project")
+  as.list(res)
+}
+# test 
+# dat = list("AFG"="user","world"="public")
+# identical(mxFormatRole_toNamed(mxFormatRole_toKeyed(dat)),dat)
 
 

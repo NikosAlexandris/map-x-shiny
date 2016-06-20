@@ -96,8 +96,6 @@ LeafletWidget.methods.setVectorTilesVisibility = function(group,visible) {
   var  g = leafletvtId[group];
   var l = {};
   if(g){
-    console.log("group to toggle");
-    console.log(group);
     if(visible){
       l = leafletvtLegends[group];
       if(l){
@@ -119,7 +117,6 @@ LeafletWidget.methods.setVectorTilesVisibility = function(group,visible) {
 LeafletWidget.methods.hideGroup = function(group) {
   var self = this;
   $.each(asArray(group), function(i, g) {
-    console.log("hide group" + group);
     var layer = self.layerManager.getLayerGroup(g, true);
     if (layer) {
       self.removeLayer(layer);
@@ -142,6 +139,8 @@ var glMap = {};
 
 LeafletWidget.methods.glInit = function( idGl, idMap, style, token ){
 
+  console.log("gl called");
+
   var glLayer = L.mapboxGL({
     container: idMap,
     style: style,
@@ -153,6 +152,7 @@ LeafletWidget.methods.glInit = function( idGl, idMap, style, token ){
   // we want to have quick access to gl map
   gl = glLayer._glMap ;
   gl.on("load",function(){ 
+    console.log("gl loaded");
     Shiny.onInputChange("glLoaded",idGl);
   });
   glMap[ idGl ] = gl ;
@@ -268,11 +268,9 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
     onTilesLoaded: function() {
       var feedBack  = options.onLoadFeedback;
       if( typeof feedBack != "undefined" ){
-        console.log("Feedback function is "+feedBack);
         if( feedBack != "never" ){
           if( typeof leafletvtLoaded[layerId] == "undefined" ){
             if( feedBack == "once" ){      
-              console.log("Feedback is once, save loaded time in leafletvtLoaded for "+layerId);
               leafletvtLoaded[layerId] = new Date().getTime();
             }
             var leafletvtData = {
@@ -286,7 +284,6 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
       }
     },
    // layerOrdering: function(feature) {
-/*       console.log("layer ordering");*/
       //debugger;
       ////This only needs to be done for each type, not necessarily for each feature. But we'll start here.
       //if (feature && feature.properties) {
@@ -319,7 +316,6 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
   // update input$leafletvtViews 
   Shiny.onInputChange("leafletvtViews",leafletvtViews);
 
-  //console.log(vecTile);
 
 };
 

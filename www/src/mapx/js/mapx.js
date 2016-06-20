@@ -228,20 +228,6 @@ function  updateStoryMaps_orig(){
                 Shiny.onInputChange("storyMapData",out);
               }
               
-
-              /*
-                 out = {
-                 view : storyMapLayer.store[0],
-                 opacity : vOpa,
-                 extent : vExt 
-                 };
-
-                 if(vId == "khimdtpsawmskngqhep"){
-                 console.log( out );
-                 }
-
-                 Shiny.onInputChange("storyMapData",out);
-                 */
             }
 
           }
@@ -381,6 +367,7 @@ function mxSetFilter(layer,id,column,value){
       }
 
       switch (type) {
+      
         case 1: //'Point'
           style.color = dataCol;
           style.radius = vtStyle$size[0];
@@ -583,7 +570,6 @@ var mxSetRange = debounce(mxSetRange_orig,50);
 //
 function mxSetStyle_orig(id,vtStyle,lay,overwrite){
 
-  console.log("mxSetStyle requested");
   // check if the provided style is the same as this already applied  
   if(!overwrite){
     if(vtStyle == leafletvtId[id].vtStyle){
@@ -614,6 +600,7 @@ function mxSetStyle_orig(id,vtStyle,lay,overwrite){
         dataCol = defaultColor;
       }
     }
+
     switch (type) {
       case 1: //'Point'
         style.color = dataCol;

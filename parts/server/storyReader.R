@@ -7,11 +7,18 @@
 #                 |_|           
 # story map reader : create list, select and display story map
 
+#
+#
+#  !!! THIS PART NEED WORK : THERE IS NEARLY NO LOGIC OF READ / WRITE ACCESS !!!
+#
+#
+#
+
 
 
 # Allow story map creator
 observe({
-  if(mxReact$allowStoryCreator){
+  if(reactUser$allowStoryCreator){
     source("parts/server/storyCreator.R",local=TRUE)
   }
 })
@@ -19,17 +26,16 @@ observe({
 
 # available story
 observe({
-  if(mxReact$mapPanelMode != "mapStoryReader") return()
+  if(reactUi$panelMode != "mapStoryReader") return()
   # default
   choice <- mxConfig$noData
   # take reactivity on select input
 
-  cntry <- toupper(mxReact$selectCountry)
+  cntry <- toupper(reactProject$name)
   # reactivity after updateVector in postgis
-  update <- mxReact$updateStorySelector 
+  update <- reactMap$updateStorySelector 
 
-  usr <- mxReact$userInfo
-  storyPath <- c("data","user","preferences","last_story")
+  usr <- reactUser$data
   visibility <- usr$role$desc$read
   visibility = paste0("'",visibility[!visibility %in% 'self'],"'",collapse=",")
 
@@ -55,11 +61,15 @@ observe({
       if(!noDataCheck(storyIds)){
         choice = c(storyIds,choice)  
       }
+      
+      #
+      # Update choice, set default to the last read story
+      #
       isolate({
 
         idOld <- mxGetListValue(
           li=usr,
-          path=storyPath
+          path = c("data","user","cache","last_story")
           )
 
         if(noDataCheck(idOld)){
@@ -72,9 +82,9 @@ observe({
 
         updateSelectizeInput(session,
           "selectStoryId",
-          choices=c(storyIds,choice),
-          server=TRUE,
-          selected=input$selectStoryId
+          choices = c(storyIds,choice),
+          server = TRUE,
+          selected = input$selectStoryId
           )
       })
 
@@ -90,66 +100,62 @@ observe({
 #
 
 observeEvent(input$selectStoryId,{
-
+  #
+  # get story map id
+  #
   id <- input$selectStoryId
-
   if(noDataCheck(id)) return()
-
   #
-  # Save id in database
+  # update reactive value and db if needed
   #
-
-  dat <- mxReact$userInfo
-  storyPath = c("data","user","preferences","last_story")
-
-  idOld <- mxGetListValue(
-      li=dat,
-      path=storyPath
-      ) 
-
-   if(!identical(idOld,id)){
-      dat <- mxSetListValue(
-        li=dat,
-        path=storyPath,
-        value=id
-        )
-      
-      mxDbUpdate(
-        table=mxConfig$userTableName,
-        idCol='id',
-        id=dat$id,
-        column='data',
-        value=dat$data
+  mxDbUpdateUserData(reactUser,
+    path=c("data","user","cache","last_story"),
+    value=selCountry
+    )
+  #
+  # Retrieve story by id
+  #
+  story <-  mxGetStoryMapData(id)
+  if( reactUser$allowStoryCreator ){
+    #
+    # Set select story visibility (editor)
+    #
+    if(!noDataCheck(story$visibility)){
+      updateSelectizeInput(
+        session,
+        inputId="selStoryVisibility",
+        selected=story$visibility
         )
     }
-
-  story <-  mxGetStoryMapData(id)
-  if(!noDataCheck(story$visibility)){
-  updateSelectizeInput(
-    session,
-    inputId="selStoryVisibility",
-    selected=story$visibility
-    )
   }
-
+  #
+  # If no content, set default text
+  #
   if(noDataCheck(story$content)){
     story = "Write a story ..."
   }else{
     story = story$content
   }
-
-  mxReact$storyMap <- story
+  #
+  # Update current story map
+  #
+  reactMap$story <- story
 
 })
 
 
-observeEvent(mxReact$storyMap,{
-  storyMap <- mxReact$storyMap
+observeEvent(reactMap$story,{
+  storyMap <- reactMap$story
   if(!noDataCheck( storyMap )){
-    #
-    # Update editor
-    #
-    mxUpdateValue(id="txtStoryMapEditor",value=storyMap)
+
+
+
+    if( reactUser$allowStoryCreator ){
+      #
+      # Update editor
+      #
+      mxUpdateValue(id="txtStoryMapEditor",value=storyMap)
+    }
     #
     # Parse story map
     #

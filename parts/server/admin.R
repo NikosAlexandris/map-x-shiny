@@ -9,131 +9,213 @@
 
 # ui enable
 observe({
-  mxUiEnable(id="sectionAdmin",enable=mxReact$allowAdmin) 
+  mxUiEnable(id="sectionAdmin",enable=reactUser$allowProfile) 
 })
 
-# 
-# Debugger button
+
+
 #
-observeEvent(input$btnDebug,{
-  if(mxReact$allowAdmin){
-    browser()
+# Set admin  / settings schema
+#
+
+observe({
+  
+  lang <- reactUser$language 
+
+  reactSchema$preferences = list(
+    title=ifelse(lang=="eng","Preferences","Préférences"),
+    type="object",
+    properties=list(
+      language=list(
+        type="string",
+        title=ifelse(lang=="eng","Language","Langue"),
+        enum=c("eng","fre"),
+        minLength=1,
+        required=TRUE,
+        options=list(
+          enum_titles=c("English","Français (partiel)")
+          )
+        ),
+      about=list(
+        type="string",
+        format="textarea",
+        default=" ",
+        title=ifelse(lang=="eng","About","À propos"),
+        required=TRUE
+        )
+      )
+    )
+
+
+  if(reactUser$data$role$level == 0){
+    # superuser 
+    cntryList = c("world",unlist(mxConfig$countryListChoices,use.names=F))
+  }else{
+    cntryList = c("world",reactProject$name,"")
   }
+
+
+  rolesList <- mxGetListValue(reactUser$data,c("role","desc","profile"))
+
+  reactSchema$role = list(
+    title=ifelse(lang=="eng","Selected user roles","Roles de l'utilisateur selectionné"),
+    type="object",
+    properties=list(
+      roles=list(
+        title=ifelse(lang=="eng","Role","Role"),
+        type="array",
+        format="table",
+        uniqueItems=TRUE,
+        items = list(
+          type = "object",
+          title = ifelse(lang=="eng","Role","Role"),
+          properties = list(
+            project = list(
+              title = ifelse(lang=="eng","Location","Lieu"),
+              type = "string",
+              enum = cntryList,
+              required =TRUE
+              ),
+            role =list(
+              title = ifelse(lang=="eng","Role","Role"),
+              type = "string",
+              enum =  rolesList,
+              required =TRUE
+              )
+            )
+          )
+        )
+      )
+    )
+
 })
+
+
+#
+# populate user list
+#
+
+observe({
+  userList <- list()
+  allowAdmin <- reactUser$allowAdmin 
+  #
+  # Toggle ui
+  #
+  mxUiEnable(class="mx-allow-admin-role",enable=allowAdmin)
+  #
+  # Get user list
+  #
+  if(allowAdmin){
+    canEdit <-  mxGetListValue(reactUser$data,c("role","desc","profile"))
+
+    selfId <- reactUser$data$id
+    currProject <- reactProject$name 
+
+    #users = mxDbGetUserInfoByRole(
+    users <- mxDbGetUserByRoles(roles=canEdit)
+
+    userList <- unique(users$id)
+    names(userList) <- unique(users$email)
+  }
+  #
+  # Update user list
+  #
+  updateSelectInput(session,
+    inputId="selectUserForRole",
+    choices=userList
+    )
+})
+
+#
+# Set up default schema
+#
+
+output$uiUserAdmin <- jedRender({
+  mxDebugMsg("Set schema user admin")
+  jedSchema(
+    list(
+      schema = reactSchema$role
+      )
+    )
+})
+
+
+
+
 
 
 observe({
-  if(mxReact$allowAdmin){
-    #
-    # USERS
-    # 
-    mxCatch(title='Populate admin tables',{
-      # send data to table
-      output$tableUsers <- renderHotable({
-        #pwdIn <- mxReact$pwd
-        pwdIn <- mxData$pwd
-        nPwd <- names(pwdIn) 
-        newId <- max(as.numeric(pwdIn$id))+1
-        newEntry <- rep(NA,8)
-        pwdOut <- rbind(pwdIn,newEntry)
-        pwdOut$select <- FALSE
-        pwdOut <- pwdOut[,nPwd]
-        pwdOut[nrow(pwdOut),'id'] <- newId
-        pwdOut
-      },stretch='last')
-      # handle btn
-      observeEvent(input$btnAdmRmUser,{
-        tbl <- na.omit(hot.to.df(input$userTable))
-        #mxReact$pwd <- tbl[!tbl$select,names(pwd)]
-        mxData$pwd <- tbl[!tbl$select,names(pwd)]
-      })
-})
 
+  allowed <- isTRUE(reactUser$allowAdmin)
+  usrId <- input$selectUserForRole
+  hasId <- !noDataCheck(usrId)
 
+  if(!allowed || !hasId ) return()
 
-
-    #
-    # VIEWS
-    #
-
-    mxCatch(title="Admin views list ",{
-      # send data to table
-      output$tableViews <- renderHotable({
-        vList <- mxReact$views
-        tbl = data.frame(
-          id="-",
-          country="-",
-          title="-",
-          editor="-",
-          validated="-",
-          layer="-",
-          dateCreated="-",
-          stringsAsFactors=FALSE
-          )
-        if(!noDataCheck(vList)){
-          vName = names(vList)
-          for(i in 1:length(vName)){
-            v = vName[i]
-            vDat <- vList[[v]][names(tbl)]
-            vDat <- as.data.frame(vDat[names(tbl)],stringsAsFactors=FALSE)
-            vDat[is.na(vDat)]<-""
-            if(i>1){
-              tbl <- rbind(tbl,vDat)
-            }else{
-              tbl <- vDat
-            }
-          }
-          tbl$select=FALSE
-          tbl<- tbl[,unique(c("select",names(tbl)))]
-        }
-
-        return(tbl)
-      })
-      #  handle remove button
-
-      observeEvent(input$btnAdmRmViews,{
-        tbl<-hot.to.df(input$tableViews)
-        viewsToRemove<-tbl[tbl$select,"id"]
-        if(length(viewsToRemove)>0){ 
-          mxReact$viewsToRemove <- viewsToRemove
-          outConfirm <- tagList(
-            p("Are you sure to remove those views:",paste(viewsToRemove,sep=", ")),
-            actionButton("btnConfirmRmViews","yes"),
-            actionButton("btnCancelRmViews","cancel")
-            )
-        }else{
-          outConfirm <- tagList()  
-        }
-        output$confirmRmViews<-renderUI(outConfirm)
-
-      })
-
-      observeEvent(input$btnConfirmRmViews,{
-
-        viewsToRemove <- mxReact$viewsToRemove
-        t <- mxConfig$viewsListTableName
-
-        for(i in viewsToRemove){
-          q <- sprintf("DELETE FROM %1$s WHERE id='%2$s'",t,i)
-          mxDbGetQuery(q)
-        }
-        # update views list
-        mxReact$viewsListUpdate <- runif(1)
-        # render confirmation remove
-        output$confirmRmViews <- renderUI(tagList())
-
-      })
-      observeEvent(input$btnCancelRmViews,{ 
-        output$confirmRmViews<-renderUI(tagList())
-      })
-
-
-
-
+  #
+  # Get selected user data info
+  #
+  usrDat <- mxDbGetUserInfoList(id=usrId)
+  #
+  # Get roles for selected user
+  #
+  dat <- mxGetListValue(usrDat,c("data","admin","roles"))
+  #
+  # Update jed
+  #
+  mxDebugMsg("update jedUpdate")
+  jedUpdate(
+    editorId = "uiUserAdmin",
+    values = list(roles=dat)
+    )
 
 })
 
 
+observeEvent(input$uiUserAdmin_values,{
+  val <- input$uiUserAdmin_values$roles
+  if(isTRUE(length(val)>0)){
+    mxDbUpdateUserData(reactUser,
+      path = c("data","admin","roles"),
+      value = val
+      )
   }
-
 })
+
+
+
+observe({
+if(reactUser$allowProfile){
+usr <- reactUser$data
+mxDebugMsg("Set user default preference in jed")
+ output$uiUserProfil <- jedRender({
+   # get preferences
+   dat <- mxGetListValue(reactUser$data,c("data","user","preferences"))
+   # clean NOTE:old preference item to be removed.
+   dat <- dat[!names(dat) %in% c("last_story","last_project")]
+   # default 
+   if(is.null(dat$about)) dat$about = ""
+   if(is.null(dat$language)) dat$language = "eng"
+
+    jedSchema(
+      list(
+        schema = reactSchema$preferences,
+        startval = dat
+        )
+      )
+ })
+}
+})
+
+observeEvent(input$uiUserProfil_values,{
+
+mxDebugMsg("User profile received, test for change and update db / react")
+    # update reactive value and db if needed
+    mxDbUpdateUserData(reactUser,
+      path=c("data","user","preferences"),
+      value=input$uiUserProfil_values
+      )
+})
+
+
+

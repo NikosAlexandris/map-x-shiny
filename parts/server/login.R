@@ -8,7 +8,7 @@
 # login and restriction  management
 
 
-mxReact$userInfo <- list()
+reactUser$data <- list()
 
 #
 # Language selection
@@ -18,7 +18,7 @@ observeEvent(input$selectLanguage,{
   mxCatch(title="Language selection",{
     selLanguage = input$selectLanguage
     if(!noDataCheck(selLanguage)){
-      mxReact$selectLanguage = selLanguage
+      reactUser$language = selLanguage
       mxSetCookie(
         cookie=list("mx_language"=selLanguage),
         ) 
@@ -31,7 +31,7 @@ observeEvent(input$selectLanguage,{
 #
 observeEvent(input$btnNavLogout,{
 mxCatch(title="Logout",{
-    mxReact$userInfo <- list()
+    reactUser$data <- list()
     mxUpdateValue(id="loginUserEmail",value="")
     mxSetCookie(
       deleteAll=TRUE,
@@ -61,8 +61,8 @@ observeEvent(input$cookies,{
       #
       # Request a login
       #
-      mxReact$loginUserEmail <- res$email
-      mxReact$loginRequested <- runif(1) 
+      reactUser$loginUserEmail <- res$email
+      reactUser$loginRequested <- runif(1) 
     }else{
       #
       # Enable login panel
@@ -113,10 +113,10 @@ observeEvent(input$btnLogin,{
 
   mxCatch(title="Login btn event",{
     email <- input$loginUserEmail
-    mxReact$loginUserEmail <- email
+    reactUser$loginUserEmail <- email
     # set control timer to 20 minutes
-    mxReact$loginTimerEndAt <- Sys.time()-20*60*60*24*365
-    userIsLogged <- isTRUE(mxReact$userLogged)
+    reactUser$loginTimerEndAt <- Sys.time()-20*60*60*24*365
+    userIsLogged <- isTRUE(reactUser$isLogged)
     emailIsKnown <- mxEmailIsKnown(email)
     emailIsValid <- mxEmailIsValid(email)
     #
@@ -172,7 +172,7 @@ observeEvent(input$btnLogin,{
 
 observeEvent(input$btnSendLoginKey,{
   mxCatch(title="Btn send password event",{
-    email <- mxReact$loginUserEmail
+    email <- reactUser$loginUserEmail
     emailIsValid <- mxEmailIsValid(email)
     emailHasChanged <- !identical(input$loginUserEmail,email)
 
@@ -186,7 +186,7 @@ observeEvent(input$btnSendLoginKey,{
         )
 
       # create the unique secret key
-      mxReact$secret <- randomString(
+      reactUser$loginSecret <- randomString(
         n=15,
         splitIn=5,
         addLetters=T,
@@ -202,7 +202,7 @@ observeEvent(input$btnSendLoginKey,{
         mxSendMail(
           from=mxConfig$mapxBotEmail,
           to=email,
-          body=mxReact$secret,
+          body=reactUser$loginSecret,
           subject="Map-x secure login",
           wait=F)
       })
@@ -217,7 +217,7 @@ observeEvent(input$btnSendLoginKey,{
           id="btnSendLoginKey",
           disable=TRUE
           )
-        mxReact$loginTimerEndAt <- Sys.time() + mxConfig$loginTimerMinutes*60
+        reactUser$loginTimerEndAt <- Sys.time() + mxConfig$loginTimerMinutes*60
       }
     }else{
       msg <- "Email validation failed"
@@ -238,8 +238,8 @@ observeEvent(input$btnSendLoginKey,{
 keyStatus <- reactive({
   mxCatch(title="Key status reactive obj.",{
     key <- input$loginKey
-    timer <- mxReact$loginTimerEndAt
-    secret <- mxReact$secret
+    timer <- reactUser$loginTimerEndAt
+    secret <- reactUser$loginSecret
 
     list(
       isEmpty = isTRUE(is.null(key)) || isTRUE(nchar(key)==0), 
@@ -266,7 +266,7 @@ observe({
         text="Ok!"
         )
       # trigger actual login
-      mxReact$loginRequested = runif(1)
+      reactUser$loginRequested = runif(1)
       # close the panel
       mxUpdateText("panelAlert",text="")
     }else{
@@ -300,26 +300,15 @@ observe({
 #
 # create account,set date last visit, create cookie
 #
-observeEvent(mxReact$loginRequested,{ 
+observeEvent(reactUser$loginRequested,{ 
   tryCatch(title="Logic for login process",{
     # set local variables
 
-    email <- mxReact$loginUserEmail
+    email <- reactUser$loginUserEmail
     timeStamp <- Sys.time()
     newAccount <- !mxEmailIsKnown(email)
     userTable <- mxConfig$userTableName
     stopifnot(mxEmailIsValid(email))
-
-    # update ui
-
-    mxUiEnable(
-      id="btnNavLogout",
-      enable=TRUE
-      )
-    mxUiEnable(
-      id="mxPanelLogin",
-      enable=FALSE
-      )
 
     if(newAccount){
       mxDbCreateUser(
@@ -359,19 +348,28 @@ observeEvent(mxReact$loginRequested,{
       expireDays = mxConfig$cookiesExpireDays
       ) 
 
-    # set text
+   #
+   # update ui
+   #
     mxUpdateText(
       id="txtDialogLoginInput",
       text=sprintf("Logged as %s",email)
       )
-
+    mxUiEnable(
+      id="btnNavLogout",
+      enable=TRUE
+      )
+    mxUiEnable(
+      id="mxPanelLogin",
+      enable=FALSE
+      )
 
     userInfo <- mxDbGetUserInfoList(id=res$id)
 
     # extract last country
     cntry <- mxGetListValue(
       li=userInfo,
-      path=c("data","user","preferences","last_project")
+      path=c("data","user","cache","last_project")
       )
     # if no value, get default
     if(noDataCheck(cntry)) cntry <- mxConfig$defaultCountry
@@ -384,81 +382,115 @@ observeEvent(mxReact$loginRequested,{
       )
 
     # set reactive values
-    mxReact$selectCountry <- toupper(cntry)
-    mxReact$userInfo <- userInfo 
-    mxReact$userLogged <- TRUE
-    mxReact$allowCountry <- TRUE
+    reactProject$name <- toupper(cntry)
+    reactUser$data <- userInfo 
+    reactUser$isLogged <- TRUE
+    reactUser$allowCountry <- TRUE
+    #
+    # 
+    #
+    reactUser$language <- mxGetListValue(userInfo,c("data","user","preferences","language"))
 })
 })
 
 #
 # Update role
 #
-observeEvent(mxReact$selectCountry,{
-  cntry <- mxReact$selectCountry
-  userInfo <- mxReact$userInfo
+observeEvent(reactProject$name,{
+  cntry <- reactProject$name
+  userInfo <- reactUser$data
   # get roles
   if(noDataCheck(cntry)) return()
+
+
 
   userInfo$role <- mxGetMaxRole(
     project=cntry,
     userInfo=userInfo
     )
 
-  #NOTE: order is important
-  access <- mxGetListValue(userInfo,c("role","desc","access"))
-  mxReact$allowStoryCreator <- isTRUE("storymap_creator" %in% access)
-  mxReact$allowStoryReader <-  isTRUE("storymap" %in% access)
-  mxReact$allowViewsCreator <-isTRUE("view_creator" %in% access)
-  mxReact$allowDataUpload <- isTRUE("data_upload" %in% access)
-  mxReact$allowToolbox <- isTRUE("tools" %in% access)
-  mxReact$allowMap <- isTRUE("map" %in% access)
-  mxReact$allowAdmin <- isTRUE("admin" %in% access)
+  
+  roleDesc <- mxGetListValue(userInfo,c("role","desc"))
+  access <- roleDesc$access
+  profile <- roleDesc$profile
+  edit <- roleDesc$edit
+  publish <- roleDesc$publish
 
-  mxReact$userInfo <- userInfo 
-})
+  #
+  # Set user access
+  #
+  
+  reactUser$allowStoryCreator <- isTRUE("storymap_creator" %in% access)
+  reactUser$allowStoryReader <-  isTRUE("storymap" %in% access)
+  reactUser$allowViewsCreator <-isTRUE("view_creator" %in% access)
+  reactUser$allowUpload <- isTRUE("data_upload" %in% access)
+  reactUser$allowToolbox <- isTRUE("tools" %in% access)
+  reactUser$allowMap <- isTRUE("map" %in% access)
+  reactUser$allowAdmin <- isTRUE("admin" %in% access)
+  reactUser$allowProfile <- isTRUE("profile" %in% access)
 
-observeEvent(mxReact$userInfo,{
-  usr <- mxReact$userInfo$role$desc
-  if(length(usr)<1) return();
+  #
+  # Update select publishing / editing target
+  #
 
-  if('data_upload' %in% usr$access){
+if("data_upload" %in% access){
     updateSelectInput(session,
       inputId="selNewLayerVisibility",
-      choices=usr$publish
+      choices=publish
       )
   }
-  if('view_creator' %in% usr$access){
+  if("view_creator" %in% access){
     updateSelectInput(session,
       inputId="selNewViewVisibility",
-      choices=usr$publish
+      choices=publish
       )
   }
-  if('storymap_creator' %in% usr$access){
+  if("storymap_creator" %in% access){
     updateSelectInput(session,
       inputId="selStoryVisibility",
-      choices=usr$publish
+      choices=publish
       )
   }
+
+
+#  if("profile" %in% access){
+    #edit <- profile
+    ## user to edit :
+    #users <- mxDbGetUserInfoByRole(
+      #project = cntry,
+      #selfId = userInfo$id,
+      #roles = profile
+      #)
+    
+  #}
+
+  reactUser$data <- userInfo 
+
 })
 
-observeEvent(mxReact$mapPanelMode,{
+#observeEvent(reactUser$data,{
+  #usr <- reactUser$data$role$desc
+  #if(length(usr)<1) return();
+
+  #})
+
+observeEvent(reactUi$panelMode,{
   enable <- FALSE
   if(
-    mxReact$allowViewsCreator &&
-      isTRUE(mxReact$mapPanelMode == "mapViewsCreator")
+    reactUser$allowViewsCreator &&
+      isTRUE(reactUi$panelMode == "mapViewsCreator")
     ){
     enable <- TRUE
   }
-  mxReact$enableViewsCreator <- enable
+  reactUser$allowViewsCreator <- enable
   enable = FALSE
   if(
-    mxReact$allowViewsCreator &&
-      isTRUE(mxReact$mapPanelMode == "mapViewsToolbox")
+    reactUser$allowViewsCreator &&
+      isTRUE(reactUi$panelMode == "mapViewsToolbox")
     ){
     enable <- TRUE
   }
-  mxReact$enableToolbox <- enable
+  reactUser$allowToolbox <- enable
 
 
 })

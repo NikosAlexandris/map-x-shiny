@@ -121,7 +121,7 @@ observeEvent(input$btnStoryReader,{
 observeEvent(reactUi$panelMode,{
   if(reactUi$panelMode %in% c("mapViewsCreator","mapViewsExplorer")){
     reactMap$viewsDataToDisplay = ""
-    mxStyleReset(reactStyle)
+    mxStyleReset(mxStyle)
     if( reactUi$panelMode == "mapViewsExplorer"){
       dGroup <- mxConfig$defaultGroup
       legendId <- paste0(dGroup,"_legends")
@@ -137,49 +137,20 @@ observeEvent(reactUi$panelMode,{
 
 
 #
-# Main map
+# Map init
 #
 
-
-output$mapxMap <- renderLeaflet({
-  if(reactUser$allowMap){    
-    map <- leaflet() 
-    reactMap$mapInitDone<- runif(1)
-    return(map)
-  }
-})
-
-
-
-#
-# Map custom style
-#
-
-observeEvent(reactMap$mapInitDone,{
-
-  map <- leafletProxy("mapxMap")
-  map %>% 
-glInit(
-  idGl="basemap",
-  style=mxConfig$mapboxStyle,
-  token=mxConfig$mapboxToken)%>%
-  setZoomOptions(buttonOptions=list(position="topright")) 
-  session$sendCustomMessage(
-    type="addCss",
-    "src/mapx/css/leafletPatch.css"
-    )
+observeEvent(reactUser$allowMap,{
+  output$mapxMap <- renderLeaflet( leaflet() )
+  reactMap$mapInitDone <- runif(1)
 })
 
 
 
 
-#
-# Add sources
-#
+observeEvent(reactUser$allowMap,{
 
-observeEvent(input$glLoaded,{
-
-  proxymap <- leafletProxy("mapxMap")
+  if(reactUser$allowMap){
 
   # Country overlay source
   tilesCountry <- glMakeUrl(
@@ -212,29 +183,116 @@ observeEvent(input$glLoaded,{
     type = "vector" 
     )
   
-  proxymap  %>%
-  glAddSource(
-    idGl = "basemap",
-    idSource = "mapboxsat",
-    style = srcSatellite
-    ) %>%  
-  glAddSource(
-    idGl = "basemap",
-    idSource = "country",
-    style = srcCountry
-    ) %>% 
-  glAddSource(
-    idGl = "basemap",
-    idSource = "heresat",
-    style = srcSatelliteHere
-    ) 
-
+ 
+    #
+    # Render leaflet object
+    #
+  output$mapxMap <- renderLeaflet({
+    map <- leaflet()  %>% 
+      setZoomOptions(buttonOptions=list(position="topright")) %>%
+      glInit(
+        idGl = "basemap",
+        style = mxConfig$mapboxStyle,
+        token = mxConfig$mapboxToken) %>%
+      glAddSource(
+        idGl = "basemap",
+        idSource = "mapboxsat",
+        style = srcSatellite
+        ) %>%  
+      glAddSource(
+        idGl = "basemap",
+        idSource = "country",
+        style = srcCountry
+        ) %>% 
+      glAddSource(
+        idGl = "basemap",
+        idSource = "heresat",
+        style = srcSatelliteHere
+        ) 
+        # patch css after map initialisation. 
+        #
+        session$sendCustomMessage(
+          type="addCss",
+          "src/mapx/css/leafletPatch.css"
+          )
+      reactMap$mapInitDone <- runif(1)
+        #
+        # Render map object
+        #
+        return(map)
     })
+  }
+})
+
+
+#
+# Update center
+#
+
+
+observe({
+
+  iso3 <- reactProject$name
+  cntOk <- isTRUE(!noDataCheck( iso3 ))
+  initOk <-isTRUE(!noDataCheck( reactMap$mapInitDone ))
+  
+
+  if( cntOk && initOk ){
+
+    #
+    # Get country center
+    #
+
+    center <- mxConfig$countryCenter[[ iso3 ]]
+
+    okCountryCenter <- isTRUE( 
+      ! is.null(center) &&
+        all( c( "lat", "lng", "zoom" ) %in% names( center ))
+      )
+
+    stopifnot(okCountryCenter)
+
+    #
+    # Set view on country center
+    #
+
+    leafletProxy("mapxMap") %>%
+      setView(
+        lng=center$lng,
+        lat=center$lat,
+        zoom=center$zoom)
+
+    #
+    # Update map map init reactive value
+    #
+
+  }
+
+})
+
+
+
+
+
+
+
+#
+# Add sources
+#
+
+#observeEvent(input$glLoaded,{
+
+  #mxDebugMsg("gl loaded : add sources")
+
+  #proxymap <- leafletProxy("mapxMap")
+
+    #})
 
 
 observeEvent(input$glLoaded,{
-  mxDebugMsg("gl loaded")
+  mxDebugMsg("gl loaded event")
 
+  browser()
   initOk <- reactMap$mapInitDone > 0
   
   isolate({
@@ -242,8 +300,6 @@ observeEvent(input$glLoaded,{
   if(
     isTRUE( initOk )
     ){
-
-
 
 
   countryStyle  = list(
@@ -277,25 +333,23 @@ observeEvent(input$glLoaded,{
 # update country extent
 #
 
+
+
+
 observe({
 
   layId <- "countryOverlay"
   iso3 <- reactProject$name
-  cnt <- !noDataCheck( iso3 )
-  ini <- !noDataCheck( reactMap$mapInitDone )
-  lay <- isTRUE( input$glLoadedLayer == layId )
+  cntOk <- isTRUE(!noDataCheck( iso3 ))
+  initOk <-isTRUE(!noDataCheck( reactMap$mapInitDone ))
+  glOk <- isTRUE( input$glLoadedLayer == layId )
 
-  if( cnt && ini && lay ){
-
-    center <- mxConfig$countryCenter[[ iso3 ]] 
+  if( initOk && glOk && cntOk && glOk ){
 
     # if the country code match, don't paint it.
     filt <- c("!in", 'iso3code', iso3 )
-
     proxyMap <- leafletProxy("mapxMap")
-
     proxyMap %>%
-    setView(center$lng,center$lat,center$zoom) %>%
     glSetFilter(
       idGl="basemap",
       idLayer=layId,
@@ -526,6 +580,7 @@ output$panelAlert <- renderUI( mxPanelAlert(
  
   })
       })
+
 
 
 

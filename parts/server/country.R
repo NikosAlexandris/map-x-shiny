@@ -11,46 +11,29 @@ mxUiEnable(id="sectionCountry",enable=TRUE)
 
 
 
+
+
+
 #
-# Country input selection
+# Country input selection : save in db is needed
 #
 observeEvent(input$selectCountry,{
   selCountry = input$selectCountry
-  if(!noDataCheck(selCountry) && mxReact$userLogged){
-    mxReact$selectCountry <- selCountry
-    dat <- mxReact$userInfo
-    selCountryOld <- mxGetListValue(
-      li=dat,
-      path=c("data","user","preferences","last_project")
-      ) 
+  if(!noDataCheck(selCountry) && reactUser$isLogged ){
 
-    if(!identical(toupper(selCountryOld),toupper(selCountry))){
-      dat <- mxSetListValue(
-        li=dat,
-        path=c("data","user","preferences","last_project"),
-        value=selCountry
-        )
-      
-      mxDbUpdate(
-        table=mxConfig$userTableName,
-        idCol='id',
-        id=dat$id,
-        column='data',
-        value=dat$data
-        )
+    # update reactive value and db if needed
+    mxDbUpdateUserData(reactUser,
+      path=c("data","user","cache","last_project"),
+      value=selCountry
+      )
 
-  
-
-    }
-
-
-
+    reactProject$name <- selCountry
   }
 })
 
 
 observe({
-  cSelect <- mxReact$selectCountry
+  cSelect <- reactProject$name
   
   if(!noDataCheck(cSelect)){
     if(cSelect %in% names(mxData$countryStory)){
@@ -179,9 +162,6 @@ observe({
       id="countryNarrative",
       text=countryNarrative
       )
-    #output$countryName <- renderText(countryName)
-    #output$countryMetrics <- renderUI(countryMetrics)
-    #output$countryNarrative <- renderUI(countryNarrative)
   }
 })
 
@@ -195,7 +175,7 @@ observe({
 
 observe({
   idx <- input$selectIndicator
-  cnt <- mxReact$selectCountry
+  cnt <- reactProject$name
   msg <- ""
   if(!noDataCheck(idx) && !noDataCheck(cnt)){
 

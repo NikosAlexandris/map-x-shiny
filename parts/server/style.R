@@ -14,11 +14,11 @@
 
 observe({ 
   mxCatch(title="Add vector tiles",{
-    grp <- mxStyle$group
-    lay <- mxStyle$layer
+    grp <- reactStyle$group
+    lay <- reactStyle$layer
 
     feedBack <- "once"
-    mapViewMode <- isolate(mxReact$mapPanelMode) 
+    mapViewMode <- isolate(reactUi$panelMode) 
 
     if(is.null(mapViewMode)){
       mapViewMode="mapViewsExplorer"
@@ -28,8 +28,8 @@ observe({
       mxDebugMsg(paste("Ready to add vector tiles",lay," in group",grp))
       isolate({
         
-        var <- mxStyle$variable
-        varToKeep <- mxStyle$variableToKeep
+        var <- reactStyle$variable
+        varToKeep <- reactStyle$variableToKeep
         varStored <- mxDbGetColumnsNames(lay)
 
         if(mapViewMode == "mapViewsCreator"){
@@ -38,7 +38,7 @@ observe({
           vars <- varStored
         }else{
           # Other mode, only get variables kept
-          vToKeep <- mxStyle$variableToKeep
+          vToKeep <- reactStyle$variableToKeep
           vToKeep <- vToKeep[!vToKeep %in% mxConfig$noVariable]
           vars <- unique(c(var,vToKeep))
           vars <- vars[vars %in% varStored]
@@ -55,7 +55,7 @@ observe({
 
       proxyMap %>%
         addVectorTiles(
-          userId         = mxReact$userInfo$id,
+          userId         = reactUser$data$id,
           protocol       = mxConfig$vtInfo$protocol,
           host           = mxConfig$vtInfo$host,
           port           = mxConfig$vtInfo$port,
@@ -86,7 +86,7 @@ observeEvent(input$leafletvtIsLoaded,{
     lay <- input$leafletvtIsLoaded$lay
     grp <- input$leafletvtIsLoaded$grp
     # get the all stored views info
-    vData <- mxReact$views
+    vData <- reactMap$viewsData
     # don't do anything if id and layer are empty
     if(isTRUE(!noDataCheck(grp) && !noDataCheck(lay))){
       # Message about the feedback
@@ -96,7 +96,7 @@ observeEvent(input$leafletvtIsLoaded,{
       # handle other varables. As it's new feature, old views don't have this.
       vToKeep <- sty$variableToKeep
       if(is.null(vToKeep))vToKeep <- mxConfig$noVariable
-      if(mxReact$mapPanelMode=="mapViewsStory"){
+      if(reactUi$panelMode=="mapViewsStory"){
         baseMap <- sty$basemap
       }else{
         baseMap <- mxConfig$noLayer
@@ -104,18 +104,18 @@ observeEvent(input$leafletvtIsLoaded,{
 
       # after validation
       if(!noDataCheck(sty)){
-        mxStyle$scaleType      <- sty$scaleType
-        mxStyle$title          <- sty$title
-        mxStyle$variable       <- sty$variable
-        mxStyle$variableToKeep <- vToKeep
-        mxStyle$values         <- sty$values
-        mxStyle$palette        <- sty$palette
-        mxStyle$paletteChoice  <- mxConfig$colorPalettes
-        mxStyle$opacity        <- sty$opacity
-        mxStyle$basemap        <- baseMap
-        mxStyle$size           <- sty$size
-        mxStyle$hideLabels     <- sty$hideLabels
-        mxStyle$hideLegends    <- sty$hideLegends
+        reactStyle$scaleType      <- sty$scaleType
+        reactStyle$title          <- sty$title
+        reactStyle$variable       <- sty$variable
+        reactStyle$variableToKeep <- vToKeep
+        reactStyle$values         <- sty$values
+        reactStyle$palette        <- sty$palette
+        reactStyle$paletteChoice  <- mxConfig$colorPalettes
+        reactStyle$opacity        <- sty$opacity
+        reactStyle$basemap        <- baseMap
+        reactStyle$size           <- sty$size
+        reactStyle$hideLabels     <- sty$hideLabels
+        reactStyle$hideLegends    <- sty$hideLegends
       }
     }
 })
@@ -126,11 +126,11 @@ observeEvent(input$leafletvtIsLoaded,{
 #
 
 observeEvent(input$btnZoomToLayer,{
-  if(noDataCheck(mxReact$selectCountry))return()
+  if(noDataCheck(reactProject$name))return()
   mxCatch(title="Btn zoom to layer",{
-    lay <- mxStyle$layer
+    lay <- reactStyle$layer
     if(noDataCheck(lay))return()
-    zm <- mxConfig$countryCenter[[mxReact$selectCountry]]$zoom
+    zm <- mxConfig$countryCenter[[reactProject$name]]$zoom
     centro<- mxDbGetLayerCentroid(table=lay)
     if(noDataCheck(centro)){
       centro <- list(lng=0,lat=0)
@@ -155,7 +155,7 @@ observe({
   mxCatch(title="Additional base map",{
     layId <- "basemap"
     selBaseMap <- input$selectConfigBaseMap
-    initOk <- isTRUE(mxReact$mapInitDone > 0)
+    initOk <- isTRUE(reactMap$mapInitDone > 0)
 
     glOk <- isTRUE(input$glLoaded == "basemap")
 
@@ -201,11 +201,11 @@ observe({
   #
 
   observe({
-    if(noDataCheck(mxReact$selectCountry))return()
+    if(noDataCheck(reactProject$name))return()
     mxCatch(title="Set layer labels",{
       group = "labels"
-      hideLabels <- mxStyle$hideLabels
-      iso3 <- mxReact$selectCountry
+      hideLabels <- reactStyle$hideLabels
+      iso3 <- reactProject$name
       if(!noDataCheck(hideLabels) && !noDataCheck(iso3)){
         proxyMap <- leafletProxy("mapxMap")
         if(!hideLabels){
@@ -223,9 +223,9 @@ observe({
   #
   layerStyle <- reactive({
     # check if vector tiles are loaded 
-    # and if they correspond to mxStyle
-    grpLocal <- mxStyle$group
-    layLocal <- mxStyle$layer
+    # and if they correspond to reactStyle
+    grpLocal <- reactStyle$group
+    layLocal <- reactStyle$layer
     grpClient <- input$leafletvtIsLoaded$grp
     layClient <- input$leafletvtIsLoaded$lay
 
@@ -241,7 +241,7 @@ observe({
           grpClient == grpLocal && 
           layClient == layLocal
           ){
-          sty <- reactiveValuesToList(mxStyle)
+          sty <- reactiveValuesToList(reactStyle)
           palOk <- isTRUE(sty$palette %in% sty$paletteChoice)
           if(palOk){ 
             sty <- addPaletteFun_cache(sty,sty$palette)

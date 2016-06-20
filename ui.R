@@ -36,14 +36,14 @@ tagList(
           loadUi("parts/ui/home.R"), 
           loadUi("parts/ui/map.R"),
           loadUi("parts/ui/country.R"),
-          loadUi("parts/ui/about.R"),
           loadUi("parts/ui/admin.R")
           )
         ),
       tags$footer(
         tags$div(id="cookies",class="shinyCookies"),
         tags$script( src="dist/assets.js" ),
-        tags$script( src="src/mapx/js/init.js" )
+        tags$script( src="src/mapx/js/init.js" ),
+        tags$script( src="src/leafletVectorTilesBinding/leaflet-vector-tiles-binding.js")
         )
       )
     )

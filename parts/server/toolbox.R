@@ -13,10 +13,10 @@
 # generate ui
 #
 observe({ 
-  if(mxReact$allowToolbox){
+  if(reactUser$allowToolbox){
     analysis <- input$selectAnalysis
     if(!noDataCheck(analysis)){
-      v = mxReact$views
+      v = reactMap$viewsData
       layers = lapply(v,function(x){x$layer})
       names(layers) = lapply(v,function(x){x$title})
 
@@ -70,7 +70,7 @@ observe({
 
 observeEvent(input$btnAnalysisRemoveLayer,{
   
-  if(mxReact$allowToolbox){
+  if(reactUser$allowToolbox){
   idLayer = "analysis"
   proxyMap <- leafletProxy("mapxMap")
   proxyMap %>% 
@@ -79,7 +79,7 @@ observeEvent(input$btnAnalysisRemoveLayer,{
     })
 
 observe({
-  if(mxReact$allowToolbox){
+  if(reactUser$allowToolbox){
     selLayer <- input$selectOverlapA
     if(!noDataCheck(selLayer)){
 
@@ -99,7 +99,7 @@ observe({
 #
 observeEvent(input$btnAnalysisOverlaps,{
   mxCatch(title="Overlaps analysis",{
-  if(mxReact$allowToolbox){
+  if(reactUser$allowToolbox){
     output$txtAnalysisOverlaps <- renderText("Launch analysis..")
     idLayer = "analysis"
     idA <- input$selectOverlapA
@@ -129,7 +129,7 @@ observeEvent(input$btnAnalysisOverlaps,{
         proxyMap <- leafletProxy("mapxMap")
         proxyMap %>%
         addVectorTiles(
-          userId         = mxReact$userInfo$id,
+          userId         = reactUser$data$id,
           protocol       = mxConfig$vtInfo$protocol,
           host           = mxConfig$vtInfo$host,
           port           = mxConfig$vtInfo$port,

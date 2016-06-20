@@ -91,7 +91,7 @@ observeEvent(session$clientData,{
       views <- unlist(strsplit(subPunct(query$views,";"),";"))
       if(!noDataCheck(views)){
         isolate({
-          mxReact$viewsFromUrl <- unique(views)
+          reactMap$viewsDataFromUrl <- unique(views)
         })
       }
     }

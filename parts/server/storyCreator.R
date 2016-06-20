@@ -19,7 +19,7 @@ observeEvent(input$txtStoryName,{
 # Save new story in db
 
 observeEvent(input$btnSaveNewStory,{
-  if( isTRUE(mxReact$allowStoryCreator && mxReact$mapPanelMode=="mapStoryReader")){
+  if( isTRUE(reactUser$allowStoryCreator && reactUi$panelMode=="mapStoryReader")){
     mxDebugMsg("New name requested")
     
 
@@ -29,10 +29,10 @@ observeEvent(input$btnSaveNewStory,{
 
     newStory <- list(
       id=newId,
-      country=mxReact$selectCountry,
+      country=reactProject$name,
       name=input$txtStoryName,
       description=as.character(NA),
-      editor = as.integer(mxReact$userInfo$id),
+      editor = as.integer(reactUser$data$id),
       reviewer = 0L,
       revision = 0L,
       validated = TRUE,
@@ -59,7 +59,7 @@ observeEvent(input$btnSaveNewStory,{
 
     mxUpdateText(id="panelAlert",ui=panModal)
 
-    mxReact$updateStorySelector<-runif(1)
+    reactMap$updateStorySelector<-runif(1)
     updateTextInput(session,'txtStoryName',value="")
  
   }
@@ -82,7 +82,7 @@ observeEvent(input$btnStoryMapEditorUpdate,{
     storyText <- input$txtStoryMapEditor
     storyVisibility <- input$selStoryVisibility 
 
-    if( isTRUE(mxReact$allowStoryCreator)){
+    if( isTRUE(reactUser$allowStoryCreator)){
       storyId <- input$selectStoryId
       if(nchar(storyText)>0){
         mxCatch(title="Saving story",{
@@ -110,7 +110,7 @@ observeEvent(input$btnStoryMapEditorUpdate,{
 
           mxUpdateText(id="panelAlert",ui=panModal)
 
-          mxReact$storyMap <- storyText
+          reactMap$story <- storyText
 })
       }
   }

@@ -28,8 +28,10 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
           id="btnNavHome",
           mx_set_lang="title.navBar.home",
           class="btn btn-circle",
-          onClick="goTo('sectionTop')",
-          tags$i(class="fa fa-home animated"
+          tags$a(
+            href="https://mapx.io",
+            target="_blank",
+            tags$i(class="fa fa-home animated")
             )
           ), 
         tags$li(
@@ -51,21 +53,12 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
             )
           ),
         tags$li(
-          mx_set_lang="title.navBar.about",
-          id="btnNavAbout",
-          class="page-scroll btn btn-circle",
-          onClick="goTo('sectionAbout')",
-          tags$i(
-            class="fa fa-info animated"
-            )
-          ),
-        tags$li(
           mx_set_lang="title.navBar.admin",
-          id="btnNavAdmin",
+          id="btnNavSettings",
           class="page-scroll btn btn-circle mx-hide",
           onClick="goTo('sectionAdmin')",
           tags$i(
-            class="fa fa-wrench animated"
+            class="fa fa-cog animated"
             )
           ), 
         tags$li(
