@@ -47,7 +47,7 @@ observe({
     )
 
 
-  if(reactUser$data$role$level == 0){
+  if(isTRUE(reactUser$data$role$level == 0)){
     # superuser 
     cntryList = c("world",unlist(mxConfig$countryListChoices,use.names=F))
   }else{
@@ -175,10 +175,16 @@ observe({
 observeEvent(input$uiUserAdmin_values,{
   val <- input$uiUserAdmin_values$roles
   if(isTRUE(length(val)>0)){
-    mxDbUpdateUserData(reactUser,
-      path = c("data","admin","roles"),
-      value = val
+
+    mxDbUpdate(
+      table = mxConfig$userTableName,
+      idCol = 'id',
+      id = input$selectUserForRole,
+      column = 'data',
+      value = val,
+      jsonPath = c("admin","roles")
       )
+
   }
 })
 
