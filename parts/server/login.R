@@ -44,19 +44,29 @@ mxCatch(title="Logout",{
 # Handle reconnection from cookie stored information
 #
 observeEvent(input$cookies,{
-  tryCatch(title="Reconnection from cookie",{
-    dat <- mxDbDecrypt(input$cookies[[mxConfig$defaultCookieName]])
-    id <- dat$id
-    quer <- sprintf(
-      "SELECT email 
-      FROM %1$s WHERE 
-      id=%2$s AND 
-      validated='true' AND 
-      hidden='false'",
-      mxConfig$userTableName,
-      id
-      )
-    res <- mxDbGetQuery(quer)
+  mxCatch(title="Reconnection from cookie",{
+
+    dat <- NULL
+    res <- NULL
+
+    if(isTRUE(length(input$cookies)>0)){
+      dat <- mxDbDecrypt(input$cookies[[mxConfig$defaultCookieName]])
+
+      if(isTRUE(lenght(dat)>0)){
+        id <- dat$id
+        quer <- sprintf(
+          "SELECT email 
+          FROM %1$s WHERE 
+          id=%2$s AND 
+          validated='true' AND 
+          hidden='false'",
+          mxConfig$userTableName,
+          id
+          )
+        res <- mxDbGetQuery(quer)
+      }
+    }
+
     if(!is.null(res) && 'email' %in% names(res) && nrow(res)==1){
       #
       # Request a login
