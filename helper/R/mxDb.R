@@ -94,50 +94,84 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){stop(x)
 #' @param expectedRowsAffected Number of row expected to be affected. If the update change a different number of row than expected, the function will rollback
 #' @return Boolean worked or not
 #' @export
-mxDbUpdate <- function(table,column,idCol="id",id,value,expectedRowsAffected=1){   
-
-  if(is.list(value)) value <- mxToJsonForDb(value)
+mxDbUpdate <- function(table,column,idCol="id",id,value,jsonPath=NULL,expectedRowsAffected=1){   
 
   on.exit(mxDbClearAll())
 
-  res <- try({
-    query <- gsub("\n","",sprintf("
-        UPDATE %1$s
-        SET \"%2$s\"='%3$s'
-        WHERE \"%4$s\"='%5$s'",
-        table,
-        column,
-        value,
-        idCol,
-        id
-        ))
+      res <- try({
+        if(!is.null(jsonPath)){
 
-    con <- mxDbAutoCon()
+          # if value has no json class, convert it (single value update)
+          if(isTRUE(!"json" %in% class(value))){
+            value <- mxToJsonForDb(value)
+          }
+          # json update
 
-    dbGetQuery(con,"BEGIN TRANSACTION")
-    rs <- dbSendQuery(con,query)   
-    ra <- dbGetInfo(rs,what="rowsAffected")[[1]]
-    if(isTRUE(is.numeric(expectedRowsAffected) && isTRUE(ra != expectedRowsAffected)) ){
-      dbRollback(con)
-      stop(
-        sprintf(
-          "Error, number of rows affected does not match expected rows affected %s vs %s",
-          ra,
-          expectedRowsAffected
-          )
-        )
+          jsonPath <- paste0("{",paste0(paste0("\"",jsonPath,"\""),collapse=","),"}")
+
+          query <- sprintf("
+              UPDATE %1$s
+              SET \"%2$s\"= (
+              SELECT jsonb_set(
+                (
+                  SELECT \"%2$s\" 
+                  FROM %1$s
+                  WHERE \"%4$s\"='%5$s'
+                  ) ,
+                '%6$s',
+                '%3$s'
+                )
+              ) 
+            WHERE \"%4$s\"='%5$s'",
+            table,
+            column,
+            value,
+            idCol,
+            id,
+            jsonPath
+            )
+
+        }else{
+          # if it's a list, convert to json
+          if(is.list(value)) value <- mxToJsonForDb(value)
+          # standard update
+          query <- gsub("\n","",sprintf("
+              UPDATE %1$s
+              SET \"%2$s\"='%3$s'
+              WHERE \"%4$s\"='%5$s'",
+              table,
+              column,
+              value,
+              idCol,
+              id
+              ))
+        }
+        con <- mxDbAutoCon()
+
+        dbGetQuery(con,"BEGIN TRANSACTION")
+        rs <- dbSendQuery(con,query)   
+        ra <- dbGetInfo(rs,what="rowsAffected")[[1]]
+        if(isTRUE(is.numeric(expectedRowsAffected) && isTRUE(ra != expectedRowsAffected)) ){
+          dbRollback(con)
+          stop(
+            sprintf(
+              "Error, number of rows affected does not match expected rows affected %s vs %s",
+              ra,
+              expectedRowsAffected
+              )
+            )
+        }else{
+          mxDebugMsg(sprintf("Number of row affected=%s",ra))
+          dbCommit(con)
+        }
+      })
+
+    if("try-error" %in% res){
+      res <- FALSE
     }else{
-      mxDebugMsg(sprintf("Number of row affected=%s",ra))
-      dbCommit(con)
+      res <- TRUE
     }
-  })
-
-  if("try-error" %in% res){
-    res <- FALSE
-  }else{
-    res <- TRUE
-  }
-  return(res)
+    return(res)
 }
 
 
