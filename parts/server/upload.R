@@ -110,16 +110,22 @@ observeEvent(input$fileNewLayer,{
     #
     # CHECK SRID 
     #
-    projOk = isTRUE(
-      length(grep("(AUTHORITY).+(EPSG).+(4326)",lInfo)) > 0 &&
-      length(grep("(GEOGCS).*(WGS 84)",lInfo)) >0
-      )
+
+    # expected proj4 string for epsg 4326
+    expectedProj4 <- "'+proj=longlat +datum=WGS84 +no_defs '"
+
+    # query the layer's srs
+    layerSRS <- gdalsrsinfo(src, o = "proj4")
+
+    # compare with what is expected
+    projOk = isTRUE( expectedProj4 == layerSRS )
 
     if(!projOk){
       msg <- "Error before importation : srid is not '4326'"
       mxUpdateText("outLayerFileMsg",msg)
       return()
     }
+
     #
     # Return summary list
     #
