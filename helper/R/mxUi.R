@@ -395,7 +395,7 @@ mxMakeViews<-function(views){
   session <- shiny:::getDefaultReactiveDomain()
   checkListOut <- p("No view found.")
 v <- views
-cl = mxConfig$class
+cl <- mxConfig$class
   if(!is.null(v)){
     # NOTE : what is this ?
     cl = data.frame(n=names(cl),id=as.character(cl),stringsAsFactors=FALSE)
@@ -420,70 +420,33 @@ cl = mxConfig$class
       items <- viewsList[[i]]
       checkList <- tagList(checkList,tags$span(class="map-views-class",i))
       for(j in names(items)){
-        #
+
         # set item id text
-        #
         it <- items[j]
+        # id of the view
         itId <- as.character(it)
+        # view data
         dat <- v[[itId]]
-
-
-        #
-        # Dat description
-        #
-        #
-        #        Length Class   Mode
-        #        id             1     -none-  character
-        #        country        1     -none-  character
-        #        title          1     -none-  character
-        #        class          1     -none-  character
-        #        layer          1     -none-  character
-        #        editor         1     -none-  character
-        #        reviever       1     -none-  character
-        #        revision       1     -none-  numeric
-        #        validated      1     -none-  logical
-        #        archived       1     -none-  logical
-        #        date_created    1     POSIXct numeric
-        #        date_modifed    1     POSIXct numeric
-        #        date_validated  1     POSIXct numeric
-        #        dateArchived   1     POSIXct numeric
-        #        style         25     -none-  list
-        #
-        #
-        # Style description (NOTE:  standardize this )
-        #                      Length Class  Mode
-        #     hideLabels        0     -none- list
-        #     colors            0     AsIs   list
-        #     nMissing          1     -none- numeric
-        #     paletteChoice    35     -none- character
-        #     variableUnit      0     AsIs   list
-        #     opacity           1     -none- numeric
-        #     layer             1     -none- character
-        #     variableToKeep    1     -none- character
-        #     nDistinct         1     -none- numeric
-        #     mxDateMin         0     AsIs   list
-        #     paletteFun        3     -none- character
-        #     title             1     -none- character
-        #     size              1     -none- numeric
-        #     palette           1     -none- character
-        #     group             1     -none- character
-        #     variable          1     -none- character
-        #     hideLegends       0     -none- list
-        #     basemap           1     -none- character
-        #     scaleType         1     -none- character
-        #     mxDateMax         0     AsIs   list
-        #     values            7     -none- character
-        #     bounds            0     AsIs   list
-        #     hasDateColumns    1     -none- logical
-        #     hasCompanyColumn  1     -none- logical
-        #     description       1     -none- character
-
+        # set icon
+        viewVisibility <- subPunct(dat$visibility)
+        viewIcon<-switch(viewVisibility,
+          "public"=icon("unlock",class="mx-view-icon-role"),
+          "editor"=icon("legal",class="mx-view-icon-role"),
+          icon("lock",class="mx-view-icon-role")
+          )
+        # view name
         itName <- names(it)
+        # id for checkbox option
         itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
+        # id for label
         itIdLabel <- sprintf('label_for_%s',itId)
+        # id for checkbox option label
         itIdCheckOptionLabel <- sprintf('checkbox_opt_label_%s',itId)
+        # id foc checkbox option panel
         itIdCheckOptionPanel <- sprintf('checkbox_opt_panel_%s',itId)
+        # id for company filter select input
         itIdFilterCompany <- sprintf('select_filter_for_%s',itId)
+        # id for companis report
         itIdBtnReport <- sprintf('btn_show_report_for_%s',itId)
         #
         # check if time slider or filter should be shown
@@ -636,10 +599,10 @@ cl = mxConfig$class
         tags$label(
           id=itIdLabel,
           draggable=TRUE,
+          title=paste("[",viewVisibility,"]",dat$style$description),
           `data-viewid`=itId,
           `data-viewtitle`=itName,
           `data-toggle`="tooltip",
-          title=dat$style$description,
           tags$input(
             type="checkbox",
             class="vis-hidden",
@@ -651,7 +614,7 @@ cl = mxConfig$class
             class="map-views-item",
             tags$span(
               class="map-views-selector",
-              itName
+              itName,viewIcon
               ),
             mxCheckboxIcon(
               itIdCheckOption,
@@ -677,12 +640,12 @@ cl = mxConfig$class
         tags$script(
           sprintf("
             /* add tooltip handler  */
-            $('#%1$s').tooltip({
-              trigger : 'click',
-              delay : 2000,
-              placement : 'bottom',
-              container: '#sectionMap'
-            });
+            $(\"#%1$s\").tooltip({
+                  trigger : 'hover',
+                  placement : 'right',
+                  delay: {show: 1000, hide: 0},
+                  container: '#sectionMap'
+      });
             /* Add drag handler*/
             document.getElementById('%1$s')
             .addEventListener('dragstart',function(e){

@@ -55,7 +55,7 @@ observe({
   }
 
 
-  rolesList <- mxGetListValue(reactUser$data,c("role","desc","profile"))
+  rolesList <- mxGetListValue(reactUser$data,c("role","desc","admin"))
 
   reactSchema$role = list(
     title=ifelse(lang=="eng","Selected user roles","Roles de l'utilisateur selectionné"),
@@ -116,6 +116,7 @@ observe({
 
     userList <- unique(users$id)
     names(userList) <- unique(users$email)
+    userList <- c(mxConfig$noSelect,userList)
   }
   #
   # Update user list
@@ -131,7 +132,7 @@ observe({
 #
 
 output$uiUserAdmin <- jedRender({
-  mxDebugMsg("Set schema user admin")
+  mxDebugMsg("Schema send for user admin")
   jedSchema(
     list(
       schema = reactSchema$role
@@ -163,7 +164,7 @@ observe({
   #
   # Update jed
   #
-  mxDebugMsg("update jedUpdate")
+  mxDebugMsg("Update schema roles")
   jedUpdate(
     editorId = "uiUserAdmin",
     values = list(roles=dat)
@@ -173,19 +174,28 @@ observe({
 
 
 observeEvent(input$uiUserAdmin_values,{
+
+  allowed <- isTRUE(reactUser$allowAdmin)
   val <- input$uiUserAdmin_values$roles
-  if(isTRUE(length(val)>0)){
+  hasValues <- isTRUE(length(val)>0)
+  usrId <- input$selectUserForRole 
+  hasId <- !noDataCheck(usrId)
 
-    mxDbUpdate(
-      table = mxConfig$userTableName,
-      idCol = 'id',
-      id = input$selectUserForRole,
-      column = 'data',
-      value = val,
-      jsonPath = c("admin","roles")
-      )
+  if(!allowed || !hasValues || !hasId) return()
 
-  }
+  mxDebugMsg("Update roles in db.")
+  #
+  # Update json value, given a path and id
+  #
+  mxDbUpdate(
+    table = mxConfig$userTableName,
+    idCol = 'id',
+    id = usrId,
+    column = 'data',
+    value = val,
+    jsonPath = c("admin","roles")
+    )
+
 })
 
 
@@ -193,7 +203,7 @@ observeEvent(input$uiUserAdmin_values,{
 observe({
 if(reactUser$allowProfile){
 usr <- reactUser$data
-mxDebugMsg("Set user default preference in jed")
+mxDebugMsg("Schema send for user pref")
  output$uiUserProfil <- jedRender({
    # get preferences
    dat <- mxGetListValue(reactUser$data,c("data","user","preferences"))
@@ -215,7 +225,7 @@ mxDebugMsg("Set user default preference in jed")
 
 observeEvent(input$uiUserProfil_values,{
 
-mxDebugMsg("User profile received, test for change and update db / react")
+mxDebugMsg("Schema profile received, test for change and update db / react")
     # update reactive value and db if needed
     mxDbUpdateUserData(reactUser,
       path=c("data","user","preferences"),

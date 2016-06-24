@@ -16,6 +16,7 @@ shinyServer(function(input, output, session) {
     observe({
       session$onFlushed(once=TRUE,function(){
         mxUiEnable(id="sectionLoading",enable=FALSE)
+        mxUiEnable(id="navbarTop",enable=TRUE)
 })
     })
     #

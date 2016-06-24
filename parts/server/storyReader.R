@@ -110,7 +110,7 @@ observeEvent(input$selectStoryId,{
   #
   mxDbUpdateUserData(reactUser,
     path=c("data","user","cache","last_story"),
-    value=selCountry
+    value=reactProject$name
     )
   #
   # Retrieve story by id

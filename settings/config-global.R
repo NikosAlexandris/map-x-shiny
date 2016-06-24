@@ -67,7 +67,7 @@ mxConfig$hostname <- Sys.info()['nodename']
 # set general parameters. Modify with caution :)
 
 # default country code "ISO_3166-1_alpha-3"
-mxConfig$defaultCountry <- "cod"
+mxConfig$defaultCountry <- "COD"
 # default language code "ISO 639-2"
 mxConfig$defaultLanguage <- "eng"
 # available languages
@@ -80,8 +80,21 @@ mxConfig$noVariable <- "[ DEFAULT ]"
 mxConfig$noLayer <- "[ NO LAYER ]"
 # No title
 mxConfig$noTitle <- "[ NO TITLE ]"
+# Select 
+mxConfig$noSelect <- "[ SELECT ]"
 # No filter value
 mxConfig$noFilter <- "[ ALL ]"
+
+mxConfig$defaultNoDatas <- c(
+  mxConfig$noData,
+  mxConfig$noVariable,
+  mxConfig$noLayer,
+  mxConfig$noTitle,
+  mxConfig$noSelect,
+  mxConfig$noFilter
+  )
+
+
 # map zoom
 mxConfig$defaultZoom <- 9
 # Default layer group name
@@ -92,6 +105,7 @@ mxConfig$defaultGeomCol <- "geom"
 mxConfig$cookiesExpireDays <- 30 
 # default email adress for sender
 mxConfig$mapxBotEmail <- "bot@mapx.io"
+mxConfig$mapxGuestEmail = "guest@mapx.io"
 # default username
 mxConfig$defautUserName <- "user"
 
@@ -108,7 +122,10 @@ mxConfig$defaultDataPublic <- list(
     ),
   admin=list(
     roles =  list(
-      world = "public"
+      list(
+        project =  "world",
+        role = "public"
+        )
       )
     )
   )
@@ -126,13 +143,15 @@ mxConfig$defaultDataSuperuser <- list(
     ),
   admin=list(
     roles =  list(
-      world = "superuser"
+      list(
+        project = "world",
+        role = "superuser"
+        )
       )
     )
   )
 # set default data path
 mxConfig$dataPathLastStory <- c("data","user","cache","last_story")
-
 
 
 # style
@@ -151,6 +170,8 @@ mxConfig$dataPathLastStory <- c("data","user","cache","last_story")
     mxDateMax=numeric(0),
     variableUnit=character(0)
     )
+
+
 
 
 # groups definition
@@ -174,7 +195,7 @@ mxConfig$projectTree  <- list(
   name = "world",
   children = list(
     list(
-      name = "afg",
+      name = "AFG",
       children = list(
         list(
           name = "aynak",
@@ -183,7 +204,7 @@ mxConfig$projectTree  <- list(
         )
       ),
     list(
-      name = "cod",
+      name = "COD",
       children=list()
       )
     )
@@ -198,7 +219,7 @@ mxConfig$roles <- list(
     role="public",
     level=4,
     desc = list(
-      access = c("map","storymap","country"),
+      access = c("map","country"),
       read = c("public"),
       publish = c(),
       edit = c(),

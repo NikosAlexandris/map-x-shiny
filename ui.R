@@ -31,6 +31,7 @@ tagList(
         tagList(
           # alert panels
           uiOutput('panelAlert'),
+          uiOutput('panelLogin'),
           # sections
           loadUi("parts/ui/nav.R"),
           loadUi("parts/ui/home.R"), 

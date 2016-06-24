@@ -89,6 +89,12 @@ observeEvent(input$fileNewLayer,{
     cla <- input$selNewLayerClass
     tgs <- subPunct(input$txtNewLayerTags)
 
+
+
+
+
+
+
     lInfo = ogrinfo(
       src,
       "OGRGeoJSON",

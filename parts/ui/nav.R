@@ -7,7 +7,7 @@
 #                 |_|           
 # navigation bar
 
-tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navigation",
+tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top mx-hide",role="navigation",
   div(class="container nav-mapx",
     div(class="navbar-header",
       # butto to activate navbar
@@ -16,7 +16,7 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
         ),
       tags$div(
         class="navbar-brand",
-        onClick="goTo('sectionCountry')",
+        onClick="enableSection('sectionCountry')",
         tags$img(src="img/logo_white.svg",class="mx-logo-small float-left"),
         tags$div(id="countryTitle",class="float-right")
         )
@@ -28,17 +28,16 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
           id="btnNavHome",
           mx_set_lang="title.navBar.home",
           class="btn btn-circle",
-          tags$a(
-            href="https://mapx.io",
-            target="_blank",
-            tags$i(class="fa fa-home animated")
+          onClick="enableSection('sectionTop')",
+          tags$i(
+            class="fa fa-home animated"
             )
           ), 
         tags$li(
           mx_set_lang="title.navBar.map",
           id="btnNavMap",
           class="btn btn-circle mx-hide",
-          onClick="goTo('sectionMap')",
+          onClick="enableSection('sectionMap')",
           tags$i(
             class="fa fa-globe animated"
             )
@@ -47,7 +46,7 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
           mx_set_lang="title.navBar.country",
           id="btnNavCountry",
           class="btn btn-circle mx-hide",
-          onClick="goTo('sectionCountry')",
+          onClick="enableSection('sectionCountry')",
           tags$i(
             class="fa fa-flag animated"
             )
@@ -56,7 +55,7 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
           mx_set_lang="title.navBar.admin",
           id="btnNavSettings",
           class="page-scroll btn btn-circle mx-hide",
-          onClick="goTo('sectionAdmin')",
+          onClick="enableSection('sectionAdmin')",
           tags$i(
             class="fa fa-cog animated"
             )
@@ -70,11 +69,11 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
             )
           ),
         tags$li(
-          mx_set_lang="title.navBar.logout",
-          id="btnNavLogout",
-          class="btn btn-circle mx-hide action-button",
+          mx_set_lang="title.navBar.user",
+          id="btnNavUser",
+          class="btn btn-circle action-button",
           tags$i(
-            class="fa fa-sign-out animated"
+            class="fa fa-user animated"
             )
           )
         ) 

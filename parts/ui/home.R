@@ -58,33 +58,33 @@ tags$section(
           class="mx-logo-medium"
           ),
         hr()
-        ),
-      div(
-        id="mxPanelLoginContainer",
-        class="col-xs-12 col-lg-6 col-lg-offset-3",
-        div(
-          id="mxPanelLogin",
-          class="input-group mx-login-group mx-hide",
-          usrInput(
-            inputId="loginUserEmail",
-            label="Email",
-            class="mx-login-input-white form-control"
-            ),
-          tags$span(
-            class="input-group-btn",   
-            actionButton(
-              inputId="btnLogin", 
-              label=icon("sign-in"),
-              class="btn-square mx-hide"
-              )
-            ) 
-          ),
-        div(
-          span(
-            id="txtDialogLoginInput")
-          )
-
         )
+     # div(
+        #id="mxPanelLoginContainer",
+        #class="col-xs-12 col-lg-6 col-lg-offset-3",
+        #div(
+          #id="mxPanelLogin",
+          #class="input-group mx-login-group mx-hide",
+          #usrInput(
+            #inputId="loginUserEmail",
+            #label="Email",
+            #class="mx-login-input-white form-control"
+            #),
+          #tags$span(
+            #class="input-group-btn",   
+            #actionButton(
+              #inputId="btnLogin", 
+              #label=icon("sign-in"),
+              #class="btn-square mx-hide"
+              #)
+            #) 
+          #),
+        #div(
+          #span(
+            #id="txtDialogLoginInput")
+          #)
+
+        #)
       )
     )
   )

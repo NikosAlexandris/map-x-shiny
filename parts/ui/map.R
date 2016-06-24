@@ -161,10 +161,11 @@ uiMapConfig <- tagList(
     id="sectionMapConfig",
     class="section-map-creator mx-mode-config container-fluid mx-hide",
     tagList(
-      h3("Add a base map"),
+      hr(),
+      h3("Base map"),
       uiMapConfigBaseMap,
       hr(),
-      h3("Add a wms layer"),
+      h3("WMS layer"),
       uiMapConfigWms
       )
     )

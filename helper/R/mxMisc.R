@@ -7,22 +7,51 @@
 #' @name mapxhelper 
 NULL
 
-#' Check for no null, NA's, nchar of 0, lenght of 0  or "[NO DATA]" string in a vector.
-#' @param val  Vector to test for no data.
-#' @return TRUE if no data (nchar == 0 OR is.na OR is.null) found or if input is not a vector
+##' Check for no null, NA's, nchar of 0, lenght of 0  or "[NO DATA]" string in a vector.
+##' @param val  Vector to test for no data.
+##' @return TRUE if no data (nchar == 0 OR is.na OR is.null) found or if input is not a vector
+##' @export
+#noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
+  ##if(!is.vector(val)) stop(paste("val should be a vector. Provided value=",typeof(val)))
+  #if(!is.vector(val)){
+    #return(TRUE)
+  #}
+  #if(useNoData){
+    #noData <- all(noDataVal %in% val)
+  #}else{
+    #noData <- FALSE
+  #}
+  #any(c(isTRUE(is.null(val)),isTRUE(is.na(val)),isTRUE(nchar(val)==0),isTRUE(length(val)==0),noData))
+#}
+
+
+#' Check for "empty" value
+#' 
+#' Empty values = NULL or, depending of storage mode
+#' - data.frame : empty is 0 row
+#' - list : empty is length of 0
+#' - vector (without list) : empty is length of 0 OR first value in "mxConfig$defaultNoDatas" OR first value is NA or first value as character length of 0
+#'
+#' @param val object to check : data.frame, list or vector (non list). 
+#' @return Boolean TRUE if empty
 #' @export
-noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
-  #if(!is.vector(val)) stop(paste("val should be a vector. Provided value=",typeof(val)))
-  if(!is.vector(val)){
-    return(TRUE)
-  }
-  if(useNoData){
-    noData <- all(noDataVal %in% val)
-  }else{
-    noData <- FALSE
-  }
-  any(c(isTRUE(is.null(val)),isTRUE(is.na(val)),isTRUE(nchar(val)==0),isTRUE(length(val)==0),noData))
+noDataCheck <- function( val = NULL ){
+  val
+  isTRUE(
+    is.null(val)
+    ) ||
+  isTRUE(
+    isTRUE( is.data.frame(val) && nrow(val) == 0 ) ||
+    isTRUE( is.list(val) && ( length(val) == 0 ) ) ||
+    isTRUE( !is.list(val) && is.vector(val) && ( 
+        length(val) == 0 || 
+          val[[1]] %in% mxConfig$defaultNoDatas || 
+          is.na(val[[1]]) || 
+          nchar(val[[1]]) == 0 )
+      )
+    )
 }
+
 
 
 
@@ -121,7 +150,7 @@ mxUpdateChartRadar <- function(
 #' @export
 mxDebugMsg <- function(text=""){ 
   m <- text
-  options(digits.secs=6)
+  options(digits.secs=4)
   cat(paste0("[",Sys.time(),"] ",m,'\n'))
 }
 
@@ -250,14 +279,15 @@ mxCatch <- function(
 #' @param splitSep Split symbos if splitIn > 1
 #' @return  Random string of letters, with prefix and suffix
 #' @export
-randomString <- function(prefix=NULL,suffix=NULL,n=15,sep="_",addSymbols=F,addLetters=T,splitIn=5,splitSep="-"){
+randomString <- function(prefix=NULL,suffix=NULL,n=15,sep="_",addSymbols=F,addLetters=F,addLETTERS=T,splitIn=5,splitSep="_"){
   prefix <- subPunct(prefix,sep)
   suffix <- subPunct(suffix,sep)
   src <- 0:9
 
   if(splitIn<1) splitIn=1
   if(isTRUE(addSymbols)) src <- c(src,"$","?","=",")","(","/","&","%","*","+")
-  if(isTRUE(addLetters)) src <- c(letters,LETTERS,src)
+  if(isTRUE(addLetters)) src <- c(letters,src)
+  if(isTRUE(addLETTERS)) src <- c(LETTERS,src)
 
   grp <- sort(1:n%%splitIn)
 
@@ -1573,49 +1603,85 @@ mxGetMaxRole <- function(project,userInfo){
 
   stopifnot(isTRUE("mxUserInfoList" %in% class(userInfo)))
 
+  levelProject <- 10
+  levelWorld <- 10
+
   userRoles <- mxGetListValue(userInfo,c("data","admin","roles"))
-  roles <- sapply(userRoles,`[[`,"role")
-  res <- sapply(roles,
-    function(x){
-      res <- NULL
-      if(!is.null(x)){
-        res <- mxRecursiveSearch(mxConfig$roles,"role","==",x)
-      }
-      return(res)
-    }
-    )
 
-  res[which.min(sapply(res,`[[`,'level'))][[1]]
-}
+  # get role for project
+  roleInProject <- mxRecursiveSearch(
+    li=userRoles,"project","==",project
+    )[[1]]$role
+  # Get role for world
+  roleInWorld <- mxRecursiveSearch(
+    li=userRoles,"project","==","world"
+    )[[1]]$role
+  
+  hasRoleInProject <- !noDataCheck(roleInProject)
+  hasRoleInWorld <- !noDataCheck(roleInWorld)
 
+  if(!hasRoleInWorld && !hasRoleInWorld) stop("No role found!")
 
-#' Format roles from database 
-#' @param x named role list to keyed (location:role value pair)
-mxFormatRole_toKeyed <- function(x){
-  res = list()
-  for(i in names(x)){
-  res=c(res,list(
-      list(
-    project=i,
-    role=x[[i]]
-    )
-    )
-    )
+  if(hasRoleInProject){
+    levelProject <- mxRecursiveSearch(
+      li=mxConfig$roles,"role","==",roleInProject
+      )[[1]]$level
   }
-  return(res)
+
+  if(hasRoleInWorld){
+    levelWorld <- mxRecursiveSearch(
+      li=mxConfig$roles,"role","==",roleInWorld
+      )[[1]]$level
+  }
+
+  levelUser <- min(c(levelWorld,levelProject))
+
+  mxRecursiveSearch(mxConfig$roles,"level","==",levelUser)[[1]]
 }
 
-#' Format roles from database to roles used in jed format
-#' @param x keyed list to convert to named (location:role value pair)
+
+##' Format roles from database 
+##' @param x named role list to keyed (location:role value pair)
+#mxFormatRole_toKeyed <- function(x){
+  #res = list()
+  #for(i in names(x)){
+  #res=c(res,list(
+      #list(
+    #project=i,
+    #role=x[[i]]
+    #)
+    #)
+    #)
+  #}
+  #return(res)
+#}
+
+##' Format roles from database to roles used in jed format
+##' @param x keyed list to convert to named (location:role value pair)
  
-#' @export
-mxFormatRole_toNamed <- function(x){
-  res <- sapply(x,`[[`,"role")
-  names(res) <- sapply(x,`[[`,"project")
-  as.list(res)
+##' @export
+#mxFormatRole_toNamed <- function(x){
+  #res <- sapply(x,`[[`,"role")
+  #names(res) <- sapply(x,`[[`,"project")
+  #as.list(res)
+#}
+## test 
+## dat = list("AFG"="user","world"="public")
+## identical(mxFormatRole_toNamed(mxFormatRole_toKeyed(dat)),dat)
+
+
+#' Time interval evaluation
+#' @param action "start" or "stop" the timer
+#' @param timerTitle Title to be displayed in debug message
+#' @return
+mxTimer <- function(action=c("stop","start"),timerTitle="Mapx timer"){
+  action <- match.arg(action)
+  if(isTRUE(!is.null(action) && action=="start")){
+    .mxTimer <<- list(time=Sys.time(),title=timerTitle)
+  }else{
+    if(exists(".mxTimer")){
+      diff <- paste(round(difftime(Sys.time(),.mxTimer$time,units="secs"),3))
+      mxDebugMsg(paste(.mxTimer$title,diff,"s"))
+    }
+  }
 }
-# test 
-# dat = list("AFG"="user","world"="public")
-# identical(mxFormatRole_toNamed(mxFormatRole_toKeyed(dat)),dat)
-
-

@@ -96,8 +96,6 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){stop(x)
 #' @export
 mxDbUpdate <- function(table,column,idCol="id",id,value,jsonPath=NULL,expectedRowsAffected=1){   
 
-  on.exit(mxDbClearAll())
-
       res <- try({
         if(!is.null(jsonPath)){
 
@@ -1203,7 +1201,7 @@ mxDbDropLayer <- function(layerName){
       #
       # Check if this is different than the current country
       #
-      if(!identical(value,valueOld)){
+      if(!identical(valueOld[names(value)],value)){
         #
         # Update
         #

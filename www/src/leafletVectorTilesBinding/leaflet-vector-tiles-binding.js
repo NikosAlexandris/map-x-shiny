@@ -139,7 +139,6 @@ var glMap = {};
 
 LeafletWidget.methods.glInit = function( idGl, idMap, style, token ){
 
-  console.log("gl called");
 
   var glLayer = L.mapboxGL({
     container: idMap,
@@ -152,7 +151,6 @@ LeafletWidget.methods.glInit = function( idGl, idMap, style, token ){
   // we want to have quick access to gl map
   gl = glLayer._glMap ;
   gl.on("load",function(){ 
-    console.log("gl loaded");
     Shiny.onInputChange("glLoaded",idGl);
   });
   glMap[ idGl ] = gl ;
@@ -302,6 +300,7 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
 
 
   var vecTile = new L.TileLayer.MVTSource(config);
+
 
   this.layerManager.addLayer(vecTile, "tile", layerId, group); 
 

@@ -58,32 +58,6 @@ observe({
   }
 })
 
-
-#
-# UI by user privilege
-#
-observe({
-  mxUiEnable(id="sectionMap",enable=reactUser$allowMap) 
-})
-
-observe({
-  mxUiEnable(id="btnViewsCreator",enable=reactUser$allowViewsCreator) 
-})
-observe({
-  mxUiEnable(id="tabDataUpload",enable=reactUser$allowUpload) 
-})
-observe({
-  mxUiEnable(id="btnViewsToolbox",enable=reactUser$allowToolbox) 
-})
-observe({
-  mxUiEnable(id="btnStoryReader",enable=reactUser$allowStoryReader) 
-  
-})
-observe({
-  mxUiEnable(id="btnStoryCreator",enable=reactUser$allowStoryCreator)
-  mxUiEnable(class="mx-allow-story-edit",enable=reactUser$allowStoryCreator)
-})
-
 #
 # UI by user event
 #
@@ -118,6 +92,10 @@ observeEvent(input$btnStoryReader,{
 })
 
 
+#
+# Reset views and controls
+#
+
 observeEvent(reactUi$panelMode,{
   if(reactUi$panelMode %in% c("mapViewsCreator","mapViewsExplorer")){
     reactMap$viewsDataToDisplay = ""
@@ -133,6 +111,52 @@ observeEvent(reactUi$panelMode,{
   }
 })
 
+
+
+
+#
+# UI by user privilege
+#
+observe({
+  mxUiEnable(id="sectionMap",enable=reactUser$allowMap) 
+})
+
+observe({
+  enable <- isTRUE(
+    reactUser$allowViewsCreator && 
+      reactUi$panelMode == "mapViewsExplorer"
+    )
+  mxUiEnable(id="btnViewsCreator",enable = enable) 
+})
+observe({
+  enable <- isTRUE(
+    reactUser$allowUpload && 
+      reactUi$panelMode == "mapViewsExplorer"
+    )
+  mxUiEnable(id="tabDataUpload",enable = enable) 
+})
+observe({
+  enable <- isTRUE(
+    reactUser$allowToolbox && 
+      reactUi$panelMode == "mapViewsExplorer"
+    )
+  mxUiEnable(id="btnViewsToolbox",enable = enable) 
+})
+observe({
+  enable <- isTRUE(
+    reactUser$allowToolbox && 
+      reactUi$panelMode == "mapViewsExplorer"
+    )
+  mxUiEnable(id="btnStoryReader",enable=reactUser$allowStoryReader) 
+})
+observe({
+   enable <- isTRUE(
+    reactUser$allowStoryCreator && 
+      reactUi$panelMode == "mapStoryReader"
+    )
+  mxUiEnable(id="btnStoryCreator",enable=enable)
+  mxUiEnable(class="mx-allow-story-edit",enable=enable)
+})
 
 
 

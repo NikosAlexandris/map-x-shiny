@@ -10,29 +10,33 @@
 
 
 
+
+
 #
 # VIEW LIST
 #
 
 observe({
+  mxTimer("start", "View list : fetch from db")
   country <- reactProject$name
   update <- reactMap$viewsDataListUpdate
+
+
   userId <- mxGetListValue(reactUser$data,"id")
   canRead <- mxGetListValue(reactUser$data,c("role","desc","read"))
+  hasNoValue  <- any(sapply(c(country,userId,canRead),noDataCheck))
 
 
   mxCatch(title="Populate views from db",{ 
-
-if(any(sapply(c(country,userId,canRead),noDataCheck))) stop("Can't retrieve data from db")
-    start <- Sys.time()
+    if(hasNoValue) stop("Error when validaing views input: some input are emtpy")
     reactMap$viewsData <- mxMakeViewList(
-      country=country,
-      userId=userId,
-      visibility=canRead
+      country    = country,
+      userId     = userId,
+      visibility = canRead
       )
     reactMap$viewsDataToDisplay <-  list()
-    mxDebugMsg(paste("Time for generating views list=",Sys.time()-start))
 })
+  mxTimer("stop")
 })
 
 
@@ -41,9 +45,9 @@ if(any(sapply(c(country,userId,canRead),noDataCheck))) stop("Can't retrieve data
 # VIEWS LIST TO HTML
 #
 output$checkInputViewsContainer <- renderUI({
-  start <- Sys.time()
+  mxTimer("start", "View list : create ui")
   viewsUi <- mxMakeViews_cache(reactMap$viewsData)
-  mxDebugMsg(paste("Time for generating views ui=",Sys.time()-start))
+  mxTimer("stop")
   return(viewsUi)
 })
 
@@ -100,7 +104,7 @@ observeEvent(input$mxRequestMeta,{
 observe({
   mxCatch(title="Company filter",{
     f<-input$filterLayer
-    if(!noDataCheck(f,noDataVal=mxConfig$noFilter)){
+    if(!noDataCheck(f)){
 
       ext <- mxDbGetFilterCenter(
         table=f$layer,
