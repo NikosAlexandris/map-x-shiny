@@ -200,8 +200,8 @@ observeEvent(input$glLoaded,{
 
   srcSatelliteHere = list(
     tiles = c(
-      "https://1.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=kaq3He8C5WiDCB2yadWE&app_code=vvvkBHJXgetE5n9fRQxrOA&ppi=72",
-      "https://2.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=kaq3He8C5WiDCB2yadWE&app_code=vvvkBHJXgetE5n9fRQxrOA&ppi=72"),
+    "https://1.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=8O8WmE7U46S3sj93t9TN&app_code=k8YdYxvaliuJc1nz99d-ZA&ppi=72",
+    "https://2.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=8O8WmE7U46S3sj93t9TN&app_code=k8YdYxvaliuJc1nz99d-ZA&ppi=72"),
     type="raster",
     tileSize = 512
     )
