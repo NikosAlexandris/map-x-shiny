@@ -23,7 +23,7 @@ observeEvent(input$selectCountry,{
 
     # update reactive value and db if needed
     mxDbUpdateUserData(reactUser,
-      path=c("data","user","cache","last_project"),
+      path=c("user","cache","last_project"),
       value=selCountry
       )
 

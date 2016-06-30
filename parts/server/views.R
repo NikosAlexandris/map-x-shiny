@@ -9,9 +9,6 @@
 
 
 
-
-
-
 #
 # VIEW LIST
 #
@@ -23,7 +20,7 @@ observe({
 
 
   userId <- mxGetListValue(reactUser$data,"id")
-  canRead <- mxGetListValue(reactUser$data,c("role","desc","read"))
+  canRead <- mxGetListValue(reactUser$role,c("desc","read"))
   hasNoValue  <- any(sapply(c(country,userId,canRead),noDataCheck))
 
 

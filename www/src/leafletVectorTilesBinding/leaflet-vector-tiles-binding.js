@@ -179,7 +179,10 @@ LeafletWidget.methods.glAddLayer  = function( idGl, idBelowTo, style ){
   }else{
     gl.addLayer( style );
   }
-  Shiny.onInputChange("glLoadedLayer",style.id);
+  var l = [];
+  for(var key in gl.style._layers){l.push(key);}
+  
+  Shiny.onInputChange("glLoadedLayers",l);
 };
 
 LeafletWidget.methods.glRemoveLayer  = function( idGl, idLayer ){

@@ -24,7 +24,9 @@ tags$section(id="sectionAdmin",class="mx-section-container container-fluid mx-hi
                 label="Select user",
                 choices=""
                 ),
-              jedOutput("uiUserAdmin")
+              conditionalPanel(sprintf("input.selectUserForRole != '%s'", mxConfig$noSelect),
+                jedOutput("uiUserAdmin")
+              )
               )
             ),
           tabPanel("VIEWS",

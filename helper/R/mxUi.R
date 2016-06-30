@@ -63,7 +63,23 @@ usrInput <- function(inputId, label,class="form-control") {
 #' @param hideCloseButton Boolean. Hide the close panel button
 #' @param draggable Boolean. Set the panel as draggable
 #' @export
-mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionButton=NULL,background=TRUE,addCancelButton=FALSE,addOnClickClose=TRUE,defaultButtonText="OK",style=NULL,class=NULL,hideCloseButton=FALSE,draggable=TRUE,fixed=TRUE){ 
+mxPanel<- function(
+  id="default",
+  title=NULL,
+  subtitle=NULL,
+  html=NULL,
+  listActionButton=NULL,
+  background=TRUE,
+  addCancelButton=FALSE,
+  addOnClickClose=TRUE,
+  defaultButtonText="OK",
+  style=NULL,
+  class=NULL,
+  hideCloseButton=FALSE,
+  draggable=TRUE,
+  fixed=TRUE,
+  defaultTextHeight=150
+  ){ 
 
   classModal <- "panel-modal"
   rand <- randomString(splitIn=1,addLetters=T)
@@ -100,7 +116,7 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
 
   # if explicit FALSE is given, remove modal button. 
   if(isTRUE(is.logical(listActionButton) && !isTRUE(listActionButton)))listActionButton=NULL
-# close button handling
+  # close button handling
   if(hideCloseButton){
     closeButton=NULL
   }else{
@@ -116,19 +132,19 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
 
 
   if(draggable){
-  scr <- tags$script(sprintf("
-    $('#%1$s').draggable({ 
-      cancel: '.panel-modal-text'
-    });
-    ",idContent))
+    scr <- tags$script(sprintf('
+        $("#%1$s").draggable({ 
+          cancel: ".panel-modal-text,.panel-modal-title,.panel-modal-subtitle"
+        }).resizable();
+        ',idContent))
   }else{
-  scr = ""
+    scr = ""
   }
 
   if(fixed){
-  style = paste("position:fixed",style)
+    style = paste("position:fixed",style)
   }else{
-  style = paste("position:absolute",style)
+    style = paste("position:absolute",style)
   }
 
   tagList( 
@@ -138,13 +154,21 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
       class=paste(class,classModal,"panel-modal-content col-xs-12 col-sm-6 col-sm-offset-3 col-lg-4 col-lg-offset-4"),
       style=style,
       closeButton,
-      div(class=paste('panel-modal-head'),  
-        div(class=paste('panel-modal-title'),title)
+      div(class=paste("panel-modal-head"),  
+        div(class=paste("panel-modal-title"),title)
         ),
-      div(class=paste('panel-modal-subtitle'),subtitle),
-      hr(),
-      div(class=paste('panel-modal-text'),html),
-      hr(),
+      div(class=paste("panel-modal-subtitle"),subtitle),
+      div(class="panel-modal-text-container",
+      div(style=sprintf("height:%spx",defaultTextHeight),class=paste("panel-modal-text"),
+        div(class="no-scrollbar-container",
+          div(class="no-scrollbar-content",
+            div(style="width: 100%;padding: 0px;",
+              html
+              )
+            )
+          )
+        )
+      ),
       div(class=paste('panel-modal-buttons'),
         listActionButton
         )

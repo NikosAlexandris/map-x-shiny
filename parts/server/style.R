@@ -169,6 +169,13 @@ observe({
           `min-zoom`=0,
           `max-zoom`=22
           ),
+        mapboxsatlive  = list(
+          `id` = 'rasterOverlay',
+          `source` = 'mapboxsatlive',
+          `type`='raster',
+          `min-zoom`=0,
+          `max-zoom`=22
+          ),
         heresat = list(
           `id` = 'rasterOverlay',
           `source` = 'heresat',
@@ -179,6 +186,10 @@ observe({
         )
       if( selBaseMap != mxConfig$noLayer ){    
         proxymap %>% 
+       glRemoveLayer(
+          idGl = "basemap",
+          idLayer = "rasterOverlay"
+          )%>%
         glAddLayer(
           idGl = "basemap",
           idBelowTo = "contours",

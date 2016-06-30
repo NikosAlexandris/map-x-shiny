@@ -52,9 +52,10 @@ observe({
     # reactivity after updateVector in postgis
     update <- reactMap$layerListUpdate
 
+    roles <- reactUser$role
     usr <- reactUser$data
-    visibility = usr$role$desc$read
-    visibility = paste0("'",visibility[!visibility %in% 'self'],"'",collapse=",")
+    visibility <- roles$desc$read
+    visibility <- paste0("'",visibility[!visibility %in% 'self'],"'",collapse=",")
 
     if(!noDataCheck(visibility)){
       mxCatch("Update input: get list of layer",{

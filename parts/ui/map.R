@@ -130,6 +130,7 @@ uiMapConfigBaseMap = tagList(
     choices=list(
       mxConfig$noLayer,
       `MapBox satellite`="mapboxsat",
+      `MapBox satellite live`="mapboxsatlive",
       `Here satellite`="heresat"
       )
     )
@@ -153,23 +154,47 @@ uiMapConfigWms = tagList(
 
 
 
-uiMapConfig <- tagList(
+#uiMapConfig <- tagList(
   #
   # MAP config
   #
-  tags$section(
-    id="sectionMapConfig",
-    class="section-map-creator mx-mode-config container-fluid mx-hide",
-    tagList(
-      hr(),
-      h3("Base map"),
-      uiMapConfigBaseMap,
-      hr(),
-      h3("WMS layer"),
-      uiMapConfigWms
+ # tags$section(
+    #id="sectionMapConfig",
+    #class="section-map-creator mx-mode-config container-fluid mx-hide",
+    #tagList(
+      #hr(),
+      #h3("Base map"),
+      #uiMapConfigBaseMap,
+      #hr(),
+      #h3("WMS layer"),
+      #uiMapConfigWms
+      #)
+    #)
+  #)
+
+  uiMapConfig <- tagList(
+      #
+      # Map config
+      #
+      tags$section(id="sectionMapConfig",class="mx-mode-config mx-hide container-fluid",
+        div(class="row",
+          div(class="col-lg-12", 
+            mxAccordionGroup(id="mapConfig",
+              itemList=list(
+                "uiMapConfigWms" = list(
+                  "title" = "External WMS layer",
+                  content = uiMapConfigWms
+                  ),
+                "uiMapConfigBaseMap"=list(
+                  "title"="Base map",
+                  content = uiMapConfigBaseMap
+                  )
+                )
+              )
+            )
+          )
+        )
       )
-    )
-  )
 
 
 
@@ -180,7 +205,7 @@ uiMapConfig <- tagList(
       tags$section(id="sectionMapAnalysis",class="mx-mode-toolbox mx-hide container-fluid",
         div(class="row",
           div(class="col-lg-12", 
-            mxAccordionGroup(id="mapConfig",show=1,
+            mxAccordionGroup(id="mapAnalysis",show=1,
               itemList=list(
                 "analysis"=list("title"="Analysis",content=tagList(
                     selectInput("selectAnalysis","Select an analysis",
@@ -205,110 +230,110 @@ uiMapConfig <- tagList(
     #
 
 
-    uiStorySelect <- tagList(
-      #
-      # Story selection
-      #
-      #selectInput("selectStoryId","Select a story",choices="")
-      )
+    #uiStorySelect <- tagList(
+      ##
+      ## Story selection
+      ##
+      ##selectInput("selectStoryId","Select a story",choices="")
+      #)
 
-    uiStoryNew <- tagList(
-      #
-      # New story crator
-      #
-      textInput("txtStoryName","Add new story title"), 
-      tags$label("Validation"),
-      div(id="validateNewStoryName"),
-      actionButton("btnSaveNewStory",label=icon("save"))  
-      )
+    #uiStoryNew <- tagList(
+      ##
+      ## New story crator
+      ##
+      #textInput("txtStoryName","Add new story title"), 
+      #tags$label("Validation"),
+      #div(id="validateNewStoryName"),
+      #actionButton("btnSaveNewStory",label=icon("save"))  
+      #)
 
-    uiStoryEditor <- tagList(
-      #
-      # editor
-      #
-      span("Drag and drop views from the menu; Drag and drop coordinates from the box below :"),
-      div(id="txtLiveCoordinate",draggable=TRUE),
-      selectizeInput(
-        label = "Set the story visibility",
-        inputId="selStoryVisibility",
-        choices=mxConfig$noData
-        ),
-      tags$textarea(id="txtStoryMapEditor", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
-      #buttons
-      tags$script(
-        "
-        document.getElementById('txtLiveCoordinate')
-        .addEventListener('dragstart',function(e){
-          var coord = document.getElementById('txtLiveCoordinate').innerHTML;
-          e.dataTransfer.setData('text', coord);
-          })"
-        ),
+    #uiStoryEditor <- tagList(
+      ##
+      ## editor
+      ##
+      #span("Drag and drop views from the menu; Drag and drop coordinates from the box below :"),
+      #div(id="txtLiveCoordinate",draggable=TRUE),
+      #selectizeInput(
+        #label = "Set the story visibility",
+        #inputId="selStoryVisibility",
+        #choices=mxConfig$noData
+        #),
+      #tags$textarea(id="txtStoryMapEditor", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
+      ##buttons
+      #tags$script(
+        #"
+        #document.getElementById('txtLiveCoordinate')
+        #.addEventListener('dragstart',function(e){
+          #var coord = document.getElementById('txtLiveCoordinate').innerHTML;
+          #e.dataTransfer.setData('text', coord);
+          #})"
+        #),
 
-      tags$ul(class="list-inline",
-        tags$li(
-          actionButton(
-            inputId="btnStoryMapEditorUpdate",
-            class="btn-icon btn-square",
-            label=icon("save")
-            )
-          )
-        )
-      )
-
-
-    uiStoryCreator<- tagList(
-      #
-      # Tabset with creator components
-      #
- mxAccordionGroup(id="storyCreator",
-      itemList=list(
-        "edit"=list(
-          "title"="Edit selected story",
-          "condition"=sprintf("input.selectStoryId.length>0 && input.selectStoryId != '%s'",mxConfig$noData),
-          content=tagList(
-            uiStoryEditor
-            )
-          ),
-        "new"=list(
-          "title"="Create a story",
-          content=tagList(
-            uiStoryNew
-            )
-          )
-        )
-      )
-
-   #   div(class="mx-allow-story-edit mx-hide",
-        #tabsetPanel(type="pills",
-          #tabPanel("Edit", uiStoryEditor),
-          #tabPanel("New", uiStoryNew)
+      #tags$ul(class="list-inline",
+        #tags$li(
+          #actionButton(
+            #inputId="btnStoryMapEditorUpdate",
+            #class="btn-icon btn-square",
+            #label=icon("save")
+            #)
           #)
         #)
-      )
+      #)
 
-    uiMapStoryModal <- tagList(
-      #
-      # STORY MAP MODAL
-      #
-      div(id="storyMapModalHandle",style=" background: rgba(47,47,47,0.8); cursor: move;",
-        tags$ul(class="list-inline",
-          tags$li(
-            div(class="btn-close",
-              tags$i(class="fa fa-times"),
-              onclick="$('#storyMapModal').addClass('mx-hide')"
-              )
-            )
-          )
-        ),
-      div(class="no-scrollbar-container",
-        div(class="no-scrollbar-content",
-          div(style="width: 100%;padding: 10px;",
-            uiStorySelect,
-            uiStoryCreator
-            )
-          )
-        )
-      )
+
+    #uiStoryCreator<- tagList(
+      ##
+      ## Tabset with creator components
+      ##
+ #mxAccordionGroup(id="storyCreator",
+      #itemList=list(
+        #"edit"=list(
+          #"title"="Edit selected story",
+          #"condition"=sprintf("input.selectStoryId.length>0 && input.selectStoryId != '%s'",mxConfig$noData),
+          #content=tagList(
+            #uiStoryEditor
+            #)
+          #),
+        #"new"=list(
+          #"title"="Create a story",
+          #content=tagList(
+            #uiStoryNew
+            #)
+          #)
+        #)
+      #)
+
+   ##   div(class="mx-allow-story-edit mx-hide",
+        ##tabsetPanel(type="pills",
+          ##tabPanel("Edit", uiStoryEditor),
+          ##tabPanel("New", uiStoryNew)
+          ##)
+        ##)
+      #)
+
+    #uiMapStoryModal <- tagList(
+      ##
+      ## STORY MAP MODAL
+      ##
+      #div(id="storyMapModalHandle",style=" background: rgba(47,47,47,0.8); cursor: move;",
+        #tags$ul(class="list-inline",
+          #tags$li(
+            #div(class="btn-close",
+              #tags$i(class="fa fa-times"),
+              #onclick="$('#storyMapModal').addClass('mx-hide')"
+              #)
+            #)
+          #)
+        #),
+      #div(class="no-scrollbar-container",
+        #div(class="no-scrollbar-content",
+          #div(style="width: 100%;padding: 10px;",
+            #uiStorySelect,
+            #uiStoryCreator
+            #)
+          #)
+        #)
+      #)
 
 
 
@@ -371,18 +396,12 @@ uiMapConfig <- tagList(
           label=icon("globe")
           )
         ),
-      tags$li(
-        actionButton('btnViewsCreator',
-          mx_set_lang="title.mapLeft.creator",
-          class="btn-icon btn-square mx-hide mx-allow-creator",
-          label=icon("plus")
-          )
-        ), 
+
       tags$li(
         actionButton('btnStoryReader',
           mx_set_lang="title.mapLeft.storyReader",
           class="btn-icon btn-square mx-hide mx-allow-story-reader",
-          label=icon("book")
+          label=icon("newspaper-o")
           )
         ),
       tags$li(
@@ -403,7 +422,7 @@ uiMapConfig <- tagList(
         actionButton('btnDraw',
           mx_set_lang="title.mapLeft.draw",
           class="btn-icon btn-square",
-          label=icon("pencil")
+          label=icon("cloud-download")
           )
         ),
       #
@@ -417,12 +436,18 @@ uiMapConfig <- tagList(
         ),
       tags$li(
         div(class="mx-mode-story-reader mx-hide",
-        tags$button(id='btnStoryCreator',
-          mx_set_lang="title.mapLeft.storyEdit",
-          onClick="classToggle('storyMapModal')",
-          class="btn btn-icon btn-square mx-mode-story-edits mx-hide",
-          icon("pencil-square-o")
-          )
+          actionButton(
+            inputId="btnStoryCreator",
+            label=icon("pencil-square-o"),
+            mx_set_lang="title.mapLeft.storyEdit",
+            class="btn btn-icon btn-square mx-mode-story-edits mx-hide"
+            )
+#        tags$button(id='btnStoryCreator',
+          #mx_set_lang="title.mapLeft.storyEdit",
+          #onClick="classToggle('storyMapModal')",
+          #class="btn btn-icon btn-square mx-mode-story-edits mx-hide",
+          #icon("pencil-square-o")
+          #)
         )
       ),  
     tags$li(
@@ -448,13 +473,13 @@ uiMapConfig <- tagList(
           uiOutput("infoBoxContent",class="info-box-content")
           )
         ),
-      #
-      # UI STORY MODAL
-      #
-      div(id="storyMapModal",style="position:fixed",class="mx-story-modal mx-hide",
-        uiMapStoryModal
-        ),
-      #
+      ##
+      ## UI STORY MODAL
+      ##
+      #div(id="storyMapModal",style="position:fixed",class="mx-story-modal mx-hide",
+        #uiMapStoryModal
+        #),
+      ##
       # LEFT PANEL
       #
       #div(id="map-left-container",class="",
@@ -480,7 +505,7 @@ uiMapConfig <- tagList(
               tags$div(
                 onclick="classToggle('mapToolsMenu')",
                 id='btnMapTools',
-                class="mx-btn-dropdown",
+                class="mx-btn-link mx-btn-link-white",
                 tags$span(class='fa fa-bars')
                 )
               ),
@@ -488,10 +513,32 @@ uiMapConfig <- tagList(
               tags$div(
                 onclick="classToggle('mxStorySelectorBox')",
                 id='btnMapTools',
-                class="mx-btn-dropdown",
+                class="mx-btn-link mx-btn-link-white",
                 tags$span(class='fa fa-search')
                 )
               ),
+            tags$div(class="map-tool-box-container mx-hide mx-allow-story-creator", style="float:right",
+              actionLink(
+                inputId="btnStoryNew",
+                class="mx-btn-link mx-btn-link-white",
+                tags$span(class="fa fa-plus")
+                )
+              ),
+            tags$div(class="map-tool-box-container mx-hide mx-allow-story-edit", style="float:right",
+              actionLink(
+                inputId="btnStoryEdit",
+                class="mx-btn-link mx-btn-link-white",
+                tags$span(class="fa fa-pencil")
+                )
+              ),
+             tags$div(class="map-tool-box-container mx-hide mx-allow-creator", style="float:right",
+              actionLink(
+                inputId="btnViewsCreator",
+                class="mx-btn-link mx-btn-link-white",
+                tags$span(class="fa fa-plus")
+                )
+              ),
+
             #
             # TITLE
             #
@@ -511,7 +558,7 @@ uiMapConfig <- tagList(
           #
           div(class="map-left-content",
             div(id="mxStoryLimitTrigger",class="mx-mode-story-reader mx-hide"),
-            div(class="no-scrollbar-container",
+            div(class="no-scrollbar-container no-scrollbar-container-border",
               div(class="no-scrollbar-content",id="mapLeftScroll", 
                 uiMapList,
                 uiMapCreator,

@@ -81,6 +81,7 @@ observe({
 })
 observe({
   mxUiEnable(id="btnStoryCreator",enable=reactUser$allowStoryCreator)
+  browser()
   mxUiEnable(class="mx-allow-story-edit",enable=reactUser$allowStoryCreator)
 })
 

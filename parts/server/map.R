@@ -122,42 +122,72 @@ observe({
 })
 
 observe({
-  enable <- isTRUE(
-    reactUser$allowViewsCreator && 
-      reactUi$panelMode == "mapViewsExplorer"
+
+  enable <- isTRUE( reactUser$allowViewsCreator) && 
+    isTRUE( reactUi$panelMode == "mapViewsExplorer")
+
+  mxUiEnable(
+    class="mx-allow-creator",
+    enable=enable
     )
-  mxUiEnable(id="btnViewsCreator",enable = enable) 
-})
-observe({
-  enable <- isTRUE(
-    reactUser$allowUpload && 
-      reactUi$panelMode == "mapViewsExplorer"
-    )
-  mxUiEnable(id="tabDataUpload",enable = enable) 
-})
-observe({
-  enable <- isTRUE(
-    reactUser$allowToolbox && 
-      reactUi$panelMode == "mapViewsExplorer"
-    )
-  mxUiEnable(id="btnViewsToolbox",enable = enable) 
-})
-observe({
-  enable <- isTRUE(
-    reactUser$allowToolbox && 
-      reactUi$panelMode == "mapViewsExplorer"
-    )
-  mxUiEnable(id="btnStoryReader",enable=reactUser$allowStoryReader) 
-})
-observe({
-   enable <- isTRUE(
-    reactUser$allowStoryCreator && 
-      reactUi$panelMode == "mapStoryReader"
-    )
-  mxUiEnable(id="btnStoryCreator",enable=enable)
-  mxUiEnable(class="mx-allow-story-edit",enable=enable)
 })
 
+observe({
+
+  enable <- isTRUE( reactUser$allowUpload ) && 
+    isTRUE( reactUi$panelMode == "mapViewsExplorer" )
+
+  mxUiEnable(
+    id="tabDataUpload",
+    enable = enable
+    ) 
+})
+
+observe({
+
+  enable <- isTRUE(reactUser$allowToolbox) && 
+    isTRUE(reactUi$panelMode == "mapViewsExplorer")
+
+  mxUiEnable(
+    id="btnViewsToolbox",
+    enable = enable
+    ) 
+})
+
+observe({
+
+  enable <- isTRUE(reactUser$allowToolbox) && 
+    isTRUE(reactUi$panelMode == "mapViewsExplorer")
+
+  mxUiEnable(
+    id="btnStoryReader",
+    enable=reactUser$allowStoryReader
+    ) 
+})
+
+observe({
+
+  enable <- isTRUE(reactUser$allowStoryCreator) && 
+    isTRUE(reactUi$panelMode == "mapStoryReader")
+
+  mxUiEnable(
+    class="mx-allow-story-creator",
+    enable=enable
+    )
+
+})
+
+observe({
+
+  enable <- isTRUE(reactUser$allowStoryCreator) &&
+    isTRUE(reactUser$allowEditCurrentStory) &&
+    isTRUE(reactUi$panelMode == "mapStoryReader")
+
+  mxUiEnable(
+    class="mx-allow-story-edit",
+    enable=enable
+    )
+})
 
 
 #
@@ -222,6 +252,12 @@ observeEvent(input$glLoaded,{
     tileSize = 256 
     )
 
+  srcSatelliteLive = list(
+    url = "mapbox://mapbox.landsat-live",
+    type = "raster",
+    tileSize = 256 
+    )
+
   srcSatelliteHere = list(
     tiles = c(
       "https://1.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=kaq3He8C5WiDCB2yadWE&app_code=vvvkBHJXgetE5n9fRQxrOA&ppi=72",
@@ -251,6 +287,11 @@ observeEvent(input$glLoaded,{
     idGl = "basemap",
     idSource = "heresat",
     style = srcSatelliteHere
+    ) %>% 
+  glAddSource(
+    idGl = "basemap",
+    idSource = "mapboxsatlive",
+    style = srcSatelliteLive
     ) 
 
     })
@@ -307,7 +348,7 @@ observe({
   iso3 <- reactProject$name
   cnt <- !noDataCheck( iso3 )
   ini <- !noDataCheck( reactMap$mapInitDone )
-  lay <- isTRUE( input$glLoadedLayer == layId )
+  lay <- isTRUE( layId %in% input$glLoadedLayers )
 
   if( cnt && ini && lay ){
 
@@ -327,11 +368,10 @@ observe({
       )
 
 
+  }else{
+  mxDebugMsg(sprintf("Move map center validation : iso3=%s,cnt=%s,ini=%s,lay=%s",iso3,cnt,ini,lay))
   }
 })
-
-
-
 
 
 #
@@ -375,7 +415,8 @@ observeEvent(input$leafletDrawGeoJson,{
       subtitle="Action handler",
       html=ui,
       listActionButton=bnts,
-      addCancelButton=TRUE
+      addCancelButton=TRUE,
+      defaultTextHeight=250
       )
 
     mxUpdateText(id="panelAlert",ui=panModal)

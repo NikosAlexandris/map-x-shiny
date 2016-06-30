@@ -42,6 +42,7 @@ mxCatch(title="Logout",{
 })
 
 
+
 observeEvent(input$btnNavUser,{
 
   #
@@ -51,7 +52,8 @@ observeEvent(input$btnNavUser,{
   # if logged as guest or not logged in, display email input and login button.
   # else, log out button. 
 
-btn = list()
+btn <- list()
+userInfo <- ""
 
   isNotLogged <- isTRUE(
     reactUser$data$email == mxConfig$mapxGuestEmail ||
@@ -59,6 +61,9 @@ btn = list()
     )
 
   if(isNotLogged){
+    # text modal panel subtitle
+    txtSubTitle <- "Enter your email to log in or create a new account"
+    # ui login 
     loginInput <- div(
       div(id="divEmailInput",
         class="input-group mx-login-group",
@@ -86,10 +91,18 @@ btn = list()
         )
       )
   }else{
-
-    loginInput <- tags$div(
-      tags$p(sprintf("Logged as %s",reactUser$data$email))
-      )
+    txtSubTitle <- "Status"
+    sessionDuration <- mxGetSessionDurationHMS(reactUser$data$id)
+    
+    loginInput <- tags$p(
+        sprintf("%1$s is logged as %2$s for %3$s [h] %4$s [min] %5$s [s] ",
+          reactUser$data$email,
+          reactUser$role$role,
+          sessionDuration$H,
+          sessionDuration$M,
+          sessionDuration$S
+          )
+        )
 
     btn <-list(
       actionButton("btnLogout","Log out",icon=icon("sign-out"),class="btn btn-modal")
@@ -103,7 +116,7 @@ btn = list()
       addCancelButton=TRUE,
       id="loginCode",
       title="User",
-      subtitle=div(id="txtLoginDialog","Enter your email to log in or create a new account"), 
+      subtitle=div(id="txtLoginDialog",txtSubTitle), 
       html=loginInput
       )
     # update ui
@@ -151,7 +164,6 @@ observeEvent(input$btnSendLoginKey,{
   mxCatch(title="Btn send password event",{
     email <- input$loginUserEmail
     emailIsValid <- mxEmailIsValid(email)
-    debug <- TRUE
     res <- NULL
     msg <- character(0) 
 
@@ -173,14 +185,12 @@ observeEvent(input$btnSendLoginKey,{
         )
       # send mail
       res <- try({
-        if(!debug){
           mxSendMail(
             from=mxConfig$mapxBotEmail,
             to=email,
             body=reactUser$loginSecret,
             subject="Map-x secure login",
             wait=F)
-        }
       })
 
 
@@ -189,14 +199,8 @@ observeEvent(input$btnSendLoginKey,{
 
       }else{
         msg <- "An email has been send, please check your email and copy the received password in the box."
-        #
-        # debug key visible
-        #
-        if(debug){
-        msg <- reactUser$loginSecret
-        }
        #
-       # save the email used, in case of update
+       # save the provided address as the input could be change during the interval.
         #
        reactUser$loginUserEmail <- email
        #
@@ -352,6 +356,7 @@ observeEvent(reactUser$loginRequested,{
     userInfo <- mxDbGetUserInfoList(id=res$id)
 
     # extract last country
+      
     cntry <- mxGetListValue(
       li=userInfo,
       path=c("data","user","cache","last_project")
@@ -391,19 +396,20 @@ observeEvent(input$cookies,{
 
     if(isTRUE(length(input$cookies)>0)){
       dat <- mxDbDecrypt(input$cookies[[mxConfig$defaultCookieName]])
-
-      if(isTRUE(length(dat)>0)){
-        id <- dat$id
-        quer <- sprintf(
-          "SELECT email 
-          FROM %1$s WHERE 
-          id=%2$s AND 
-          validated='true' AND 
-          hidden='false'",
-          mxConfig$userTableName,
-          id
-          )
-        res <- mxDbGetQuery(quer)
+      if(!isTRUE("try-error" %in% class(dat))){
+        if(isTRUE(length(dat)>0)){
+          id <- dat$id
+          quer <- sprintf(
+            "SELECT email 
+            FROM %1$s WHERE 
+            id=%2$s AND 
+            validated='true' AND 
+            hidden='false'",
+            mxConfig$userTableName,
+            id
+            )
+          res <- mxDbGetQuery(quer)
+        }
       }
     }
 
@@ -515,22 +521,22 @@ observe({
       if(hasRoles || !hasCountry || !hasUserInfo) return()
 
 
-      userInfo$role <- mxGetMaxRole(
+      #--> userInfo$role <- mxGetMaxRole(
+      reactUser$role <- mxGetMaxRole(
         project=cntry,
         userInfo=userInfo
         )
-
-
-      roleDesc <- mxGetListValue(userInfo,c("role","desc"))
+      #
+      # Extract role description value
+      #
+      roleDesc <- reactUser$role$desc
       access <- roleDesc$access
       profile <- roleDesc$profile
       edit <- roleDesc$edit
       publish <- roleDesc$publish
-
       #
       # Set user access
       #
-
       reactUser$allowStoryCreator <- isTRUE("storymap_creator" %in% access)
       reactUser$allowStoryReader <-  isTRUE("storymap" %in% access)
       reactUser$allowViewsCreator <-isTRUE("view_creator" %in% access)
@@ -539,7 +545,6 @@ observe({
       reactUser$allowMap <- isTRUE("map" %in% access)
       reactUser$allowAdmin <- isTRUE("admin" %in% access)
       reactUser$allowProfile <- isTRUE("profile" %in% access)
-
       #
       # Update select publishing / editing target
       #
@@ -550,12 +555,14 @@ observe({
           choices=publish
           )
       }
+
       if("view_creator" %in% access){
         updateSelectInput(session,
           inputId="selNewViewVisibility",
           choices=publish
           )
       }
+
       if("storymap_creator" %in% access){
         updateSelectInput(session,
           inputId="selStoryVisibility",
@@ -563,37 +570,8 @@ observe({
           )
       }
 
-      reactUser$data <- userInfo 
     })
 })
 })
-
-#observeEvent(reactUser$data,{
-  #usr <- reactUser$data$role$desc
-  #if(length(usr)<1) return();
-
-  #})
-
-#observeEvent(reactUi$panelMode,{
-  #enable <- FALSE
-  #if(
-    #reactUser$allowViewsCreator &&
-      #isTRUE(reactUi$panelMode == "mapViewsCreator")
-    #){
-    #enable <- TRUE
-  #}
-  #enable = FALSE
-  #if(
-    #reactUser$allowViewsCreator &&
-      #isTRUE(reactUi$panelMode == "mapViewsToolbox")
-    #){
-    #enable <- TRUE
-  #}
-  #reactUser$allowToolbox <- enable
-
-
-#})
-
-
 
 

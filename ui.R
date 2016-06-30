@@ -32,6 +32,7 @@ tagList(
           # alert panels
           uiOutput('panelAlert'),
           uiOutput('panelLogin'),
+          uiOutput('panelStoryMap'),
           # sections
           loadUi("parts/ui/nav.R"),
           loadUi("parts/ui/home.R"), 

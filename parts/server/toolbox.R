@@ -111,7 +111,6 @@ observeEvent(input$btnAnalysisOverlaps,{
       mxUpdateText(id="txtAnalysisOverlaps",text="Launch analysis... This could a slow process, please be patient")
 
 
-
       #
       # Mmx overlap analysis
       #

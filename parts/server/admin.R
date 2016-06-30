@@ -47,7 +47,7 @@ observe({
     )
 
 
-  if(isTRUE(reactUser$data$role$level == 0)){
+  if(isTRUE(reactUser$role$level == 0)){
     # superuser 
     cntryList = c("world",unlist(mxConfig$countryListChoices,use.names=F))
   }else{
@@ -55,7 +55,7 @@ observe({
   }
 
 
-  rolesList <- mxGetListValue(reactUser$data,c("role","desc","admin"))
+  rolesList <- reactUser$role$desc$admin
 
   reactSchema$role = list(
     title=ifelse(lang=="eng","Selected user roles","Roles de l'utilisateur selectionné"),
@@ -106,12 +106,11 @@ observe({
   # Get user list
   #
   if(allowAdmin){
-    canEdit <-  mxGetListValue(reactUser$data,c("role","desc","profile"))
+    canEdit <- reactUser$role$desc$profile
 
     selfId <- reactUser$data$id
     currProject <- reactProject$name 
 
-    #users = mxDbGetUserInfoByRole(
     users <- mxDbGetUserByRoles(roles=canEdit)
 
     userList <- unique(users$id)
@@ -187,6 +186,7 @@ observeEvent(input$uiUserAdmin_values,{
   #
   # Update json value, given a path and id
   #
+
   mxDbUpdate(
     table = mxConfig$userTableName,
     idCol = 'id',
@@ -228,7 +228,7 @@ observeEvent(input$uiUserProfil_values,{
 mxDebugMsg("Schema profile received, test for change and update db / react")
     # update reactive value and db if needed
     mxDbUpdateUserData(reactUser,
-      path=c("data","user","preferences"),
+      path=c("user","preferences"),
       value=input$uiUserProfil_values
       )
 })

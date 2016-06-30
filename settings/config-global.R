@@ -66,8 +66,7 @@ mxConfig$hostname <- Sys.info()['nodename']
 ##########################################################################
 # set general parameters. Modify with caution :)
 
-# default country code "ISO_3166-1_alpha-3"
-mxConfig$defaultCountry <- "COD"
+
 # default language code "ISO 639-2"
 mxConfig$defaultLanguage <- "eng"
 # available languages
@@ -211,9 +210,16 @@ mxConfig$projectTree  <- list(
   )
 
 
-# role definition
 # note : could be searched with function
 #mxRecursiveSearch(mxConfig$roles,"role","==","admin")
+# role definition : 
+# each user has a role stored in the database : public, user, editor, admin or superuser.
+# each roles is described in the following list.
+# access : which parts of the application the user can access ?
+# read : which target groups the user can read ?
+# edit : which target groups the user can edit ?
+# profile : which groups the user can modify settings ?
+# admin : which group the user can modify roles ?
 mxConfig$roles <- list(
   list(
     role="public",
@@ -346,11 +352,17 @@ mxConfig$colorPalettes <- mxCreatePaletteList()
 # country data
 # http://unstats.un.org/unsd/methods/m49/m49alpha.htm
 # http://eiti.org/countries/reports/compare/download/xls
-countryEitiTable <- import('data/countriesEiti.ods')
+mxConfig$countryEitiTable <- import('data/countriesEiti.ods')
 # get country center from existing table
-mxConfig$countryCenter <- mxEitiGetCountryCenter(countryEitiTable)
+mxConfig$countryCenter <- mxEitiGetCountryCenter(mxConfig$countryEitiTable)
 # get country list formated for selectize input
-mxConfig$countryListChoices <- mxEitiGetCountrySelectizeList(countryEitiTable)
+mxConfig$countryListChoices <- mxEitiGetCountrySelectizeList(mxConfig$countryEitiTable)
+# default country code "ISO_3166-1_alpha-3"
+mxConfig$defaultCountry <- "COD"
+# default countries for users
+mxConfig$countryUser <- c("AFG","COD","SLE","NGA")
+# default countries for others
+mxConfig$countryAdmin <- mxConfig$countryEitiTable$code_iso_3 
 # set wdi infos
 mxConfig$wdiIndicators <- mxGetWdiIndicators()
 # list of tile provider

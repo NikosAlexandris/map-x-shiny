@@ -1124,6 +1124,9 @@ mxAnalysisOverlaps <- function(inputBaseLayer,inputMaskLayer,outName,dataOwner="
 
     varBase <- paste0(sprintf("a.%s",varToKeep[!varToKeep %in% "geom"]),collapse=",")
 
+        #ALTER TABLE %1$s
+        #ALTER COLUMN geom TYPE geometry(%7$s, %5$i) 
+        #USING ST_SetSRID(geom,%5$i);
     createTable <- gsub("\n|\\s+"," ", sprintf("
         CREATE TABLE %1$s AS
         SELECT
@@ -1137,9 +1140,7 @@ mxAnalysisOverlaps <- function(inputBaseLayer,inputMaskLayer,outName,dataOwner="
         FROM %3$s a
         JOIN %4$s b
         ON ST_Intersects(a.geom, b.geom);
-        ALTER TABLE %1$s
-        ALTER COLUMN geom TYPE geometry(%7$s, %5$i) 
-        USING ST_SetSRID(geom,%5$i);
+
         ALTER TABLE %1$s OWNER TO %6$s;
         DO
         $$
@@ -1355,7 +1356,7 @@ listToHtml<-function(listInput,htL='',h=2, exclude=NULL){
 #' @param exclude list named item to exclude
 #' @return HTML list 
 #' @export
-listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-group",classLi="list-group-item"){
+listToHtmlClass <- function(listInput, exclude=NULL,title=NULL,c=0, htL="",classUl="list-group",classLi="list-group-item"){
 
   c = c+1 #next
 
@@ -1373,8 +1374,9 @@ listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-g
         '">'
         )
       ) # open
-    for(n in nL){
-      #      htL <- append(htL,c(hS,n,hE))
+
+    for(i in 1:length(listInput)){
+      subL <- listInput[[i]]
       htL<-append(
         htL,
         c(
@@ -1382,13 +1384,13 @@ listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-g
             '<li class="',
             paste(classLi,collapse=","),
             '">'
-            ),
-          n)
+            )
+          )
         )
-      subL <- listInput[[n]]
       htL <- listToHtmlClass(
         subL, 
         exclude=exclude,
+        title=nL[[i]],
         htL=htL,
         c=c,
         classUl=classUl,
@@ -1398,10 +1400,15 @@ listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-g
     htL<-append(htL,'</li></ul>') # close
 
   }else if(is.character(listInput) || is.numeric(listInput)){
-
     htL<-append(
       htL,
-      paste("<b>",listInput,"</b>")
+      paste(
+        paste("<h5 class='list-group-item-heading'>",title,"</h5><p class='list-group-item-text'>"),
+        paste(
+          "<span class='badge'>",listInput,"</span>"
+          ,collapse=" "),
+      "</p>"
+        )
       )
 
   }
@@ -1608,11 +1615,34 @@ mxGetMaxRole <- function(project,userInfo){
 
   userRoles <- mxGetListValue(userInfo,c("data","admin","roles"))
 
+
+  # NOTE: Backward compatibility with previous version.
+  if("world" %in% names(userRoles)) {
+  userRoles <- list(userRoles,list(
+    project = "world",
+    role = userRoles[["world"]]
+    ))
+  }
+  if("AFG" %in% names(userRoles) ) {
+  userRoles <- list(userRoles,list(
+    project = "AFG",
+    role = userRoles[["AFG"]]
+    ))
+  }
+  if("COD" %in% names(userRoles) ) {
+  userRoles <-list(userRoles,list(
+    project = "COD",
+    role = userRoles[["COD"]]
+    ))
+  }
+
+
   # get role for project
   roleInProject <- mxRecursiveSearch(
     li=userRoles,"project","==",project
     )[[1]]$role
   # Get role for world
+
   roleInWorld <- mxRecursiveSearch(
     li=userRoles,"project","==","world"
     )[[1]]$role
@@ -1685,3 +1715,36 @@ mxTimer <- function(action=c("stop","start"),timerTitle="Mapx timer"){
     }
   }
 }
+
+#' Get session duration for given id
+#' @param id Integer id of the user
+#' @return list with H,M,S since last visit
+#' @export
+mxGetSessionDurationHMS <-function(id=NULL){
+  if(is.null(id)) return()
+  res <- 
+    list(
+      H=0,
+      M=0,
+      S=0
+      )
+
+  sessionStart <- mxDbGetQuery(sprintf(
+      "SELECT date_last_visit as start FROM mx_users WHERE id = %1$s"
+      , id
+      )
+    )$start
+
+  if(noDataCheck(sessionStart)) return()
+
+  sessionDurSec <- difftime(Sys.time(),sessionStart,units="secs")
+  sessionPosix <- .POSIXct(sessionDurSec,tz="GMT")
+  res$H <- format(.POSIXct(sessionPosix,tz="GMT"),"%H")
+  res$M <- format(.POSIXct(sessionPosix,tz="GMT"),"%M")
+  res$S <- format(.POSIXct(sessionPosix,tz="GMT"),"%S")
+
+  return(res)
+
+}
+
+

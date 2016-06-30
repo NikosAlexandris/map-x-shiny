@@ -96,9 +96,18 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){stop(x)
 #' @export
 mxDbUpdate <- function(table,column,idCol="id",id,value,jsonPath=NULL,expectedRowsAffected=1){   
 
-      res <- try({
-        if(!is.null(jsonPath)){
 
+  # explicit check
+  stopifnot(mxDbExistsTable(table))
+  stopifnot(column %in% mxDbGetColumnsNames(table))
+  # implicit check
+  stopifnot(!noDataCheck(id))
+  stopifnot(!noDataCheck(idCol))
+
+  # get connection object
+  con <- mxDbAutoCon()
+
+        if(!is.null(jsonPath)){
           # if value has no json class, convert it (single value update)
           if(isTRUE(!"json" %in% class(value))){
             value <- mxToJsonForDb(value)
@@ -144,13 +153,13 @@ mxDbUpdate <- function(table,column,idCol="id",id,value,jsonPath=NULL,expectedRo
               id
               ))
         }
-        con <- mxDbAutoCon()
 
+
+      res <- try(silent=T,{
         dbGetQuery(con,"BEGIN TRANSACTION")
         rs <- dbSendQuery(con,query)   
         ra <- dbGetInfo(rs,what="rowsAffected")[[1]]
         if(isTRUE(is.numeric(expectedRowsAffected) && isTRUE(ra != expectedRowsAffected)) ){
-          dbRollback(con)
           stop(
             sprintf(
               "Error, number of rows affected does not match expected rows affected %s vs %s",
@@ -165,6 +174,7 @@ mxDbUpdate <- function(table,column,idCol="id",id,value,jsonPath=NULL,expectedRo
       })
 
     if("try-error" %in% res){
+      dbRollback(con)
       res <- FALSE
     }else{
       res <- TRUE
@@ -839,10 +849,12 @@ mxDbAddRowBatch <- function(df,table){
 #' Remove old results from db query
 #' @export
 mxDbClearAll <- function(){
-  nR <- dbListResults(mxDbAutoCon())
-  if(length(nR)>0){
-    lapply(nR,dbClearResult)
-  }
+  suppressWarnings({
+    nR <- dbListResults(mxDbAutoCon())
+    if(length(nR)>0){
+      lapply(nR,dbClearResult)
+    }
+  })
 }
 
 
@@ -951,15 +963,27 @@ mxDbGetUserInfoList <- function(id=NULL,email=NULL,userTable="mx_users"){
 
 
 
+    #WHERE s.role#>>'{\"role\"}' in %2$s 
 mxDbGetUserByRoles <- function(roles="user", userTable="mx_users"){
   roles <- paste0("(",paste0("'",roles,"'",collapse=","),")")
   quer <- sprintf("
-    SELECT id,email,s.role#>>'{\"project\"}' as project,s.role#>>'{\"role\"}' as role
+    SELECT * FROM 
+    (  
+    SELECT id,email,a.role#>>'{\"project\"}' as project,a.role#>>'{\"role\"}' as role
     FROM (
-      SELECT id,email,jsonb_array_elements(data#>'{\"admin\",\"roles\"}') as role from %1$s
-      ) s
-    WHERE 
-    s.role#>>'{\"role\"}' in %2$s 
+      SELECT id,email,jsonb_array_elements(data#>'{\"admin\",\"roles\"}') AS role 
+      FROM %1$s 
+      WHERE jsonb_typeof(data#>'{\"admin\",\"roles\"}') = 'array'
+      ) a 
+    UNION
+       SELECT id,email,key as project, value as role FROM 
+    (
+      SELECT id,email,(jsonb_each_text(data#>'{\"admin\",\"roles\"}')).* 
+      FROM %1$s
+    WHERE jsonb_typeof( data#>'{\"admin\",\"roles\"}') = 'object'
+    ) b 
+    ) c 
+    WHERE role  in %2$s 
     "
     , userTable
     , roles
@@ -1195,21 +1219,26 @@ mxDbDropLayer <- function(layerName){
       # Check last value
       #
       valueOld <- mxGetListValue(
-        li = reactUser$data,
+        li = reactUser$data$data,
         path = path
         ) 
       #
       # Check if this is different than the current country
       #
-      if(!identical(valueOld[names(value)],value)){
+      if(
+        !(
+        identical(valueOld,value) ||
+        identical(valueOld[names(value)],value)
+      )
+        ){
         #
         # Update
         #
-        reactUser$data <- mxSetListValue(
-          li = reactUser$data,
-          path = path,
-          value = value
-          )
+      #  reactUser$data$data <- mxSetListValue(
+          #li = reactUser$data$data,
+          #path = path,
+          #value = value
+        #  )
         #
         # Save
         #
@@ -1218,7 +1247,8 @@ mxDbDropLayer <- function(layerName){
           idCol='id',
           id=reactUser$data$id,
           column='data',
-          value=reactUser$data$data
+          jsonPath = path,
+          value = value
           )
       }
     }
