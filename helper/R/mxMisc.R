@@ -1289,7 +1289,7 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
   err <- character(0)
 
   if(testForDuplicate){
-    itemExists <- isTRUE(tolower(textToTest) %in% tolower(existingTexts))
+    itemExists <- isTRUE(tolower(textToTest) %in% tolower(unlist(existingTexts)))
   }
   if(testForMinChar){
     itemTooShort <- isTRUE(nchar(textToTest)<minChar)

@@ -98,6 +98,8 @@ mxConfig$defaultNoDatas <- c(
 mxConfig$defaultZoom <- 9
 # Default layer group name
 mxConfig$defaultGroup <- "G1"
+# Default layers names
+mxConfig$layerOverlap <- "mx-overlap"
 # column column used in postgis
 mxConfig$defaultGeomCol <- "geom"
 # cookies expiration in days
@@ -105,7 +107,7 @@ mxConfig$cookiesExpireDays <- 30
 # default email adress for sender
 mxConfig$mapxBotEmail <- "bot@mapx.io"
 mxConfig$mapxGuestEmail = "guest@mapx.io"
-# default username
+# default username base name
 mxConfig$defautUserName <- "user"
 
 
@@ -225,7 +227,7 @@ mxConfig$roles <- list(
     role="public",
     level=4,
     desc = list(
-      access = c("map","country"),
+      access = c("map","country","analysis_overlap"),
       read = c("public"),
       publish = c(),
       edit = c(),
@@ -237,7 +239,7 @@ mxConfig$roles <- list(
     role="user",
     level=3,
     desc=list(
-      access = c("map","storymap","country","profile","view_creator","storymap_creator","tools"),
+      access = c("map","storymap","country","profile","view_creator","storymap_creator","analysis_overlap","polygon_of_interest"),
       read = c("self","user","public"),
       publish = c("self","editor"),
       edit = c("self"),
@@ -249,7 +251,7 @@ mxConfig$roles <- list(
     role="editor",
     level=2,
     desc = list(
-      access = c("map","storymap","country","profile","view_creator","storymap_creator","tools"),
+      access = c("map","storymap","country","profile","view_creator","storymap_creator","analysis_overlap","polygon_of_interest"),
       read = c("self","user","public","editor"),
       publish = c("self","user","public","editor"),
       edit = c("self","user"),
@@ -261,7 +263,7 @@ mxConfig$roles <- list(
     role="admin",
     level=1,
     desc = list(
-      access = c("map","storymap","country","profile","admin","view_creator","storymap_creator","tools","data_upload"),
+      access = c("map","storymap","country","profile","admin","view_creator","storymap_creator","analysis_overlap","data_upload","polygon_of_interest"),
       read = c("self","user","public","editor","admin"),
       publish = c("self","user","public","editor","admin"),
       edit = c("self","user","editor","admin"),
@@ -273,7 +275,7 @@ mxConfig$roles <- list(
     role="superuser",
     level=0,
     desc = list(
-      access = c("map","storymap","country","profile","admin","config","view_creator","storymap_creator","tools","data_upload"),
+      access = c("map","storymap","country","profile","admin","config","view_creator","storymap_creator","analysis_overlap","data_upload","polygon_of_interest"),
       read = c("self","public","user","editor","admin","superuser"),
       publish = c("self","user","public","editor","admin","superuser"),
       edit = c("self","user","editor","admin","superuser"),

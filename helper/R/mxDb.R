@@ -318,6 +318,44 @@ mxDbGetLayerExtent<-function(table=NULL,geomColumn='geom'){
   }
 }
 
+#' Extract list of layer for one country, for given visibility or userid
+#' @param project Project or iso3 country code
+#' @param visibility Groupe/role set as target
+#' @param userId Integer user id
+#' @export
+mxDbGetLayerList <- function(project=NULL,visibility="public",userId=NULL){
+
+  stopifnot(!noDataCheck(project))
+  stopifnot(!noDataCheck(userId))
+  stopifnot(!noDataCheck(visibility))
+
+  visibility <- paste(paste0("'",visibility,"'"),collapse=",")
+
+
+
+  sql <- gsub("\n","",sprintf(
+      "SELECT layer 
+      FROM mx_layers 
+      WHERE country='%1$s' AND
+      ( visibility ?| array[%2$s] OR editor = '%3$s' )",
+      project,
+      visibility,
+      userId
+      ))
+
+  layers <- mxDbGetQuery(sql)$layer
+  orphan <- layers[!layers %in% mxDbListTable()]
+
+  layers <- layers[layers %in% mxDbListTable()]
+
+  if(!noDataCheck(orphan)){
+    sapply(orphan,mxDbDropLayer)
+  }
+  
+  return(layers)
+
+}
+
 
 #' @export
 mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColumn="geom",srid="4326",distKm=1){

@@ -8,55 +8,65 @@
 # Toolbox : analysis and process
 
 
-
 #
-# generate ui
+# GET LAYER LIST
 #
 observe({ 
+  layers <- c()
+  if(reactUser$allowAnalysisOverlap){
+    if(!noDataCheck(reactMap$viewsData)){
+      v <- reactMap$viewsData
+      # extract layer id
+      layers <- sapply(v,function(x){x$layer})
+      # set title
+      names(layers) <- sapply(v,function(x){x$title})
+    }
+  }
+  reactMap$analysisOverlapLayers <- layers
+})
+
+#
+# UPDATE OPTION LIST A
+#
+
+observe({
+  choices <- mxConfig$noData
+  choices <- c(choices,reactMap$analysisOverlapLayers)
+  updateSelectInput(session,inputId="selectOverlapA",choices=choices)
+})
+
+#
+# UPDATE OPTION LIST B
+#
+observe({
+  choices <- mxConfig$noData
+  overlapA <- input$selectOverlapA 
+  choicesAll <- reactMap$analysisOverlapLayers
   browser()
-  if(reactUser$analysisOverlap.R){
-    analysis <- input$selectAnalysis
-    if(!noDataCheck(analysis)){
-      v = reactMap$viewsData
-      layers = lapply(v,function(x){x$layer})
-      names(layers) = lapply(v,function(x){x$title})
+  choices <- c(choices,choicesAll[!choicesAll %in% overlapA])
+  updateSelectInput(session,inputId="selectOverlapB",choices=choices)
+})
 
-      #
-      # switch analaysis
-      #
-      out = NULL
-      switch(analysis,
-        "overlaps"={
-          # prevent others layer to be evaluated.
-          idA <- layers
-          idB <- layers
-
-          if(noDataCheck(idA) || noDataCheck(idB)){
-            idA <- mxConfig$noData
-            idB <- mxConfig$noData
-          }
-          # send ui
-          out <- tagList(
-            selectInput("selectOverlapA","Map to query",choices=idA,selected=idA[1]),
-            selectInput("selectOverlapAVar","Variable to keep",
-              choices="",
-              multiple=TRUE),
-            selectInput("selectOverlapB","Zone",choices=idB,selected=idB[1]),
-            actionButton("btnAnalysisOverlaps",icon("play")),
-            span(id="txtAnalysisOverlaps","") 
-            )
-          output$uiAnalysis <- renderUI(out)
-        }
-        )
+#
+# UPDATE VARIABLES TO KEEP IN OVERLAP BASED ON A
+#
+observe({
+  selLayer <- input$selectOverlapA
+  if(reactUser$allowAnalysisOverlap){
+    if(!noDataCheck(selLayer)){
+      vars <- mxDbGetColumnsNames(selLayer)
+      vars <- vars[!vars %in% c(
+        mxConfig$vtInfo$geom,
+        mxConfig$vtInfo$gid
+        )]
+      updateSelectInput(session,"selectOverlapAVar",choices=vars)
     }
   }
 })
 
-
-
-# validation
-
-
+#
+# VALIDATION AND SHOW BUTTON
+#
 observe({
   layA <- !noDataCheck(input$selectOverlapA)
   layB <- !noDataCheck(input$selectOverlapB)
@@ -68,41 +78,27 @@ observe({
   mxActionButtonState(id="btnAnalysisOverlaps",disable=!allowLaunchAnalysis) 
 })
 
-
+#
+# REMOVE LAYER
+#
 observeEvent(input$btnAnalysisRemoveLayer,{
   
-  if(reactUser$allowToolbox){
-  idLayer = "analysis"
   proxyMap <- leafletProxy("mapxMap")
   proxyMap %>% 
-  clearGroup(idLayer)
-  }
-    })
-
-observe({
-  if(reactUser$allowToolbox){
-    selLayer <- input$selectOverlapA
-    if(!noDataCheck(selLayer)){
-
-      vars <- mxDbGetColumnsNames(selLayer)
-
-      vars <- vars[!vars %in% c(
-        mxConfig$vtInfo$geom,
-        mxConfig$vtInfo$gid
-        )]
-      updateSelectInput(session,"selectOverlapAVar",choices=vars)
-    }
-  }
+  clearGroup( mxConfig$layerOverlap )
+  
 })
+
 
 #
 # OVERLAPS ANALYSIS  REQUEST
 #
 observeEvent(input$btnAnalysisOverlaps,{
   mxCatch(title="Overlaps analysis",{
-  if(reactUser$allowToolbox){
+
+  if(reactUser$allowAnalysisOverlap){
+
     output$txtAnalysisOverlaps <- renderText("Launch analysis..")
-    idLayer = "analysis"
     idA <- input$selectOverlapA
     idB <- input$selectOverlapB
     idAVar <- input$selectOverlapAVar
@@ -118,8 +114,9 @@ observeEvent(input$btnAnalysisOverlaps,{
       mxAnalysisOverlaps(
         inputBaseLayer = idA,
         inputMaskLayer = idB,
-        outName,
-        varToKeep=idAVar)
+        outName        = outName,
+        varToKeep      = idAVar
+        )
 
       mxUpdateText(id="txtAnalysisOverlaps",text="Analysis done! Update vector tiles...")
  
@@ -138,7 +135,7 @@ observeEvent(input$btnAnalysisOverlaps,{
           layer          = outName,
           dataColumn     = idAVar,
           onLoadFeedback = "always",
-          group = "analysis"
+          group          = mxConfig$layerOverlap
           ) 
       }else{
         mxUpdateText(id="txtAnalysisOverlaps",text="something went wrong : layer computed but not available")
@@ -159,7 +156,7 @@ observe({
     grpClient <- input$leafletvtIsLoaded$grp
     layClient <- input$leafletvtIsLoaded$lay
 
-    if(!noDataCheck(grpClient) && grpClient=="analysis"){
+    if(!noDataCheck(grpClient) && grpClient==mxConfig$layerOverlap){
       mxUpdateText(id="txtAnalysisOverlaps",text="Layer rendered, add default style.")
 
       session$sendCustomMessage(

@@ -1,4 +1,6 @@
 
+
+
 #' Add leaflet draw tools
 leafletDrawDependencies <- function() {
   list(
@@ -19,26 +21,28 @@ leafletDrawDependencies <- function() {
 }
 
 # leaflet draw function
-addDraw <- function(
+setDraw <- function(
   map
   , options
+  , display = TRUE
 ) {
   map$dependencies <- c(map$dependencies, leafletDrawDependencies())
   invokeMethod(
     map
     , getMapData(map)
-    , 'toggleDraw'
+    , 'setDraw'
     , options
+    , display
   )
 }
 
-#' @export
-removeDraw <- function( map ){
-  invokeMethod(
-    map
-    , getMapData(map)
-    , 'removeDraw'
-  )
-}
+##' @export
+#removeDraw <- function( map ){
+  #invokeMethod(
+    #map
+    #, getMapData(map)
+    #, 'removeDraw'
+  #)
+#}
 
 

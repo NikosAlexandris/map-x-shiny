@@ -73,7 +73,33 @@ function enableSection(id){
 
 }
 
+function enablePanelMode(id,title){
+  var dest = document.getElementById(id) ;
+  var sections = document.getElementsByClassName("mx-panel-mode");
+  var elTitle = document.getElementById("titlePanelMode");
+  classRemove('mapLeftPanel',"mx-hide");
+    if(typeof(id) != "undefined"){
+      elTitle.textContent=title;
+      for(s=0;s<sections.length;s++){
+        var i = sections[s].id;
+        if(i == id){
+          // Show
+          classRemove(i,"mx-hide");
+          classAdd(i,"mx-show");
+        }else{
+          // Hide
+          classRemove(i,"mx-show");
+          classAdd(i,"mx-hide");
+        }
+      }
+       Shiny.onInputChange("mxPanelMode", { 
+         id:id
+       }
+       );
+    }
+  return false;
 
+}
 
 function classAdd(id,cl){
   var el = document.getElementById(id),
@@ -91,7 +117,6 @@ function classRemove(id,cl){
   oldCl = el.className.split(" "),
   idx = oldCl.indexOf(cl),
   hasClass = idx > -1;
-  console.log("class " + cl + " remove for " + id + " is " + hasClass);
   if(hasClass){
     oldCl.pop(idx);
     el.className = oldCl.join(" ");

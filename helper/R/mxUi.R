@@ -212,26 +212,57 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
 #'    'b'=list('title'='bTitle',content='bContent'))
 #'  )
 #' @export
-mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
+mxAccordionGroup <- function(id,style=NULL,show=NULL,itemList){
   if(is.null(style)) style <- ""
   cnt=0
   contentList<-lapply(itemList,function(x){
     cnt<<-cnt+1
     ref<-paste0(subPunct(id,'_'),cnt)
-    showItem<-ifelse(cnt %in% show,'collapse in','collapse')
-    stopifnot(!is.list(x) || !is.null(x$title) || !char(x$title)<1 || !is.null(x$content) || !nchar(x$content)<1)
-    if(is.null(x$condition))x$condition="true"
-    div(style=style,class=paste("mx-accordion-item",x$class),`data-display-if`=x$condition,
-      div(class="mx-accordion-header",
-        h4(class="mx-accordion-title",
-          a('data-toggle'="collapse", 'data-parent'=paste0('#',id),href=paste0("#",ref),x$title)
+    showItem<-ifelse(cnt %in% show,'collapse.in','collapse')
+    stopifnot(is.list(x) || !noDataCheck(x$title) || !noDataCheck(x$content))
+
+    onShow <- ifelse(noDataCheck(x$onShow),"",x$onShow)
+    onHide <- ifelse(noDataCheck(x$onHide),"",x$onHide)
+
+    if(is.null(x$condition)) x$condition="true"
+    div(
+      style=style,
+      class=paste("mx-accordion-item",x$class),
+      `data-display-if`=x$condition,
+      div(
+        class="mx-accordion-header",
+        tags$span(
+          class="mx-accordion-title",
+          tags$a('data-toggle'="collapse", 
+            'data-parent'=paste0('#',id),
+            href=paste0("#",ref),x$title
+            )
           )
         ),
-      div(id=ref,class=paste("mx-accordion-collapse",showItem),
-        div(class="mx-accordion-content",x$content)
+      div(
+        id=ref,
+        class=paste("mx-accordion-collapse",showItem
+          ),
+        div(
+          class="mx-accordion-content",
+          x$content
+          ),
+        tags$script(
+          sprintf('
+            $("#%1$s").on("show.bs.collapse", function () {
+              %2$s
+            }).on("hide.bs.collapse", function () {
+            %3$s
+    }); 
+            '
+            , ref
+            , onShow
+            , onHide
+            )
+          )
         )
       )
-  })
+})
 
   return(div(class="mx-accordion-group",id=id,
       contentList

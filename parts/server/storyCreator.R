@@ -5,40 +5,40 @@
 #
 # New story creator btn
 #
-observeEvent(input$btnStoryNew,{
+#observeEvent(input$btnStoryNew,{
 
-  allowCreate <- isTRUE(reactUser$allowStoryCreator)
-  correctMode <- isTRUE(reactUi$panelMode=="mapStoryReader")
+  #allowCreate <- isTRUE(reactUser$allowStoryCreator)
+  #correctMode <- isTRUE(reactUi$panelMode=="mapStoryReader")
 
-  if( allowCreate && correctMode ){
-    uiStoryNew <- tagList(
-      textInput("txtStoryName","Add new story title"), 
-      conditionalPanel("input.txtStoryName.length>0",
-        tagList(
-          tags$label("Validation"),
-          div(id="validateNewStoryName")
-          )
-        )
-      )
+  #if( allowCreate && correctMode ){
+    #uiStoryNew <- tagList(
+      #textInput("txtStoryName","Add new story title"), 
+      #conditionalPanel("input.txtStoryName.length>0",
+        #tagList(
+          #tags$label("Validation"),
+          #div(id="validateNewStoryName")
+          #)
+        #)
+      #)
 
-    listButtons <- list( 
-          actionButton("btnSaveNewStory",
-            label=icon("save"),
-            class="btn btn-modal"
-            )  
-      )
+    #listButtons <- list( 
+          #actionButton("btnSaveNewStory",
+            #label=icon("save"),
+            #class="btn btn-modal"
+            #)  
+      #)
 
-    ui <- mxPanel(
-      id="storyMapNew",
-      title="New story map",
-      html=uiStoryNew,
-      addCancelButton=TRUE,
-      listActionButton=listButtons
-      )
+    #ui <- mxPanel(
+      #id="storyMapNew",
+      #title="New story map",
+      #html=uiStoryNew,
+      #addCancelButton=TRUE,
+      #listActionButton=listButtons
+      #)
 
-    output$panelStoryMap <- renderUI(ui)
-  }
-})
+    #output$panelStoryMap <- renderUI(ui)
+  #}
+#})
 
 #
 # New story name validation
@@ -60,11 +60,13 @@ observeEvent(input$txtStoryName,{
 observeEvent(input$btnSaveNewStory,{
 
   allowCreate <- isTRUE(reactUser$allowStoryCreator)
-  correctMode <- isTRUE(reactUi$panelMode=="mapStoryReader")
+  correctMode <- isTRUE(reactUi$panelMode=="mxModeToolBox")
 
+  browser()
    if( allowCreate && correctMode ){ 
 
-    newId <- randomString()
+     mxActionButtonState(id="btnSaveNewStory",disable=TRUE) 
+     newId <- randomString()
     defaultVisibility = "self"
     timeNow <- Sys.time()
 
@@ -90,12 +92,21 @@ observeEvent(input$btnSaveNewStory,{
       table=mxConfig$storyMapsTableName
       )
 
+    mxUpdateText(
+      id="validateNewStoryName",
+     
+      )
 
     panModal <- mxPanel(
       id="panConfirmStorySave",
       title="New story map saved.",
       subtitle="Action handler",
-      html=p(sprintf("Story map saved with visibility set for role '%s'",defaultVisibility))
+      html=p( sprintf("Saved as '%s' with id '%s' and visibility targeting role '%s' "
+        ,input$txtStoryName
+        ,newId
+        ,defaultVisibility
+        )
+      )  
       )
 
     output$panelStoryMap <- renderUI(panModal)

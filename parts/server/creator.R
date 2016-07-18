@@ -55,23 +55,16 @@ observe({
     roles <- reactUser$role
     usr <- reactUser$data
     visibility <- roles$desc$read
-    visibility <- paste0("'",visibility[!visibility %in% 'self'],"'",collapse=",")
 
     if(!noDataCheck(visibility)){
       mxCatch("Update input: get list of layer",{
 
-        sql <- gsub("\n","",sprintf(
-            "SELECT layer 
-            FROM mx_layers 
-            WHERE country='%1$s' AND
-            ( visibility ?| array[%2$s] OR editor = '%3$s' )",
-            cntry,
-            visibility,
-            usr$id
-            ))
+        layers <- mxDbGetLayerList(
+          project=cntry,
+          visibility=visibility,
+          userId=usr$id
+          )
 
-
-        layers <- mxDbGetQuery(sql)$layer
 
         if(!noDataCheck(layers)){
           choice = c(choice,layers)  
