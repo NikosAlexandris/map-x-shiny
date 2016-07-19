@@ -159,12 +159,10 @@ mxPanel<- function(
         ),
       div(class=paste("panel-modal-subtitle"),subtitle),
       div(class="panel-modal-text-container",
-      div(style=sprintf("height:%spx",defaultTextHeight),class=paste("panel-modal-text"),
+      div(class=paste("panel-modal-text"),
         div(class="no-scrollbar-container",
-          div(class="no-scrollbar-content",
-            div(style="width: 100%;padding: 0px;",
+          div(class="no-scrollbar-content mx-panel-400",
               html
-              )
             )
           )
         )
@@ -481,14 +479,7 @@ cl <- mxConfig$class
         # id of the view
         itId <- as.character(it)
         # view data
-        dat <- v[[itId]]
-        # set icon
-        viewVisibility <- subPunct(dat$visibility)
-        viewIcon<-switch(viewVisibility,
-          "public"=icon("unlock",class="mx-view-icon-role"),
-          "editor"=icon("legal",class="mx-view-icon-role"),
-          icon("lock",class="mx-view-icon-role")
-          )
+        dat <- v[[itId]]  
         # view name
         itName <- names(it)
         # id for checkbox option
@@ -503,16 +494,44 @@ cl <- mxConfig$class
         itIdFilterCompany <- sprintf('select_filter_for_%s',itId)
         # id for companis report
         itIdBtnReport <- sprintf('btn_show_report_for_%s',itId)
-        #
+
+        # visibility
+        viewVisibility <- subPunct(dat$visibility)
+        # set icons
+        visibilityIcon <- switch(viewVisibility,
+          "public"="unlock",
+          "editor"="legal",
+          "lock"
+          ) %>% 
+        icon(.,class="mx-view-icon") %>%
+        span(
+          "class" = "mx-tooltip mx-tooltip-top-right",
+          "data-tooltip" = sprintf("Visibility: %s",viewVisibility),
+          .
+          ) 
+        # Description 
+        infoIcon <- icon("info-circle",class="mx-view-icon") %>%
+          span(
+          "onClick" = sprintf("mxRequestMeta('%s')",itId),
+          "class" = "mx-tooltip mx-tooltip-top-right",
+          "data-tooltip" = "View meta data",
+          .
+          )
+        # Sliders
+        sliderIcon <- icon("sliders",class="mx-view-icon") %>%
+          span(
+            "onClick" = sprintf("classToggle('%s')",itIdCheckOptionPanel),
+            "class"="mx-tooltip mx-tooltip-top-right",
+            "data-tooltip"="View settings"
+            )
+
+              #
         # check if time slider or filter should be shown
         #
         hasDate <- isTRUE(dat$style$hasDateColumns)
         hasCompany <- isTRUE(dat$style$hasCompanyColumn)
         
-        # get description
-        #
-
-        desc <- dat$style$description
+  
 
         # layer name
         layerName <- dat$layer
@@ -624,19 +643,11 @@ cl <- mxConfig$class
         icon("info")
         )
 
-
-      downloadBtn <- tags$button(
-        class="btn btn-default btn-sm mx-layer-button",
-        onclick="",
-        icon("download")
-        )
-
-
-
+ 
       viewButtons <- tagList(
         div(class="mx-view-button-group",
-        requestMetaBtn,
-        downloadBtn,
+        #requestMetaBtn,
+        #downloadBtn,
         reportButton
         )
         )
@@ -648,59 +659,37 @@ cl <- mxConfig$class
       # previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,500))
       previewTimeOut <- ""
       #
-      # HTML 
+      # View's checkbox input and label
       #
-      val <- div(class="checkbox",
-        tags$label(
-          id=itIdLabel,
-          draggable=TRUE,
-          title=paste("[",viewVisibility,"]",dat$style$description),
-          `data-viewid`=itId,
-          `data-viewtitle`=itName,
-          `data-toggle`="tooltip",
-          tags$input(
-            type="checkbox",
-            class="vis-hidden",
-            name=id,
-            value=itId,
-            onChange=toggleOptions
-            ),
-          div(
-            class="map-views-item",
-            tags$span(
-              class="map-views-selector",
-              itName,viewIcon
-              ),
-            mxCheckboxIcon(
-              itIdCheckOption,
-              itIdCheckOptionLabel,
-              "cog",
-              display=FALSE
-              )
-            ) 
+      checkView <- tags$label(
+        id = itIdLabel,
+        draggable= TRUE,
+        tags$input(
+          type = "checkbox",
+          class = "mx-hide",
+          name = id,
+          value = itId
           ),
-        conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
-          tags$div(class="map-views-item-options",id=itIdCheckOptionPanel,
-            mxSliderOpacity(
-              itId,
-              v[[itId]]$style$opacity
-              ),
-            timeSlider,
-            timeSliderRange,
-            filterSelect,
-            viewButtons,
-            previewTimeOut
-            )
-          ),
-        tags$script(
+        tags$span(
+          class="map-view-label mx-tooltip mx-tooltip-top-right",
+          "data-tooltip"=itName,
+          mxShort(itName,30)
+          )
+        )
+
+      #
+      # View icons / options
+      #
+      checkIcon <- tags$span(
+         visibilityIcon,
+         infoIcon,
+         sliderIcon 
+        )
+      #
+      # View drag script
+      #
+      checkDragScript <- tags$script(
           sprintf("
-            /* add tooltip handler  */
-            $(\"#%1$s\").tooltip({
-                  trigger : 'hover',
-                  placement : 'right',
-                  delay: {show: 1000, hide: 0},
-                  container: '#sectionMap'
-      });
             /* Add drag handler*/
             document.getElementById('%1$s')
             .addEventListener('dragstart',function(e){
@@ -715,9 +704,33 @@ cl <- mxConfig$class
         })",
             itIdLabel)
             )
-          # previewTimeOut
+      #
+      # View options panel
+      #
+      checkOptions <- tags$div(class="map-views-item-options mx-hide",id=itIdCheckOptionPanel,
+            mxSliderOpacity(
+              itId,
+              v[[itId]]$style$opacity
+              ),
+            timeSlider,
+            timeSliderRange,
+            filterSelect,
+            viewButtons,
+            previewTimeOut
           )
-        checkList <- tagList(checkList,val)
+      #
+      # View item
+      #
+      checkItem <- tags$div(
+        class="map-view-item",
+        checkView,
+        checkIcon,
+        checkOptions,
+        checkDragScript
+        )
+
+     
+        checkList <- tagList(checkList,checkItem)
     }
   }
   checkListOut <- tagList(

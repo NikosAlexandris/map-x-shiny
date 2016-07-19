@@ -42,7 +42,6 @@ observe({
   choices <- mxConfig$noData
   overlapA <- input$selectOverlapA 
   choicesAll <- reactMap$analysisOverlapLayers
-  browser()
   choices <- c(choices,choicesAll[!choicesAll %in% overlapA])
   updateSelectInput(session,inputId="selectOverlapB",choices=choices)
 })

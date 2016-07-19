@@ -15,11 +15,27 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top mx-hide",ro
         div(style="font-size;18px;color:white;",icon('bars'))
         ),
       tags$div(
-        class="navbar-brand",
-        onClick="enableSection('sectionCountry')",
+        id = "navBarCountryChoice",
+        class = "navbar-brand",
         tags$img(src="img/logo_white.svg",class="mx-logo-small float-left"),
-        tags$div(id="countryTitle",class="float-right")
-        )
+        tags$span(
+          id="countryTitle",
+          class="float-right",
+          onClick='classToggle("selectCountryPanel","mx-hide")'
+          ),
+        tags$span(
+          id="selectCountryPanel",
+          class="mx-hide",
+          tags$div(class="mx-arrow mx-arrow-up-white"),
+          tags$div(class="mx-panel-country",
+          selectizeInput(
+            inputId = "selectCountry",
+            label = "Select country",
+            choices = mxConfig$countryListChoices
+            )
+          )
+          )
+        )  
       ), 
     # nav bar
     div(class="collapse navbar-collapse navbar-right navbar-main-collapse",

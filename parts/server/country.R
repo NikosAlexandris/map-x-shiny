@@ -18,9 +18,14 @@ mxUiEnable(id="sectionCountry",enable=TRUE)
 # Country input selection : save in db is needed
 #
 observeEvent(input$selectCountry,{
-  selCountry = input$selectCountry
+  selCountry <- input$selectCountry
+
   if(!noDataCheck(selCountry) && reactUser$isLogged ){
 
+    mxUiEnable(
+      id="selectCountryPanel",
+      enable=FALSE
+      )
     # update reactive value and db if needed
     mxDbUpdateUserData(reactUser,
       path=c("user","cache","last_project"),
@@ -33,9 +38,9 @@ observeEvent(input$selectCountry,{
 
 
 observe({
-  cSelect <- reactProject$name
-  
+  cSelect <- reactProject$name 
   if(!noDataCheck(cSelect)){
+    mxConsoleText(cSelect)
     if(cSelect %in% names(mxData$countryStory)){
       cInfo  <- mxData$countryStory[[cSelect]]
       # extract country metrics

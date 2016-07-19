@@ -1402,12 +1402,13 @@ listToHtmlClass <- function(listInput, exclude=NULL,title=NULL,c=0, htL="",class
   }else if(is.character(listInput) || is.numeric(listInput)){
     htL<-append(
       htL,
-      paste(
-        paste("<h5 class='list-group-item-heading'>",title,"</h5><p class='list-group-item-text'>"),
-        paste(
-          "<span class='badge'>",listInput,"</span>"
-          ,collapse=" "),
-      "</p>"
+      sprintf(
+        "
+        <span class='mx-list-title'>%1$s: </span>
+        <span class='mx-list-content'>%2$s</span>
+        "
+        , title
+        , listInput
         )
       )
 
@@ -1747,4 +1748,16 @@ mxGetSessionDurationHMS <-function(id=NULL){
 
 }
 
-
+#' Trim string at given position minus and put ellipsis if needed
+#' @param str String to trim if needed
+#' @param n Maximum allowed position. If number of character exceed this, a trim will be done
+#' @return Trimed string
+#' @export
+mxShort <- function(str="",n=10){
+  stopifnot(n>=4)
+  if(nchar(str)>n){
+    sprintf("%s...",strtrim(str,n-3))
+}else{
+  return(str)
+}
+}
