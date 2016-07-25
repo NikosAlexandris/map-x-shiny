@@ -27,11 +27,12 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top mx-hide",ro
           id="selectCountryPanel",
           class="mx-hide",
           tags$div(class="mx-arrow mx-arrow-up-white"),
-          tags$div(class="mx-panel-country",
+          tags$div(class="mx-panel-country mx-panel-country col-xs-11 col-md-7 col-lg-6",
           selectizeInput(
             inputId = "selectCountry",
             label = "Select country",
-            choices = mxConfig$countryListChoices
+            choices = c(mxConfig$countryListChoices,mxConfig$noData),
+            selected= mxConfig$noData
             )
           )
           )

@@ -16,126 +16,177 @@
 addPaletteFun_cache <- memoise(addPaletteFun)
 mxMakeViews_cache <- memoise(mxMakeViews)
 
+
 #
 # PERMISSION EVENT : loading server files
 #
+
 observe({
-  if(reactUser$allowMap){
+
+  allow <- isTRUE( reactUser$allowMap )
+
+  if( allow ){
     source("parts/server/style.R",local=TRUE)
     source("parts/server/views.R",local=TRUE)
     source("parts/server/leaflet.R",local=TRUE)
     # Inital mode
-    reactUi$panelMode="mapViewsExplorer"
-
+    reactUi$panelMode="mxModeExplorer"
+    # temporary hardcoded tenke fungurume summary
     output$infoBoxContent <- renderUI(includeHTML("parts/ui/tenke-info.html"))
   }
-})
 
-# update panel mode 
-observeEvent(input$mxPanelMode,{
-  reactUi$panelMode<-input$mxPanelMode$id
-})
+  mxUiEnable(
+    id="sectionMap",
+    enable=allow
+    )
 
+})
 
 # Allow map views creator
 observe({
-  if(reactUser$allowViewsCreator){
+
+  allow <- isTRUE( reactUser$allowViewsCreator )
+
+  if( allow ){
     source("parts/server/creator.R",local=TRUE)
   }
-})
 
+  mxUiEnable(
+    class = "mx-allow-creator",
+    enable = allow 
+    )
+
+})
 # Allow data upload
 observe({
-  if(reactUser$allowUpload){
+
+  allow <- isTRUE( reactUser$allowUpload )
+
+  if( allow ){
     source("parts/server/upload.R",local=TRUE)
   }
-})
-# Allow story map 
-observe({
-  if(reactUser$allowStoryReader){
-    source("parts/server/storyReader.R",local=TRUE)
-  }
+
+ mxUiEnable(
+    class = "mx-allow-upload",
+    enable = allow
+    ) 
+
 })
 
 
-# Allow toolbox / analysis
+# Allow analysisOverlap
 observe({
-  if(reactUser$allowAnalysisOverlap){
+
+  allow <- isTRUE( reactUser$allowAnalysisOverlap )
+
+  if( allow ){
     source("parts/server/analysisOverlap.R",local=TRUE)
   }
+
+ mxUiEnable(
+    class = "mx-allow-overlap",
+    enable = allow
+    )
+
 })
 
+# Allow polygon of interest
 observe({
-  if(reactUser$allowPolygonOfInterest){
+
+  allow <- isTRUE( reactUser$allowPolygonOfInterest )
+
+  if( allow ){
     source("parts/server/polygonOfInterest.R",local=TRUE)
   }
-})
-
-
-observe({
-mxDebugMsg(sprintf("Current panel mode= %s",input$mxPanelMode))
-})
-
-
-#
-# UI by user privilege
-#
-observe({
-  mxUiEnable(id="sectionMap",enable=reactUser$allowMap) 
-})
-
-observe({
-  mxUiEnable(
-    class="mx-allow-creator",
-    enable=isTRUE( reactUser$allowViewsCreator) 
+  
+ mxUiEnable(
+    class = "mx-allow-polygon-of-interest",
+    enable = allow
     )
+
 })
 
+# Allow toolbox 
 observe({
-  mxUiEnable(
-    class="mx-allow-polygon-of-interest",
-    enable=isTRUE( reactUser$allowPolygonOfInterest) 
-    )
-})
 
-observe({
-  mxUiEnable(
-    class="mx-allow-upload",
-    enable = reactUser$allowUpload
-    ) 
-})
+  allow <- isTRUE( reactUser$allowToolbox )
 
-observe({
   mxUiEnable(
     id="btnViewsToolbox",
-    enable = reactUser$allowToolbox
+    enable = allow
     ) 
+
 })
 
+
+
+# Allow story map 
 observe({
+
+  allow <- isTRUE( reactUser$allowStoryReader )
+
+  if( allow ){
+    source("parts/server/storyReader.R",local=TRUE)
+  }
+
   mxUiEnable(
-    id="btnModeStoryReader",
-    enable=reactUser$allowStoryReader
+    id = "btnModeStoryReader",
+    enable = allow
     ) 
+
+
+
 })
 
+# Allow story map creator
 observe({
+
+  allow <- isTRUE( reactUser$allowStoryCreator )
+
+  if( allow ){
+     source("parts/server/storyCreator.R",local=TRUE)
+  }
+
   mxUiEnable(
-    class="mx-allow-story-creator",
-    enable=reactUser$allowStoryCreator
+    class = "mx-allow-story-creator",
+    enable = allow
     )
+
 })
 
+# Show story custom buttons
 observe({
 
   enable <- isTRUE(reactUser$allowStoryCreator) &&
     isTRUE(reactUser$allowEditCurrentStory) &&
-    isTRUE(reactUi$panelMode == "mapStoryReader")
+    isTRUE(reactUi$panelMode == "mxModeStoryMap")
 
   mxUiEnable(
     class="mx-allow-story-edit",
     enable=enable
     )
+
 })
+
+
+
+
+# update panel mode 
+observeEvent(input$mxPanelMode,{
+  currentMode <- input$mxPanelMode$id
+
+  reactUi$panelMode <- currentMode
+
+  mxDebugMsg(sprintf("Current panel mode= %s",currentMode))
+
+  isStoryMode <- isTRUE(currentMode == "mxModeStoryMap")
+
+  mxUiEnable(
+    class="mx-mode-story-reader",
+    enable=isStoryMode
+    )
+
+})
+
 
 

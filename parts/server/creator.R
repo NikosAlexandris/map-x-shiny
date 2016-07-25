@@ -8,72 +8,49 @@
 # view creator management
 
 
-#observe({
-  #if(reactUser$allowViewsCreator){
-    #class = input$selNewLayerClass
-    #if(!noDataCheck(class)){
-      #updateSelectInput(session,"selNewLayerSubClass",choices=mxConfig$subclass[[class]])
-    #}
-  #}
-#})
-
-#
-# Btn refresh
-#
-
-
-
-#observeEvent(input$btnViewsRefresh,{
-  #if(reactUser$allowViewsCreator){
-    #mxDebugMsg("Command remote server to restart app")
-    #if( mxConfig$hostname != mxConfig$remoteHostname ){
-      #remoteCmd(mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
-    #}else{
-      #system(mxConfig$restartPgRestApi)
-    #}
-    #reactMap$layerListUpdate <- runif(1) 
-  #}
-#})
-
-
-
-
 
 #
 # Populate layer selection
 #
 observe({
-  if(reactUser$allowViewsCreator){
-    # default
-    choice <- mxConfig$noData
-    # take reactivity on select input
-
+  mxCatch("Update input: get list of layer",{
+    # chech if the user as access to creator  
+    allow <- reactUser$allowViewsCreator
+    # current country / project
     cntry <- toupper(reactProject$name)
-    # reactivity after updateVector in postgis
+    # update trigger
     update <- reactMap$layerListUpdate
-
+    # user information
     roles <- reactUser$role
-    usr <- reactUser$data
-    visibility <- roles$desc$read
-
-    if(!noDataCheck(visibility)){
-      mxCatch("Update input: get list of layer",{
-
-        layers <- mxDbGetLayerList(
-          project=cntry,
-          visibility=visibility,
-          userId=usr$id
-          )
-
-
-        if(!noDataCheck(layers)){
-          choice = c(choice,layers)  
-        }
-        updateSelectInput(session,"selLayer",choices=choice)
-        reactMap$layerList = choice
-      })
+    data <- reactUser$data
+    canRead <- roles$desc$read
+    # no data test
+    hasRole <- !noDataCheck(roles)
+    hasReadLevel <- !noDataCheck(canRead)
+    hasData <- !noDataCheck(data)
+    # Default
+    choice <- mxConfig$noData
+    #
+    # update choice
+    #
+    if(allow && hasData && hasReadLevel && hasReadLevel){
+      # fetch layers list
+      layers <- mxDbGetLayerList(
+        project=cntry,
+        visibility=canRead,
+        userId=data$id
+        )
+      # if there is at least one layers, update choices
+      if(!noDataCheck(layers)){
+        choice = layers
+      }
     }
-  }
+
+    # update ui
+    updateSelectInput(session,"selLayer",choices=choice)
+    # store value
+    reactMap$layerList <- choice
+})
 })
 
 
@@ -81,43 +58,52 @@ observe({
 # Populate column selection
 # 
 
-observeEvent(input$selLayer,{
-  if(reactUser$allowViewsCreator){
-    # take reactivity on layer selection
-    lay = input$selLayer
-    # Default variables
-    vars = mxConfig$noData
-    # check if it has date cols
-    hasDate = FALSE
-    # if layer is not empty:
-    # - get available variables
-    # - check for map x dates variables
-    # - save in reactStyle
-    # - update select input with available variable
+observe({
+  mxCatch("Update input: layer columns",{
 
-    if(!noDataCheck(lay)){
-      mxCatch("Update input: layer columns",{
+  modeCreator <- isTRUE( reactUi$panelMode == "mxModeToolBox" )
 
-        variables <- mxDbGetColumnsNames(lay)
-      
+    # get user values
+    allow <- reactUser$allowViewsCreator
+    # get selected layer
+    layer <- input$selLayer
+    # defaults
+    variables <- mxConfig$noData
+    hasDate <- FALSE
+    # test
+    layerIsOk <- isTRUE(!noDataCheck(layer) && layer %in% reactMap$layerList)
 
-        if(!noDataCheck(variables)){
-          vars = variables[ !variables %in% c("gid","geom") ]
-        } 
-        # Date handling 
-        hasDate <- isTRUE("mx_date_start" %in% vars) && isTRUE( "mx_date_end" %in% vars)
-        # Set reactStyle
-        reactStyle$layer <- lay
-        reactStyle$group <- mxConfig$defaultGroup
-        reactStyle$hasDateColumns <- hasDate
-      })
+    # Update variables
+    if( allow && layerIsOk && modeCreator ){
+
+      # fetch variables name
+      variables <- mxDbGetColumnsNames(layer)
+      # subset value
+      if(!noDataCheck(variables)){
+        vars = variables[ !variables %in% c("gid","geom") ]
+      } 
+      # Date handling 
+      hasDate <- isTRUE("mx_date_start" %in% vars) && isTRUE( "mx_date_end" %in% vars)
+      # Set reactStyle
+      reactStyle$layer <- layer
+      reactStyle$group <- mxConfig$defaultGroup
+      reactStyle$hasDateColumns <- hasDate
+      # NOTE: bug with code and parties. After code, no variable can be set on extractive mineral layer 
+      varsLess <- vars[!vars %in% c("code","parties")]
+      # update variable to use for styling
+      updateSelectInput(
+        session, 
+        inputId="selColumnVar", 
+        choices=varsLess
+        )
+      # update additional variable to keep
+      updateSelectInput(session, 
+        inputId="selColumnVarToKeep", 
+        choices=c(mxConfig$noVariable,vars)
+        )
     }
 
-    # NOTE: bug with code and parties. After code, no variable can be set on extractive mineral layer 
-    varsLess <- vars[!vars %in% c("code","parties")]
-    updateSelectInput(session, "selColumnVar", choices=varsLess)
-    updateSelectInput(session, "selColumnVarToKeep", choices=c(mxConfig$noVariable,vars),selected=vars[1])
-  }
+})
 })
 
 

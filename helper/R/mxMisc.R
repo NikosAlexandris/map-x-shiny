@@ -279,7 +279,7 @@ mxCatch <- function(
 #' @param splitSep Split symbos if splitIn > 1
 #' @return  Random string of letters, with prefix and suffix
 #' @export
-randomString <- function(prefix=NULL,suffix=NULL,n=15,sep="_",addSymbols=F,addLetters=F,addLETTERS=T,splitIn=5,splitSep="_"){
+randomString <- function(prefix=NULL,suffix=NULL,n=15,sep="_",addSymbols=F,addLetters=T,addLETTERS=F,splitIn=1,splitSep="_"){
   prefix <- subPunct(prefix,sep)
   suffix <- subPunct(suffix,sep)
   src <- 0:9
@@ -621,20 +621,20 @@ mxAllow <- function(logged,roleName,roleLowerLimit){
 
 
 
-mxToggleMapPanels <- function(modeSelected){
-  modeAvailable <- mxConfig$mapPanelModeAvailable
+#mxToggleMapPanels <- function(modeSelected){
+  #modeAvailable <- mxConfig$mapPanelModeAvailable
 
-  if(!isTRUE(modeSelected %in% modeAvailable)){
-    stop(sprintf("Map panel mode % not available. Set it in mxConfig",modeSelected))
-  }
+  #if(!isTRUE(modeSelected %in% modeAvailable)){
+    #stop(sprintf("Map panel mode % not available. Set it in mxConfig",modeSelected))
+  #}
 
-  stopifnot(modeSelected %in% modeAvailable)
-  mS <- modeSelected
-  mA <- modeAvailable
-  mD <- mA[!mA %in% mS]
-  mxUiEnable(class=mS,enable=TRUE)
-  mxUiEnable(class=mD,enable=FALSE)
-}
+  #stopifnot(modeSelected %in% modeAvailable)
+  #mS <- modeSelected
+  #mA <- modeAvailable
+  #mD <- mA[!mA %in% mS]
+  #mxUiEnable(class=mS,enable=TRUE)
+  #mxUiEnable(class=mD,enable=FALSE)
+#}
 
 
 #' Set a checkbox button with custom icon.

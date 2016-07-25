@@ -138,6 +138,7 @@ uiMapOverlap <- tagList(
 # TOOL POLYGON OF INTEREST
 #
 uiMapPolygonOfInterest <- tagList(
+  tags$p("Use the toolbar to select an area of interest, then fill the form.")
   )
 
 #
@@ -181,7 +182,7 @@ uiMapToolbox <- tagList(
               ),
             uiMapConfigBaseMap=list(
               class = "mx-allow-basemap",
-              title="Base map",
+              title="Satellite imagery",
               content = uiMapConfigBaseMap
               ),
             data=list(
@@ -245,7 +246,7 @@ uiMapStorySelector <- tagList(
   #
 
 uiMapStoryReader <- tagList(
-  tags$section(id="mxModeStoryReader",class="mx-panel-mode mx-hide",
+  tags$section(id="mxModeStoryMap",class="mx-panel-mode mx-hide",
     conditionalPanel(condition=sprintf(
         "input.selectStoryId.length>0 &&
         input.selectStoryId != ''
@@ -277,7 +278,7 @@ uiMapStoryReader <- tagList(
         )
       ),
     #
-    # Explorer
+    # Explorer : switch panel and set title
     #
     tags$li(
       tags$button(
@@ -289,19 +290,19 @@ uiMapStoryReader <- tagList(
         )
       ),
     #
-    # Story reader
+    # Story reader : switch panel and set title
     #
     tags$li(
       tags$button(
         id="btnModeStoryReader",
         mx_set_lang="title.mapLeft.storyReader",
-        onClick="enablePanelMode('mxModeStoryReader','Story Map Reader')",
+        onClick="enablePanelMode('mxModeStoryMap','Story Map Reader')",
         class="btn-icon btn-square",
         icon("newspaper-o")
         )
       ),
     #
-    # Toolbox
+    # Toolbox : switch panel and set title
     #
     tags$li(
       tags$button(
@@ -366,13 +367,6 @@ uiMapStoryReader <- tagList(
               tags$span(class='fa fa-search')
               )
             ),
-#          tags$div(class="map-tool-box-container mx-hide mx-allow-story-creator", style="float:right",
-            #actionLink(
-              #inputId="btnStoryNew",
-              #class="mx-btn-link mx-btn-link-white",
-              #tags$span(class="fa fa-plus")
-              #)
-            #),
           tags$div(class="map-tool-box-container mx-hide mx-allow-story-edit", style="float:right",
             actionLink(
               inputId="btnStoryEdit",
@@ -380,14 +374,15 @@ uiMapStoryReader <- tagList(
               tags$span(class="fa fa-pencil")
               )
             ),
-          #tags$div(class="map-tool-box-container mx-hide mx-allow-creator", style="float:right",
-            #actionLink(
-              #inputId="btnViewsCreator",
-              #class="mx-btn-link mx-btn-link-white",
-              #tags$span(class="fa fa-plus")
-              #)
-            #),
+          tags$div(class="map-tool-box-container mx-hide mx-allow-story-edit", style="float:right",
+            actionLink(
+              inputId="btnStoryDelete",
+              class="mx-btn-link mx-btn-link-white",
+              tags$span(class="fa fa-trash-o")
+              )
+            ),
 
+          
           #
           # TITLE
           #

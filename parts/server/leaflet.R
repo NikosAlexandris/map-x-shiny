@@ -12,6 +12,15 @@ output$mapxMap <- renderLeaflet({
   }
 })
 
+#
+# Report error from js
+#
+observeEvent(input$leafletVtError,{
+  mxCatch(title="Leaflet Vector Tile Issue",{
+    err <- input$leafletVtError 
+    if( !noDataCheck(err)) stop(err)
+})
+})
 
 
 #

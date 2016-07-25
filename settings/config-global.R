@@ -323,14 +323,14 @@ mxConfig$inputDataFileFormat <- list(
     )
   )
 
-# set panel mode : available options
-mxConfig$mapPanelModeAvailable <- c(
-  "mx-mode-explorer",
-  "mx-mode-config",
-  "mx-mode-toolbox",
-  "mx-mode-creator",
-  "mx-mode-story-reader"
-  )
+## set panel mode : available options
+#mxConfig$mapPanelModeAvailable <- c(
+  #"mx-mode-explorer",
+  #"mx-mode-config",
+  #"mx-mode-toolbox",
+  #"mx-mode-creator",
+  #"mx-mode-story-reader"
+  #)
 
 
 # name of user table

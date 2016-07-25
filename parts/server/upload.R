@@ -15,7 +15,7 @@ observe({
 # new layer name validation
 
 observe({
-  if(reactUser$allowUpload && reactUi$panelMode == "mapViewsCreator" ){
+  if(reactUser$allowUpload && reactUi$panelMode == "toolBox" ){
     err = character(0)
     info = character(0)
     out  = character(0)

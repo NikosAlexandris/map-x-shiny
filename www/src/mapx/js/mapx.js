@@ -74,31 +74,35 @@ function enableSection(id){
 }
 
 function enablePanelMode(id,title){
+  /* Which element contain the ui to enable */
   var dest = document.getElementById(id) ;
+  /* Get all section containing a panel mode*/
   var sections = document.getElementsByClassName("mx-panel-mode");
+  /* Get element to set the title */
   var elTitle = document.getElementById("titlePanelMode");
+  /* In all case, show the left panel */
   classRemove('mapLeftPanel',"mx-hide");
-    if(typeof(id) != "undefined"){
-      elTitle.textContent=title;
-      for(s=0;s<sections.length;s++){
-        var i = sections[s].id;
-        if(i == id){
-          // Show
-          classRemove(i,"mx-hide");
-          classAdd(i,"mx-show");
-        }else{
-          // Hide
-          classRemove(i,"mx-show");
-          classAdd(i,"mx-hide");
-        }
+  /* Logic : enable selected, disable others*/
+  if(typeof(id) != "undefined"){
+    elTitle.textContent=title;
+    for(s=0;s<sections.length;s++){
+      var i = sections[s].id;
+      if(i == id){
+        // Show
+        classRemove(i,"mx-hide");
+        classAdd(i,"mx-show");
+      }else{
+        // Hide
+        classRemove(i,"mx-show");
+        classAdd(i,"mx-hide");
       }
-       Shiny.onInputChange("mxPanelMode", { 
-         id:id
-       }
-       );
     }
-  return false;
-
+    /* Send the id to server */
+    Shiny.onInputChange("mxPanelMode", { 
+      id:id
+    }
+    );
+  }
 }
 
 function classAdd(id,cl){
@@ -158,7 +162,14 @@ function changeBg(){
   $("#sectionTop").addClass(bgClass);
 }
 
-
+// request zoom to extent
+function  mxRequestZoom(viewId){
+  var trigger = new Date();
+  Shiny.onInputChange("mxRequestZoom", { 
+    id:viewId, 
+  }
+  );
+}
 
 
 // decode b64 and keep utf8 formating
@@ -649,7 +660,9 @@ function mxSetStyle_orig(id,vtStyle,lay,overwrite){
       // extract color by val
       col = vtStyle.colorsPalette[val];
       if(typeof(col) == "undefined"){
-        console.log("Error. No color found for "+val);
+        var txt = "Error. No color found for " + val ;
+        Shiny.onInputChange("leafletVtError",txt);
+        console.log(txt);
       }
       dataCol = hex2rgb(col,vtStyle.opacity);
       if(typeof(dataCol) == 'undefined'){

@@ -5,40 +5,7 @@
 #
 # New story creator btn
 #
-#observeEvent(input$btnStoryNew,{
 
-  #allowCreate <- isTRUE(reactUser$allowStoryCreator)
-  #correctMode <- isTRUE(reactUi$panelMode=="mapStoryReader")
-
-  #if( allowCreate && correctMode ){
-    #uiStoryNew <- tagList(
-      #textInput("txtStoryName","Add new story title"), 
-      #conditionalPanel("input.txtStoryName.length>0",
-        #tagList(
-          #tags$label("Validation"),
-          #div(id="validateNewStoryName")
-          #)
-        #)
-      #)
-
-    #listButtons <- list( 
-          #actionButton("btnSaveNewStory",
-            #label=icon("save"),
-            #class="btn btn-modal"
-            #)  
-      #)
-
-    #ui <- mxPanel(
-      #id="storyMapNew",
-      #title="New story map",
-      #html=uiStoryNew,
-      #addCancelButton=TRUE,
-      #listActionButton=listButtons
-      #)
-
-    #output$panelStoryMap <- renderUI(ui)
-  #}
-#})
 
 #
 # New story name validation
@@ -62,8 +29,7 @@ observeEvent(input$btnSaveNewStory,{
   allowCreate <- isTRUE(reactUser$allowStoryCreator)
   correctMode <- isTRUE(reactUi$panelMode=="mxModeToolBox")
 
-  browser()
-   if( allowCreate && correctMode ){ 
+if( allowCreate && correctMode ){ 
 
      mxActionButtonState(id="btnSaveNewStory",disable=TRUE) 
      newId <- randomString()
@@ -94,7 +60,7 @@ observeEvent(input$btnSaveNewStory,{
 
     mxUpdateText(
       id="validateNewStoryName",
-     
+     "done." 
       )
 
     panModal <- mxPanel(
@@ -214,14 +180,12 @@ observeEvent(input$btnStoryMapEditorUpdate,{
             value = mxToJsonForDb(storyVisibility) 
             )
 
-          panModal <- mxPanel(
-            id="panConfirmStorySave",
-            title="Story map saved.",
-            subtitle="Action handler",
-            html=p(sprintf("Story map saved with visibility set as %s",storyVisibility))
-            )
+          browser()
 
-          mxUpdateText(id="panelStoryMap",ui=panModal)
+          mxUpdateText(
+            id = "txtMessageStoryEditor",
+            text = sprintf("Story map saved with visibility set as %s",storyVisibility)
+            )
 
           reactMap$storyContent <- storyText
           reactMap$storyVisibility <- storyVisibility
@@ -233,11 +197,65 @@ observeEvent(input$btnStoryMapEditorUpdate,{
 
 
 
+observeEvent(input$btnStoryDelete,{
+  mxCatch(title="Delete story",{
+
+    allowEdit <- isTRUE(reactUser$allowEditCurrentStory)
+    correctMod <- isTRUE(reactUi$panelMode == "mxModeStoryMap")
+
+    if( allowEdit && correctMod ){
+
+      panModal <- mxPanel(
+        id="panConfirmStoryDelete",
+        title="Remove story map.",
+        subtitle="Confirmation",
+        html=p(sprintf("Are you sure to remove the selected story?")),
+        addCancelButton=TRUE,
+         listActionButton=list(actionButton("btnStoryDeleteConfirm","Delete"))
+        )
+
+      mxUpdateText(id="panelStoryMap",ui=panModal)
+
+    }
+
+ })
+
+})
+
+
+
+observeEvent(input$btnStoryDeleteConfirm,{
+  id <- input$selectStoryId
+  allowEdit <- isTRUE(reactUser$allowEditCurrentStory)
+  correctMod <- isTRUE(reactUi$panelMode == "mxModeStoryMap")
+  if( allowEdit && correctMod ){
+
+    q <- sprintf("
+      DELETE FROM mx_story_maps WHERE id = '%1$s'",
+      id
+      )
+
+    mxDbGetQuery(q)
+
+    reactMap$updateStorySelector<-runif(1)
+
+    panModal <- mxPanel(
+      id="panConfirmStoryDelete",
+      title="Remove story map.",
+      subtitle="Confirmation",
+      html=p(sprintf("Story removed"))
+      )
+
+    mxUpdateText(id="panelStoryMap",ui=panModal)
+
+  }
+})
+
 
 observeEvent(input$btnStoryEdit,{
 mxCatch(title="Generate story editor UI",{
   allowEdit <- isTRUE(reactUser$allowEditCurrentStory)
-  correctMod <- isTRUE(reactUi$panelMode == "mapStoryReader")
+  correctMod <- isTRUE(reactUi$panelMode == "mxModeStoryMap")
   choicesVisibility <- reactUser$role$desc$publish
   storyVisibility <- reactMap$storyVisibility 
 
@@ -252,7 +270,7 @@ mxCatch(title="Generate story editor UI",{
         choices = choicesVisibility,
         selected = storyVisibility
         ),
-      span("Drag and drop views from the menu."),
+      span(id="txtMessageStoryEditor",""),
       tags$textarea(
         id="txtStoryMapEditor",
         rows=12, 

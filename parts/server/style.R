@@ -14,60 +14,69 @@
 
 observe({ 
   mxCatch(title="Add vector tiles",{
-    grp <- reactStyle$group
-    lay <- reactStyle$layer
+    group <- reactStyle$group
+    layer <- reactStyle$layer
+    mode <- reactUi$panelMode
+    variable <- isolate(reactStyle$variable)
+    userId <- isolate(reactUser$data$id)
+    variableToKeep <- isolate(reactStyle$variableToKeep)
+    variableToKeep <- variableToKeep[ !variableToKeep %in% mxConfig$noVariable ]
+    # test if the requested layer is allowed 
+    #layerOk <- isTRUE( !noDataCheck(layer) && layer %in% reactMap$layerList )
+    layerOk <- isTRUE( !noDataCheck(layer) )
+    # test the current mode
+    modeCreator <- isTRUE( mode == "mxModeToolBox" )
+    # test no data in variables
+    hasVariable <- !noDataCheck(variable)
+    hasVariableToKeep <- !noDataCheck(variableToKeep)
 
-    feedBack <- "once"
-    mapViewMode <- isolate(reactUi$panelMode) 
-
-    if(is.null(mapViewMode)){
-      mapViewMode="mapViewsExplorer"
-    }
-
-    if(!noDataCheck(lay)){
-      mxDebugMsg(paste("Ready to add vector tiles",lay," in group",grp))
-      isolate({
-        
-        var <- reactStyle$variable
-        varToKeep <- reactStyle$variableToKeep
-        varStored <- mxDbGetColumnsNames(lay)
-
-        if(mapViewMode == "mapViewsCreator"){
-          # In creator mode, get all the variables 
-          feedback <- "always"
-          vars <- varStored
-        }else{
-          # Other mode, only get variables kept
-          vToKeep <- reactStyle$variableToKeep
-          vToKeep <- vToKeep[!vToKeep %in% mxConfig$noVariable]
-          vars <- unique(c(var,vToKeep))
-          vars <- vars[vars %in% varStored]
-          feedback <- "once"
-        }
-      })
-
-      if(!noDataCheck(vars)){
+    # Add vector tile
+    if( layerOk ){
       
+
+      # fetch availble variable NOTE: this should be done before
+      variableAvailable <- mxDbGetColumnsNames( layer )
+
+      # mode specific values 
+      # loading feedback :
+      # "once" = only send a feedback once when the layer is fully loaded the first time (normal view)
+      # "always" = send a feedback each time layer are loaded (creation mode)
+
+      if( modeCreator ){
+        vars <- variableAvailable
+        feedback <- "always"
+      }else{
+        vars <- unique(c(variableToKeep,variable))
+        feedback <- "once"
+      }
+
+      # check variables
+      varIsOk <- isTRUE( !noDataCheck(vars) && all( vars %in% variableAvailable ))
+
+      if(varIsOk){
+
+      mxDebugMsg(sprintf("Begin addition of layer %s in group %s",layer,group))
+
         proxyMap <- leafletProxy("mapxMap",deferUntilFlush=FALSE)
 
         proxyMap %>%
-        clearGroup(grp)
+          clearGroup(group)
 
-      proxyMap %>%
-        addVectorTiles(
-          userId         = reactUser$data$id,
-          protocol       = mxConfig$vtInfo$protocol,
-          host           = mxConfig$vtInfo$host,
-          port           = mxConfig$vtInfo$port,
-          geomColumn     = mxConfig$vtInfo$geom,
-          idColumn       = mxConfig$vtInfo$gid,
-          layer          = lay,
-          dataColumn     = vars,
-          group          = grp,
-          onLoadFeedback = feedback
-          )  
+        proxyMap %>%
+          addVectorTiles(
+            userId         = userId,
+            protocol       = mxConfig$vtInfo$protocol,
+            host           = mxConfig$vtInfo$host,
+            port           = mxConfig$vtInfo$port,
+            geomColumn     = mxConfig$vtInfo$geom,
+            idColumn       = mxConfig$vtInfo$gid,
+            layer          = layer,
+            dataColumn     = vars,
+            group          = group,
+            onLoadFeedback = feedback
+            )  
 
-        mxDebugMsg(paste("Start downloading",lay,"from host",mxConfig$vtInfo$host,"on port:",mxConfig$vtInfo$port))
+        mxDebugMsg(paste("Start downloading",layer,"from host",mxConfig$vtInfo$host,"on port:",mxConfig$vtInfo$port))
 
       }
     }
@@ -96,7 +105,7 @@ observeEvent(input$leafletvtIsLoaded,{
       # handle other varables. As it's new feature, old views don't have this.
       vToKeep <- sty$variableToKeep
       if(is.null(vToKeep))vToKeep <- mxConfig$noVariable
-      if(reactUi$panelMode=="mapViewsStory"){
+      if(reactUi$panelMode=="storyMap"){
         baseMap <- sty$basemap
       }else{
         baseMap <- mxConfig$noLayer
@@ -212,7 +221,7 @@ observe({
   #
 
   observe({
-    if(noDataCheck(reactProject$name))return()
+    if(noDataCheck(reactProject$name)) return()
     mxCatch(title="Set layer labels",{
       group = "labels"
       hideLabels <- reactStyle$hideLabels
@@ -272,8 +281,9 @@ observe({
 
   observe({
     mxCatch(title="Apply layerStyle()",{
-      sty = layerStyle() 
+      sty <- layerStyle() 
       if(!noDataCheck(sty)){
+
         mxSetStyle(style=sty)
       }
           })

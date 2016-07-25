@@ -18,6 +18,9 @@ mxUiEnable(id="sectionCountry",enable=TRUE)
 # Country input selection : save in db is needed
 #
 observeEvent(input$selectCountry,{
+  
+  mxDebugMsg(sprintf("input$selectCountry received: %s",input$selectCountry ) )
+
   selCountry <- input$selectCountry
 
   if(!noDataCheck(selCountry) && reactUser$isLogged ){
@@ -37,8 +40,10 @@ observeEvent(input$selectCountry,{
 })
 
 
-observe({
+observeEvent(reactProject$name,{
+
   cSelect <- reactProject$name 
+
   if(!noDataCheck(cSelect)){
     mxConsoleText(cSelect)
     if(cSelect %in% names(mxData$countryStory)){

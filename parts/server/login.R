@@ -176,7 +176,10 @@ observeEvent(input$btnSendLoginKey,{
 
       # create the unique secret key
       reactUser$loginSecret <- randomString(
-        splitSep="-"
+        splitSep="-",
+        splitIn=5,
+        addLetters=FALSE,
+        addLETTERS=TRUE
         )
 
       mxUpdateText(
@@ -193,6 +196,7 @@ observeEvent(input$btnSendLoginKey,{
             wait=F)
       })
 
+      mxDebugMsg(reactUser$loginSecret)
 
       if("try-error" %in% class(res)){ 
         msg <- "An error occured, sorry, We can't send you an email right now."
@@ -307,6 +311,7 @@ observeEvent(reactUser$loginRequested,{
     # set local variables
 
     email <- reactUser$loginUserEmail
+    mxDebugMsg(sprintf("Login requested for %s",email))
     if(!mxEmailIsValid(email)) return()
     timeStamp <- Sys.time()
     newAccount <- !mxEmailIsKnown(email)
@@ -316,11 +321,14 @@ observeEvent(reactUser$loginRequested,{
     isGuest <- isTRUE(email == mxConfig$mapxGuestEmail)
 
     if(newAccount){
+
       mxDbCreateUser(
         email=email,
         timeStamp=timeStamp
         ) 
+
     }else{
+
       mxDebugMsg(sprintf("update last visit for %s",email))
       mxDbUpdate(
         table=userTable,
@@ -329,6 +337,7 @@ observeEvent(reactUser$loginRequested,{
         id=email,
         value=timeStamp
         )
+
     }
     # get id
     res <- mxDbGetQuery(
@@ -362,7 +371,6 @@ observeEvent(reactUser$loginRequested,{
       path=c("data","user","cache","last_project")
       )
     
-    # if no value, get default
     if(isGuest || noDataCheck(cntry)) cntry <- mxConfig$defaultCountry
     # trigger selectCountry
     # update select input
@@ -444,64 +452,6 @@ observeEvent(input$cookies,{
 
 
 
-
-##
-## Login modal panel
-##
-#observeEvent(input$btnLogin,{
-
-  #mxCatch(title="Login btn event",{
-    #email <- input$loginUserEmail
-    #reactUser$loginUserEmail <- email
-    ## set control timer to 20 minutes
-    #reactUser$loginTimerEndAt <- Sys.time()-20*60*60*24*365
-    #userIsLogged <- isTRUE(reactUser$isLogged)
-    #emailIsKnown <- mxEmailIsKnown(email)
-    #emailIsValid <- mxEmailIsValid(email)
-    ##
-    ## quit if
-    ##
-    #if(!emailIsValid) return()
-    #if(userIsLogged) return()
-    ##
-    ## UI generation
-    ##
-    #panModal <- mxPanel(
-      #defaultButtonText="Cancel",
-      #id="loginCode",
-      #title=ifelse(emailIsKnown,"Log in","Create a new account"),
-      #subtitle=HTML(
-        #sprintf(
-          #"Click on the button %1$s to %2$s receive a single usage password at </br> <b> %3$s </b> ",
-          #icon("envelope-o"),
-          #ifelse(!emailIsKnown,"register and",""),
-          #email
-          #)
-        #),
-      #html=tagList(
-        #div(class="input-group",
-          #tags$span(class="input-group-btn",   
-            #actionButton(
-              #inputId="btnSendLoginKey",
-              #label="",
-              #icon=icon("envelope-o"),
-              #class="btn"
-              #)
-            #),
-          #tags$input(
-            #id="loginKey",
-            #type="text",
-            #placeholder="Single usage password",
-            #class="form-control"
-            #)
-          #),
-        #div(id="txtDialogLogin")
-        #)
-      #)
-    ## update ui
-    #mxUpdateText(id="panelAlert",ui=panModal)
-#})
-#})
 
 #
 # Update role

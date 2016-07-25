@@ -63,11 +63,7 @@ observeEvent(session$clientData,{
       ){
       # get country from query
       cntry <- toupper(query$country)
-      updateSelectInput(session,"selectCountry",selected=cntry)
-    }
-
-
-    #
+      updateSelectInput(session,"selectCountry",selected=cntry) } #
     # Language
     #
     # code "ISO 639-2"

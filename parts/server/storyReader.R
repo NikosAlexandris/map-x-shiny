@@ -21,7 +21,7 @@ observe({
 
 # available story
 observe({
-  if(reactUi$panelMode != "mapStoryReader") return()
+  if(reactUi$panelMode != "mxModeStoryMap") return()
   # default
   #choice <- mxConfig$noData
   choice <- NULL

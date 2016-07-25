@@ -193,7 +193,7 @@ observeEvent(input$uiUserAdmin_values,{
     id = usrId,
     column = 'data',
     value = val,
-    jsonPath = c("admin","roles")
+    path = c("admin","roles")
     )
 
 })

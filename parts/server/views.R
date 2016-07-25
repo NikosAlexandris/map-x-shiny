@@ -93,7 +93,27 @@ observeEvent(input$mxRequestMeta,{
 })
 })
 
+#
+# handle zoom to layer
+#
 
+observeEvent(input$mxRequestZoom,{
+  id <- input$mxRequestZoom$id
+
+  ext <- mxDbGetLayerExtent(id)
+
+  if(isTRUE(length(ext)==4)){
+  proxyMap <- leafletProxy("mapxMap")
+
+      
+      proxyMap %>% fitBounds(
+        lng1=ext$lng1,
+        lng2=ext$lng2,
+        lat1=ext$lat1,
+        lat2=ext$lat2
+        )
+  }
+})
 
 #
 # handle company filter
@@ -157,7 +177,7 @@ observe({
 observe({
   mxCatch(title="Views manager",{
 
-    if(reactUi$panelMode %in% c("mapViewsExplorer","mapStoryReader")){
+    if(reactUi$panelMode %in% c("mxModeExplorer","mxModeStoryMap")){
       #
       # views from url
       #

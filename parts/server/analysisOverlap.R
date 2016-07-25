@@ -67,14 +67,16 @@ observe({
 # VALIDATION AND SHOW BUTTON
 #
 observe({
+  allow <- reactUser$allowAnalysisOverlap 
   layA <- !noDataCheck(input$selectOverlapA)
   layB <- !noDataCheck(input$selectOverlapB)
   layAvar <- !noDataCheck(input$selectOverlapAVar)
   allowLaunchAnalysis <- FALSE
-  if(all(c(layA,layB,layAvar))){
+  if(all(c(allow,layA,layB,layAvar))){
     allowLaunchAnalysis <- TRUE
   }
   mxActionButtonState(id="btnAnalysisOverlaps",disable=!allowLaunchAnalysis) 
+  reactUser$unlockAnalysisOverlap <- allowLaunchAnalysis 
 })
 
 #
@@ -95,7 +97,9 @@ observeEvent(input$btnAnalysisRemoveLayer,{
 observeEvent(input$btnAnalysisOverlaps,{
   mxCatch(title="Overlaps analysis",{
 
-  if(reactUser$allowAnalysisOverlap){
+    allow <- isTRUE(reactUser$unlockAnalysisOverlap)
+
+    if( allow ){
 
     output$txtAnalysisOverlaps <- renderText("Launch analysis..")
     idA <- input$selectOverlapA

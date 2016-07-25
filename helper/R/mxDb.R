@@ -61,11 +61,12 @@ mxDbAutoCon <- function(){
 mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){stop(x)}){
   res <- NULL
   data <- data.frame()
+  con <- mxDbAutoCon()
 
   tryCatch({    
     suppressWarnings({
+      res <- postgresqlExecStatement(con, gsub("\n","",query))
 
-      res <- postgresqlExecStatement(mxDbAutoCon(), gsub("\n","",query))
       if(dbGetInfo(res)$isSelect!=0){
         temp <- postgresqlFetch(res)
         if( dbGetRowCount(res) > 0 ){ 
@@ -78,7 +79,9 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){stop(x)
   )
 
   on.exit({ 
-    mxDbClearAll()
+   if(exists("res")){
+     postgresqlCloseResult(res)
+   }
   })
 
   return(data)
@@ -92,9 +95,10 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){stop(x)
 #' @param id Identification value
 #' @param value Replacement value
 #' @param expectedRowsAffected Number of row expected to be affected. If the update change a different number of row than expected, the function will rollback
+#' @param createMissing If path is given, should the function create missing path in record ?
 #' @return Boolean worked or not
 #' @export
-mxDbUpdate <- function(table,column,idCol="id",id,value,jsonPath=NULL,expectedRowsAffected=1){   
+mxDbUpdate <- function(table,column,idCol="id",id,value,path=NULL,expectedRowsAffected=1,createMissing=TRUE){   
 
 
   # explicit check
@@ -103,83 +107,132 @@ mxDbUpdate <- function(table,column,idCol="id",id,value,jsonPath=NULL,expectedRo
   # implicit check
   stopifnot(!noDataCheck(id))
   stopifnot(!noDataCheck(idCol))
+  # final query
+  query <- NULL
 
   # get connection object
   con <- mxDbAutoCon()
 
-        if(!is.null(jsonPath)){
-          # if value has no json class, convert it (single value update)
-          if(isTRUE(!"json" %in% class(value))){
-            value <- mxToJsonForDb(value)
-          }
-          # json update
-
-          jsonPath <- paste0("{",paste0(paste0("\"",jsonPath,"\""),collapse=","),"}")
-
-          query <- sprintf("
-              UPDATE %1$s
-              SET \"%2$s\"= (
-              SELECT jsonb_set(
-                (
-                  SELECT \"%2$s\" 
-                  FROM %1$s
-                  WHERE \"%4$s\"='%5$s'
-                  ) ,
-                '%6$s',
-                '%3$s'
-                )
-              ) 
-            WHERE \"%4$s\"='%5$s'",
-            table,
-            column,
-            value,
-            idCol,
-            id,
-            jsonPath
-            )
-
-        }else{
-          # if it's a list, convert to json
-          if(is.list(value)) value <- mxToJsonForDb(value)
-          # standard update
-          query <- gsub("\n","",sprintf("
-              UPDATE %1$s
-              SET \"%2$s\"='%3$s'
-              WHERE \"%4$s\"='%5$s'",
-              table,
-              column,
-              value,
-              idCol,
-              id
-              ))
-        }
-
-
-      res <- try(silent=T,{
-        dbGetQuery(con,"BEGIN TRANSACTION")
-        rs <- dbSendQuery(con,query)   
-        ra <- dbGetInfo(rs,what="rowsAffected")[[1]]
-        if(isTRUE(is.numeric(expectedRowsAffected) && isTRUE(ra != expectedRowsAffected)) ){
-          stop(
-            sprintf(
-              "Error, number of rows affected does not match expected rows affected %s vs %s",
-              ra,
-              expectedRowsAffected
-              )
-            )
-        }else{
-          mxDebugMsg(sprintf("Number of row affected=%s",ra))
-          dbCommit(con)
-        }
-      })
-
-    if("try-error" %in% res){
-      dbRollback(con)
-      res <- FALSE
+  if(!is.null(path)){
+    # if value has no json class, convert it (single value update)
+    valueIsJson <- isTRUE("json" %in% class(value))
+    if( valueIsJson ){
+      valueJson <- value
     }else{
-      res <- TRUE
+      valueJson <- mxToJsonForDb(value)
     }
-    return(res)
+    #
+    # json update
+    #
+    pathIsJson <- isTRUE("json" %in% class(path))
+    if( pathIsJson ){
+      pathJson <- path 
+    }else{ 
+      pathJson <- paste0("{",paste0(paste0("\"",path,"\""),collapse=","),"}")
+    }
+    #
+    # test if the whole path exists and if value is there 
+    #
+    isMissing <- sprintf("
+      SELECT EXISTS(
+        SELECT \"%1$s\" from %2$s
+        WHERE \"%3$s\"='%4$s' 
+        AND \"%1$s\"#>>'%5$s' IS NOT NULL
+        ) AS ok
+      "
+      ,column
+      ,table
+      ,idCol
+      ,id 
+      ,pathJson
+      ) %>%
+    mxDbGetQuery(.) %>%
+    `[[`("ok") %>%           
+    isTRUE() %>% 
+    `!`()
+  #
+  # create missing if needed
+  #
+  if(isMissing){
+    data <- sprintf("
+      SELECT \"%1$s\" 
+      FROM %2$s
+      WHERE \"%3$s\"='%4$s'
+      "
+      , column
+      , table
+      , idCol
+      , id
+      ) %>%
+    mxDbGetQuery() %>%
+    `[[`(column) %>%
+    jsonlite::fromJSON(.,simplifyDataFrame=FALSE)
+
+  value  <- mxSetListValue(data,path,value)
+
+  }else{
+
+    query <- sprintf("
+      UPDATE %1$s
+      SET \"%2$s\"= (
+      SELECT jsonb_set(
+        (
+          SELECT \"%2$s\" 
+          FROM %1$s
+          WHERE \"%4$s\"='%5$s'
+          ) ,
+        '%6$s',
+        '%3$s'
+        )
+      ) 
+    WHERE \"%4$s\"='%5$s'"
+    ,table
+    ,column
+    ,valueJson
+    ,idCol
+    ,id
+    ,pathJson
+    )
+  }
+  }
+  
+  if(is.null(query)){
+    # if it's a list, convert to json
+    if(is.list(value)) value <- mxToJsonForDb(value)
+    # standard update
+    query <- sprintf("
+        UPDATE %1$s
+        SET \"%2$s\"='%3$s'
+        WHERE \"%4$s\"='%5$s'"
+        ,table
+        ,column
+        ,value
+        ,idCol
+        ,id
+        )
+  }
+
+
+    dbGetQuery(con, "BEGIN TRANSACTION")
+    rs <- dbSendQuery(con,query)   
+    ra <- dbGetInfo(rs,what="rowsAffected")[[1]]
+    isAsExpected <- isTRUE( ra == expectedRowsAffected )
+
+    if( ! isAsExpected ){  
+    dbRollback(con)
+      warning(
+        sprintf(
+          "Warning, number of rows affected does not match expected rows affected %s vs %s. Rollback requested",
+          ra,
+          expectedRowsAffected
+          )
+        )
+    }else{
+      mxDebugMsg(sprintf("Number of row affected=%s",ra))
+      dbCommit(con)
+    }
+
+  return(isAsExpected)
 }
 
 
@@ -231,9 +284,11 @@ mxDbGetSp <- function(query) {
     out <- readOGR(dsn,tname)
 
     on.exit({
-      sql <- sprintf("DROP TABLE %s",tmpTbl)
-      dbSendQuery(con,sql)
-      mxDbClearAll()
+      if(exists("con")){
+        sql <- sprintf("DROP TABLE %s",tmpTbl)
+        dbSendQuery(con,sql)
+        mxDbClearResult(con)
+      }
     })
 
     return(out)
@@ -407,7 +462,6 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
 
     if(noDataCheck(table) || noDataCheck(column) || isTRUE(column=='gid'))return() 
 
-
       timing<-system.time({
 
       q <- sprintf(
@@ -430,6 +484,7 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
           return()
         }
 
+        # number of row
         nR <- mxDbGetQuery(sprintf(
             "SELECT count(*) 
             FROM %s 
@@ -439,6 +494,7 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
             )
           )[[1]]
 
+        # number of null
         nN <- mxDbGetQuery(sprintf(
             "SELECT count(*) 
             FROM %s 
@@ -447,6 +503,8 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
             ,column
             )
           )[[1]]
+        
+        # number of distinct
         nD <- mxDbGetQuery(sprintf(
             "SELECT COUNT(DISTINCT(%s)) 
             FROM %s 
@@ -711,7 +769,7 @@ mxDbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,tableName=NULL,ar
 mxDbListTable<- function(){
   res <- dbListTables(mxDbAutoCon())
   on.exit({
-    mxDbClearAll()
+    if(exists("con")) mxDbClearResult(con)
   })
   return(res)
 }
@@ -726,7 +784,7 @@ mxDbExistsTable<- function(table){
   res <- dbExistsTable(mxDbAutoCon(),table)
 
   on.exit({
-    mxDbClearAll()
+    if(exists("con")) mxDbClearResult(con)
   })
 
   return(res)
@@ -797,7 +855,7 @@ mxDbAddData <- function(data,table){
   }
   dbWriteTable(mxDbAutoCon(),name=table,value=data,append=tAppend,row.names=F)
   on.exit({
-    mxDbClearAll()
+    if(exists("con")) mxDbClearResult(con)
   })
 }
 
@@ -886,15 +944,46 @@ mxDbAddRowBatch <- function(df,table){
 
 #' Remove old results from db query
 #' @export
-mxDbClearAll <- function(){
-  suppressWarnings({
-    nR <- dbListResults(mxDbAutoCon())
-    if(length(nR)>0){
-      lapply(nR,dbClearResult)
-    }
-  })
-}
+#mxDbClearAll <- function(){
+  #suppressWarnings({
+    #nR <- dbListResults(mxDbAutoCon())
+    #if(length(nR)>0){
+      #lapply(nR,dbClearResult)
+    #}
+  #})
+#}
 
+
+
+mxDbClearResult <- function(con=NULL,allCon=FALSE){
+
+  conAll <- list()
+
+  if(allCon){
+    conAll <- dbListConnections(PostgreSQL())
+  }
+
+  if(!is.null(con)){
+    conAll <- c( con, conAll ) 
+  }
+
+
+  if(noDataCheck(conAll)) return()
+
+
+  suppressWarnings({
+
+    results <- unlist(sapply(conAll,dbListResults,simplify=F))
+
+    mxDebugMsg(sprintf("mxDbClearResult, number of result found= %s",length(results)))
+
+    if(length(results)>0){
+      closed <- sapply(results,dbClearResult)
+    }
+
+  })
+
+}
 
 
 #' Write spatial data frame to postgis
@@ -954,7 +1043,7 @@ mxDbWriteSpatial <- function(spatial.df=NULL, schemaname="public", tablename, ov
     }
 
  on.exit({
-    mxDbClearAll()
+   if(exists("con"))  mxDbClearResult(con)
   })
 }
 #' Get user info
@@ -1263,20 +1352,10 @@ mxDbDropLayer <- function(layerName){
       #
       # Check if this is different than the current country
       #
-      if(
-        !(
-        identical(valueOld,value) ||
-        identical(valueOld[names(value)],value)
-      )
-        ){
-        #
-        # Update
-        #
-      #  reactUser$data$data <- mxSetListValue(
-          #li = reactUser$data$data,
-          #path = path,
-          #value = value
-        #  )
+      
+      isDiff <- isTRUE(!identical(valueOld[names(value)],value))
+
+      if( isDiff ){
         #
         # Save
         #
@@ -1285,7 +1364,7 @@ mxDbDropLayer <- function(layerName){
           idCol='id',
           id=reactUser$data$id,
           column='data',
-          jsonPath = path,
+          path = path,
           value = value
           )
       }

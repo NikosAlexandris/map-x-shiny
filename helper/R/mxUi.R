@@ -499,33 +499,50 @@ cl <- mxConfig$class
         viewVisibility <- subPunct(dat$visibility)
         # set icons
         visibilityIcon <- switch(viewVisibility,
-          "public"="unlock",
+          "public"="check",
           "editor"="legal",
           "lock"
           ) %>% 
         icon(.,class="mx-view-icon") %>%
         span(
-          "class" = "mx-tooltip mx-tooltip-top-right",
-          "data-tooltip" = sprintf("Visibility: %s",viewVisibility),
+          #"class" = "mx-tooltip mx-tooltip-bottom-right",
+          #"data-tooltip" = sprintf(
+          "title" = sprintf(
+            "Visibility: %1$s\nEditor: %2$s\nValidated: %3$s"
+            ,viewVisibility
+            ,dat$editor
+            ,dat$validated
+            ),
           .
           ) 
         # Description 
         infoIcon <- icon("info-circle",class="mx-view-icon") %>%
           span(
           "onClick" = sprintf("mxRequestMeta('%s')",itId),
-          "class" = "mx-tooltip mx-tooltip-top-right",
-          "data-tooltip" = "View meta data",
+          #"class" = "mx-tooltip mx-tooltip-bottom-right",
+          #"data-tooltip" = "View meta data",
+          "title" = "View meta data",
           .
           )
         # Sliders
+        
         sliderIcon <- icon("sliders",class="mx-view-icon") %>%
           span(
             "onClick" = sprintf("classToggle('%s')",itIdCheckOptionPanel),
-            "class"="mx-tooltip mx-tooltip-top-right",
-            "data-tooltip"="View settings"
+            #"class"="mx-tooltip mx-tooltip-bottom-right",
+            #"data-tooltip"="View tools"
+            title="View tools"
             )
 
-              #
+        # Auto zoom
+         zoomIcon <- icon("search-plus",class="mx-view-icon") %>%
+           span(
+             "onClick" = sprintf("mxRequestZoom('%s')",dat$layer),
+             #"class"="mx-tooltip mx-tooltip-bottom-right",
+             #"data-tooltip"="Zoom to extent"
+             "title"="Zoom to extent"
+             )
+        #
         # check if time slider or filter should be shown
         #
         hasDate <- isTRUE(dat$style$hasDateColumns)
@@ -671,8 +688,8 @@ cl <- mxConfig$class
           value = itId
           ),
         tags$span(
-          class="map-view-label mx-tooltip mx-tooltip-top-right",
-          "data-tooltip"=itName,
+          class="map-view-label",
+          "title"= sprintf("%s (%s)",dat$title,dat$layer),
           mxShort(itName,30)
           )
         )
@@ -680,30 +697,36 @@ cl <- mxConfig$class
       #
       # View icons / options
       #
-      checkIcon <- tags$span(
+      checkIcon <- tags$span(class="mx-view-icons-container",
+        tags$span(class="mx-view-icons-content",
          visibilityIcon,
          infoIcon,
-         sliderIcon 
+         sliderIcon,
+         zoomIcon
+        )
         )
       #
       # View drag script
       #
       checkDragScript <- tags$script(
-          sprintf("
-            /* Add drag handler*/
+        sprintf("
+          /* Add drag handler*/
             document.getElementById('%1$s')
-            .addEventListener('dragstart',function(e){
-              var coord = document.getElementById('txtLiveCoordinate').innerHTML,
-              ret = String.fromCharCode(13),
-              vid = e.target.dataset.viewid,
-              vti = e.target.dataset.viewtitle,
-              vst = '@view_start( '+vti+' ; '+vid+' ; '+coord+' )', 
-              ven = '@view_end',
-              txt = vst + ret + ret + ven + ret + ret;
-              e.dataTransfer.setData('text', txt);
-        })",
-            itIdLabel)
-            )
+          .addEventListener('dragstart',function(e){
+            var currentCoord = document.getElementById('txtLiveCoordinate').innerHTML,
+            r = String.fromCharCode(13),
+            viewId = '%2$s',
+            viewTitle = '%3$s',
+            stringStart = '@view_start( '+viewTitle+' ; '+viewId+' ; '+currentCoord+' )', 
+            stringEnd = '@view_end',
+            res = stringStart + r + r + stringEnd + r + r;
+            e.dataTransfer.setData('text', res);
+          })",
+          itIdLabel,
+          dat$id,
+          dat$title
+          )
+        )
       #
       # View options panel
       #
