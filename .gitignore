@@ -24,3 +24,9 @@ packrat-scenario*/
 .~lock*
 # node modules
 www/node_modules
+# vagrant
+vagrant/.vagrant/
+vagrant/vagrant.log
+vagrant/receipts/*
+vagrant/passwords/generated/*
+vagrant/pgdump/*
