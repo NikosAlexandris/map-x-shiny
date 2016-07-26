@@ -158,6 +158,7 @@ observeEvent(input$selectStoryId,{
 
 observeEvent(input$btnStoryMapEditorUpdate,{
   mxCatch(title="Input story map text",{
+
     storyText <- input$txtStoryMapEditor
     storyVisibility <- input$selStoryVisibility 
 
@@ -180,7 +181,6 @@ observeEvent(input$btnStoryMapEditorUpdate,{
             value = mxToJsonForDb(storyVisibility) 
             )
 
-          browser()
 
           mxUpdateText(
             id = "txtMessageStoryEditor",
@@ -310,6 +310,7 @@ mxCatch(title="Generate story editor UI",{
       defaultTextHeight=450,
       background=FALSE,
       addCancelButton=TRUE,
+      addOnClickClose=FALSE,
       listActionButton=listButtons
       )
 
@@ -318,82 +319,6 @@ mxCatch(title="Generate story editor UI",{
   }
  })
 })
-
-
-
-
-#observeEvent(input$btnStoryCreator,{
-
-  ##
-  ## TODO: check if the user is authorised
-  ##
-  ##
-  ## Create ui
-
- 
-  #uiStoryEditor <- tagList(
-    ##
-    ## Story Editor
-    ##
-    #span("Drag and drop views from the menu; Drag and drop coordinates from the box below :"),
-    #div(id="txtLiveCoordinate",draggable=TRUE),
-    #selectizeInput(
-      #label = "Set the story visibility",
-      #inputId="selStoryVisibility",
-      #choices=mxConfig$noData
-      #),
-    #tags$textarea(id="txtStoryMapEditor", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
-    ##buttons
-    #tags$script(
-      #"
-      #document.getElementById('txtLiveCoordinate')
-      #.addEventListener('dragstart',function(e){
-        #var coord = document.getElementById('txtLiveCoordinate').innerHTML;
-        #e.dataTransfer.setData('text', coord);
-#})"
-      #),
-
-    #tags$ul(class="list-inline",
-      #tags$li(
-        #actionButton(
-          #inputId="btnStoryMapEditorUpdate",
-          #class="btn-icon btn-square",
-          #label=icon("save")
-          #)
-        #)
-      #)
-    #)
-
-
-  #uiStoryCreator<- tagList(
-    ##
-    ## Tabset with creator components
-    ##
-    #mxAccordionGroup(id="storyCreator",
-      #itemList=list(
-        #"edit"=list(
-          #"title"="Edit selected story",
-          #"condition"=sprintf("input.selectStoryId.length>0 && input.selectStoryId != '%s'",mxConfig$noData),
-          #content=tagList(
-            #uiStoryEditor
-            #)
-          #),
-        #"new"=list(
-          #"title"="Create a story",
-          #content=tagList(
-            #uiStoryNew
-            #)
-          #)
-        #)
-      #)
-    #)
-
-  #ui <- mxPanel(id="storyMapEditor",title="Story map editor",html=uiStoryCreator)
-
-  #output$panelStoryMap <- renderUI(ui)
-#})
-
-
 
 
 

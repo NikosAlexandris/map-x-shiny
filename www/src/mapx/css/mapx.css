@@ -9,7 +9,7 @@ h6 {
   margin: 0 0 35px;
   text-transform: uppercase;
   font-family :  Helvetica, Arial, sans-serif;
-  font-weight: 100;
+  font-weight: normal;
   letter-spacing: 1px;
 }
 
@@ -23,6 +23,13 @@ body {
   margin:0px;
   background-image: url('../img/fabric.png');
   background-repeat: repeat;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
 }
 
 textarea {
@@ -69,7 +76,7 @@ body.noscroll {
 
 p {
   margin: 0 0 25px;
-  font-weight : 200;
+  font-weight : normal;
   font-size: 18px;
   line-height: 1.5;
 }
@@ -216,7 +223,7 @@ height:100%
 }
 
 .nav-pills>li>a {
-    font-weight: 200;
+    font-weight: normal;
     letter-spacing: .1em;
     padding: 5px;
     border: 1px solid #fff;
@@ -262,7 +269,7 @@ Map
     display: table;
     /* float: left; */
     font-size: 16px;
-    font-weight: 200;
+    font-weight: normal;
     letter-spacing: 3px;
     text-transform: capitalize;
 
@@ -401,7 +408,7 @@ map view explorer
 
 .map-view-label {
   text-transform: uppercase;
-  font-weight: 100;
+  font-weight: normal;
   font-size: 12px;
   letter-spacing: 0.1em;
   padding: 5px;
@@ -475,7 +482,7 @@ input:checked ~ .map-view-label {
 .map-views-class {
   padding-top: 12px;
   display: block;
-  font-weight: 100;
+  font-weight: normal;
   font-size: 17px;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -903,7 +910,7 @@ width:100%;
 
 .mx-subtitle {
   font-size : 25px;
-  font-weight: 200; 
+  font-weight: normal; 
 }
 
 .mx-logo {
@@ -966,7 +973,7 @@ width:100%;
 .navbar-custom .navbar-brand {
 cursor:pointer;
 color: #fff;
-font-weight: 100;
+font-weight: normal;
 font-size: 16px;
 line-height: 16px;
   
@@ -1118,7 +1125,7 @@ background:#FFF;
 
 #countryNameNav {
   height:100%;
-  font-weight:100;
+  font-weight:normal;
 }
 
 #countryNameNav img {
@@ -1209,7 +1216,7 @@ background:#FFF;
   background-color: rgba(255, 255, 255, 0);
   border: white;
   color: white;
-  font-weight: 200;
+  font-weight: normal;
   font-size: 18px;
   max-width: 550px;
 }
@@ -1238,7 +1245,7 @@ select:focus, select:active{
 .mxLogin, .mxLogin label {
   width=100%;
   font-size: large; 
-  font-weight: 100;
+  font-weight: normal;
   letter-spacing: 2px;
 }
 

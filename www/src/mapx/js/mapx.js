@@ -155,6 +155,16 @@ function  mxRequestMeta(viewId){
   );
 }
 
+// request meta for a layer
+function  mxEditView(viewId){
+  var trigger = new Date();
+  Shiny.onInputChange("mxEditView", { 
+    id:viewId, 
+    time:trigger
+  }
+  );
+}
+
 // change background each times
 function changeBg(){
   bgClasses = ["mx-top-bg-1","mx-top-bg-2","mx-top-bg-3"];

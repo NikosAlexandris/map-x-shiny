@@ -505,8 +505,7 @@ cl <- mxConfig$class
           ) %>% 
         icon(.,class="mx-view-icon") %>%
         span(
-          #"class" = "mx-tooltip mx-tooltip-bottom-right",
-          #"data-tooltip" = sprintf(
+          "onClick" = sprintf("mxEditView('%s')",itId),
           "title" = sprintf(
             "Visibility: %1$s\nEditor: %2$s\nValidated: %3$s"
             ,viewVisibility
@@ -519,8 +518,6 @@ cl <- mxConfig$class
         infoIcon <- icon("info-circle",class="mx-view-icon") %>%
           span(
           "onClick" = sprintf("mxRequestMeta('%s')",itId),
-          #"class" = "mx-tooltip mx-tooltip-bottom-right",
-          #"data-tooltip" = "View meta data",
           "title" = "View meta data",
           .
           )
@@ -529,8 +526,6 @@ cl <- mxConfig$class
         sliderIcon <- icon("sliders",class="mx-view-icon") %>%
           span(
             "onClick" = sprintf("classToggle('%s')",itIdCheckOptionPanel),
-            #"class"="mx-tooltip mx-tooltip-bottom-right",
-            #"data-tooltip"="View tools"
             title="View tools"
             )
 
@@ -538,8 +533,6 @@ cl <- mxConfig$class
          zoomIcon <- icon("search-plus",class="mx-view-icon") %>%
            span(
              "onClick" = sprintf("mxRequestZoom('%s')",dat$layer),
-             #"class"="mx-tooltip mx-tooltip-bottom-right",
-             #"data-tooltip"="Zoom to extent"
              "title"="Zoom to extent"
              )
         #

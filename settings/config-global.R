@@ -247,6 +247,18 @@ mxConfig$roles <- list(
       admin = c()
       )
     ),
+#  list(
+    #role="user_verified",
+    #level=3,
+    #desc=list(
+      #access = c("map","storymap","country","data_upload","profile","view_creator","storymap_creator","analysis_overlap","polygon_of_interest"),
+      #read = c("self","user","public"),
+      #publish = c("self","editor"),
+      #edit = c("self"),
+      #profile = c("self"),
+      #admin = c()
+      #)
+    #),
   list(
     role="editor",
     level=2,

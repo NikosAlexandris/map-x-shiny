@@ -298,3 +298,16 @@ observeEvent(input$btnViewCreatorSave,{
   }
 })
 
+#
+# Edit current view
+#
+
+observeEvent(input$mxEditView,{
+id <- input$mxEditView
+pan <- mxPanel(title="Edit view",subtitle=sprintf("id=%s",id))
+output$panelAlert <- renderUI(pan)
+})
+
+
+
+
