@@ -17,7 +17,7 @@ leaflet modification
   line-height: 1.5em;
   border-radius: 0px;
   transition: background 0.5s ease;
-  background: rgba(47, 47, 47, 0.6);
+  background: rgba(0,0,0,.6);
   color: white;
   font-weight: 100;
   width: 250px;
@@ -26,5 +26,5 @@ leaflet modification
 }
 
 .info:hover {
-  background: rgba(47, 47, 47, 0.92);
+  background: rgba(0,0,0,.8);
 }

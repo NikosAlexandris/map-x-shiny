@@ -62,8 +62,6 @@ Shiny.addCustomMessageHandler("mxUpdateValue",
 
 Shiny.addCustomMessageHandler("setStyle",
     function(e) {
-      console.log("set style");
-      console.log(e);
       mxSetStyle(e.group,e.style,e.layer,false);
     }
 );

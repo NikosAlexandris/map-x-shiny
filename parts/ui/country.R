@@ -14,10 +14,9 @@ tags$section(id="sectionCountry",class="mx-section-container container-fluid mx-
         h2(id='countryName'),
         div(class="col-md-6 col-xs-12 text-left",
           h3('Key metrics'),
-          selectInput("selectCountry","Change country",
-            choices=c(mxConfig$countryListChoices,mxConfig$noData),
-            selected=mxConfig$noData
-            ),
+         # selectInput("selectCountry","Change country",
+            #choices = mxConfig$countryListChoices,
+            #),
           div(id="countryMetrics"),
           h3('Abstract'),
           div(id="countryNarrative")

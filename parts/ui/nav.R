@@ -7,7 +7,7 @@
 #                 |_|           
 # navigation bar
 
-tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navigation",
+tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top mx-hide",role="navigation",
   div(class="container nav-mapx",
     div(class="navbar-header",
       # butto to activate navbar
@@ -15,11 +15,28 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
         div(style="font-size;18px;color:white;",icon('bars'))
         ),
       tags$div(
-        class="navbar-brand",
-        onClick="goTo('sectionCountry')",
+        id = "navBarCountryChoice",
+        class = "navbar-brand",
         tags$img(src="img/logo_white.svg",class="mx-logo-small float-left"),
-        tags$div(id="countryTitle",class="float-right")
-        )
+        tags$span(
+          id="countryTitle",
+          class="float-right",
+          onClick='classToggle("selectCountryPanel","mx-hide")'
+          ),
+        tags$span(
+          id="selectCountryPanel",
+          class="mx-hide",
+          tags$div(class="mx-arrow mx-arrow-up-white"),
+          tags$div(class="mx-panel-country mx-panel-country col-xs-11 col-md-7 col-lg-6",
+          selectizeInput(
+            inputId = "selectCountry",
+            label = "Select country",
+            choices = c(mxConfig$countryListChoices,mxConfig$noData),
+            selected= mxConfig$noData
+            )
+          )
+          )
+        )  
       ), 
     # nav bar
     div(class="collapse navbar-collapse navbar-right navbar-main-collapse",
@@ -28,15 +45,16 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
           id="btnNavHome",
           mx_set_lang="title.navBar.home",
           class="btn btn-circle",
-          onClick="goTo('sectionTop')",
-          tags$i(class="fa fa-home animated"
+          onClick="enableSection('sectionTop')",
+          tags$i(
+            class="fa fa-home animated"
             )
           ), 
         tags$li(
           mx_set_lang="title.navBar.map",
           id="btnNavMap",
           class="btn btn-circle mx-hide",
-          onClick="goTo('sectionMap')",
+          onClick="enableSection('sectionMap')",
           tags$i(
             class="fa fa-globe animated"
             )
@@ -45,27 +63,18 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
           mx_set_lang="title.navBar.country",
           id="btnNavCountry",
           class="btn btn-circle mx-hide",
-          onClick="goTo('sectionCountry')",
+          onClick="enableSection('sectionCountry')",
           tags$i(
             class="fa fa-flag animated"
             )
           ),
         tags$li(
-          mx_set_lang="title.navBar.about",
-          id="btnNavAbout",
-          class="page-scroll btn btn-circle",
-          onClick="goTo('sectionAbout')",
-          tags$i(
-            class="fa fa-info animated"
-            )
-          ),
-        tags$li(
           mx_set_lang="title.navBar.admin",
-          id="btnNavAdmin",
+          id="btnNavSettings",
           class="page-scroll btn btn-circle mx-hide",
-          onClick="goTo('sectionAdmin')",
+          onClick="enableSection('sectionAdmin')",
           tags$i(
-            class="fa fa-wrench animated"
+            class="fa fa-cog animated"
             )
           ), 
         tags$li(
@@ -77,11 +86,11 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top",role="navi
             )
           ),
         tags$li(
-          mx_set_lang="title.navBar.logout",
-          id="btnNavLogout",
-          class="btn btn-circle mx-hide action-button",
+          mx_set_lang="title.navBar.user",
+          id="btnNavUser",
+          class="btn btn-circle action-button",
           tags$i(
-            class="fa fa-sign-out animated"
+            class="fa fa-user animated"
             )
           )
         ) 

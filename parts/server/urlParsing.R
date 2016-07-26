@@ -63,11 +63,7 @@ observeEvent(session$clientData,{
       ){
       # get country from query
       cntry <- toupper(query$country)
-      updateSelectInput(session,"selectCountry",selected=cntry)
-    }
-
-
-    #
+      updateSelectInput(session,"selectCountry",selected=cntry) } #
     # Language
     #
     # code "ISO 639-2"
@@ -91,7 +87,7 @@ observeEvent(session$clientData,{
       views <- unlist(strsplit(subPunct(query$views,";"),";"))
       if(!noDataCheck(views)){
         isolate({
-          mxReact$viewsFromUrl <- unique(views)
+          reactMap$viewsDataFromUrl <- unique(views)
         })
       }
     }

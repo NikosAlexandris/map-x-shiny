@@ -43,6 +43,67 @@ function goTo(id){
 }
 
 
+function enableSection(id){
+  var dest = document.getElementById(id) ;
+  var sections = document.getElementsByClassName("mx-section-container");
+
+    if(typeof(id) != "undefined"){
+
+      for(s=0;s<sections.length;s++){
+        var i = sections[s].id;
+        if(i == id){
+          // Show
+          classRemove(i,"mx-hide");
+          classAdd(i,"mx-show");
+        }else{
+          // Hide
+          classRemove(i,"mx-show");
+          classAdd(i,"mx-hide");
+        }
+      }
+
+      if(id != "sectionTop"){
+        classAdd("navbarTop","top-nav-collapse");
+      }else{
+        classRemove("navbarTop","top-nav-collapse");
+      }
+    }
+  return false;
+
+
+}
+
+function enablePanelMode(id,title){
+  /* Which element contain the ui to enable */
+  var dest = document.getElementById(id) ;
+  /* Get all section containing a panel mode*/
+  var sections = document.getElementsByClassName("mx-panel-mode");
+  /* Get element to set the title */
+  var elTitle = document.getElementById("titlePanelMode");
+  /* In all case, show the left panel */
+  classRemove('mapLeftPanel',"mx-hide");
+  /* Logic : enable selected, disable others*/
+  if(typeof(id) != "undefined"){
+    elTitle.textContent=title;
+    for(s=0;s<sections.length;s++){
+      var i = sections[s].id;
+      if(i == id){
+        // Show
+        classRemove(i,"mx-hide");
+        classAdd(i,"mx-show");
+      }else{
+        // Hide
+        classRemove(i,"mx-show");
+        classAdd(i,"mx-hide");
+      }
+    }
+    /* Send the id to server */
+    Shiny.onInputChange("mxPanelMode", { 
+      id:id
+    }
+    );
+  }
+}
 
 function classAdd(id,cl){
   var el = document.getElementById(id),
@@ -94,6 +155,16 @@ function  mxRequestMeta(viewId){
   );
 }
 
+// request meta for a layer
+function  mxEditView(viewId){
+  var trigger = new Date();
+  Shiny.onInputChange("mxEditView", { 
+    id:viewId, 
+    time:trigger
+  }
+  );
+}
+
 // change background each times
 function changeBg(){
   bgClasses = ["mx-top-bg-1","mx-top-bg-2","mx-top-bg-3"];
@@ -101,7 +172,14 @@ function changeBg(){
   $("#sectionTop").addClass(bgClass);
 }
 
-
+// request zoom to extent
+function  mxRequestZoom(viewId){
+  var trigger = new Date();
+  Shiny.onInputChange("mxRequestZoom", { 
+    id:viewId, 
+  }
+  );
+}
 
 
 // decode b64 and keep utf8 formating
@@ -228,20 +306,6 @@ function  updateStoryMaps_orig(){
                 Shiny.onInputChange("storyMapData",out);
               }
               
-
-              /*
-                 out = {
-                 view : storyMapLayer.store[0],
-                 opacity : vOpa,
-                 extent : vExt 
-                 };
-
-                 if(vId == "khimdtpsawmskngqhep"){
-                 console.log( out );
-                 }
-
-                 Shiny.onInputChange("storyMapData",out);
-                 */
             }
 
           }
@@ -381,6 +445,7 @@ function mxSetFilter(layer,id,column,value){
       }
 
       switch (type) {
+      
         case 1: //'Point'
           style.color = dataCol;
           style.radius = vtStyle$size[0];
@@ -583,7 +648,6 @@ var mxSetRange = debounce(mxSetRange_orig,50);
 //
 function mxSetStyle_orig(id,vtStyle,lay,overwrite){
 
-  console.log("mxSetStyle requested");
   // check if the provided style is the same as this already applied  
   if(!overwrite){
     if(vtStyle == leafletvtId[id].vtStyle){
@@ -606,7 +670,9 @@ function mxSetStyle_orig(id,vtStyle,lay,overwrite){
       // extract color by val
       col = vtStyle.colorsPalette[val];
       if(typeof(col) == "undefined"){
-        console.log("Error. No color found for "+val);
+        var txt = "Error. No color found for " + val ;
+        Shiny.onInputChange("leafletVtError",txt);
+        console.log(txt);
       }
       dataCol = hex2rgb(col,vtStyle.opacity);
       if(typeof(dataCol) == 'undefined'){
@@ -614,6 +680,7 @@ function mxSetStyle_orig(id,vtStyle,lay,overwrite){
         dataCol = defaultColor;
       }
     }
+
     switch (type) {
       case 1: //'Point'
         style.color = dataCol;

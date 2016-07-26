@@ -102,12 +102,12 @@ observeEvent(input$btnValidateWms,{
       req <- "?service=WMS&request=GetCapabilities"
       req <- paste0(wmsServer,req)
 
-      cachedRequest <- mxReact$wmsRequest[[wmsServer]]
+      cachedRequest <- reactMap$wmsRequest[[wmsServer]]
 
       if(noDataCheck(cachedRequest)){ 
         pars <- XML::xmlParse(req,options=XML::NOCDATA) 
         dat <- XML::xmlToList(pars)
-        mxReact$wmsRequest[[wmsServer]] <- dat
+        reactMap$wmsRequest[[wmsServer]] <- dat
       }else{
         dat <- cachedRequest 
       }

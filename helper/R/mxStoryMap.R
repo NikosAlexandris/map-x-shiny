@@ -37,6 +37,14 @@ mxParseVimeo <- function(text){
 
 }
 
+#' Remove script tags from html string
+#' @param text Text in which remove script tag
+#' @return text
+#' @export
+mxParseRemoveScript <- function(text){
+  # http://stackoverflow.com/questions/7130867/remove-script-tag-from-html-content
+  gsub("<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>","",text,perl=T)
+}
 
 #' Parse view string
 #' @param test Story map text with @view_start( name ; id ; extent ) ... @view_end tags
@@ -74,17 +82,20 @@ mxParseView <- function(text){
 #' @param test Story map text
 #' @return parsed html 
 #' @export
-mxParseStory <- function(txtorig,knit=T,toc=F){
-
+mxParseStory <- function(txtorig){
+  # txt <- knitr::knit2html(text=txtorig,quiet = TRUE, 
+  #options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
+  #) %>%
   # Parse knitr with options from markdownHTMLoptions()
-  txt <- knitr::knit2html(text=txtorig,quiet = TRUE, 
-    options=c(ifelse(toc,"toc",""),"base64_images","highlight_code","fragment_only")
-    ) %>%
-    mxParseView() %>%
-    mxParseVimeo() 
+  txt <-markdown::markdownToHTML(
+    text=txtorig,
+    options=c("base64_images","fragment_only","skip_style","safelink")
+    )%>%
+  mxParseView() %>%
+  mxParseVimeo() %>%
+  mxParseRemoveScript()
+return(txt)
 
-    return(txt)
-    
 }
 
 

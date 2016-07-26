@@ -8,78 +8,49 @@
 # view creator management
 
 
-#observe({
-  #if(mxReact$allowViewsCreator){
-    #class = input$selNewLayerClass
-    #if(!noDataCheck(class)){
-      #updateSelectInput(session,"selNewLayerSubClass",choices=mxConfig$subclass[[class]])
-    #}
-  #}
-#})
-
-#
-# Btn refresh
-#
-
-
-
-#observeEvent(input$btnViewsRefresh,{
-  #if(mxReact$allowViewsCreator){
-    #mxDebugMsg("Command remote server to restart app")
-    #if( mxConfig$hostname != mxConfig$remoteHostname ){
-      #remoteCmd(mxConfig$remoteHostname,cmd=mxConfig$restartPgRestApi)
-    #}else{
-      #system(mxConfig$restartPgRestApi)
-    #}
-    #mxReact$layerListUpdate <- runif(1) 
-  #}
-#})
-
-
-
-
 
 #
 # Populate layer selection
 #
 observe({
-  if(mxReact$allowViewsCreator){
-    # default
+  mxCatch("Update input: get list of layer",{
+    # chech if the user as access to creator  
+    allow <- reactUser$allowViewsCreator
+    # current country / project
+    cntry <- toupper(reactProject$name)
+    # update trigger
+    update <- reactMap$layerListUpdate
+    # user information
+    roles <- reactUser$role
+    data <- reactUser$data
+    canRead <- roles$desc$read
+    # no data test
+    hasRole <- !noDataCheck(roles)
+    hasReadLevel <- !noDataCheck(canRead)
+    hasData <- !noDataCheck(data)
+    # Default
     choice <- mxConfig$noData
-    # take reactivity on select input
-
-    cntry <- toupper(mxReact$selectCountry)
-    # reactivity after updateVector in postgis
-    update <- mxReact$layerListUpdate
-
-    usr <- mxReact$userInfo
-    visibility = usr$role$desc$read
-    visibility = paste0("'",visibility[!visibility %in% 'self'],"'",collapse=",")
-
-    if(!noDataCheck(visibility)){
-      mxCatch("Update input: get list of layer",{
-
-        sql <- gsub("\n","",sprintf(
-            "SELECT layer 
-            FROM mx_layers 
-            WHERE country='%1$s' AND
-            ( visibility ?| array[%2$s] OR editor = '%3$s' )",
-            cntry,
-            visibility,
-            usr$id
-            ))
-
-
-        layers <- mxDbGetQuery(sql)$layer
-
-        if(!noDataCheck(layers)){
-          choice = c(choice,layers)  
-        }
-        updateSelectInput(session,"selLayer",choices=choice)
-        mxReact$layerList = choice
-      })
+    #
+    # update choice
+    #
+    if(allow && hasData && hasReadLevel && hasReadLevel){
+      # fetch layers list
+      layers <- mxDbGetLayerList(
+        project=cntry,
+        visibility=canRead,
+        userId=data$id
+        )
+      # if there is at least one layers, update choices
+      if(!noDataCheck(layers)){
+        choice = layers
+      }
     }
-  }
+
+    # update ui
+    updateSelectInput(session,"selLayer",choices=choice)
+    # store value
+    reactMap$layerList <- choice
+})
 })
 
 
@@ -87,52 +58,61 @@ observe({
 # Populate column selection
 # 
 
-observeEvent(input$selLayer,{
-  if(mxReact$allowViewsCreator){
-    # take reactivity on layer selection
-    lay = input$selLayer
-    # Default variables
-    vars = mxConfig$noData
-    # check if it has date cols
-    hasDate = FALSE
-    # if layer is not empty:
-    # - get available variables
-    # - check for map x dates variables
-    # - save in mxStyle
-    # - update select input with available variable
+observe({
+  mxCatch("Update input: layer columns",{
 
-    if(!noDataCheck(lay)){
-      mxCatch("Update input: layer columns",{
+  modeCreator <- isTRUE( reactUi$panelMode == "mxModeToolBox" )
 
-        variables <- mxDbGetColumnsNames(lay)
-      
+    # get user values
+    allow <- reactUser$allowViewsCreator
+    # get selected layer
+    layer <- input$selLayer
+    # defaults
+    variables <- mxConfig$noData
+    hasDate <- FALSE
+    # test
+    layerIsOk <- isTRUE(!noDataCheck(layer) && layer %in% reactMap$layerList)
 
-        if(!noDataCheck(variables)){
-          vars = variables[ !variables %in% c("gid","geom") ]
-        } 
-        # Date handling 
-        hasDate <- isTRUE("mx_date_start" %in% vars) && isTRUE( "mx_date_end" %in% vars)
-        # Set mxStyle
-        mxStyle$layer <- lay
-        mxStyle$group <- mxConfig$defaultGroup
-        mxStyle$hasDateColumns <- hasDate
-      })
+    # Update variables
+    if( allow && layerIsOk && modeCreator ){
+
+      # fetch variables name
+      variables <- mxDbGetColumnsNames(layer)
+      # subset value
+      if(!noDataCheck(variables)){
+        vars = variables[ !variables %in% c("gid","geom") ]
+      } 
+      # Date handling 
+      hasDate <- isTRUE("mx_date_start" %in% vars) && isTRUE( "mx_date_end" %in% vars)
+      # Set reactStyle
+      reactStyle$layer <- layer
+      reactStyle$group <- mxConfig$defaultGroup
+      reactStyle$hasDateColumns <- hasDate
+      # NOTE: bug with code and parties. After code, no variable can be set on extractive mineral layer 
+      varsLess <- vars[!vars %in% c("code","parties")]
+      # update variable to use for styling
+      updateSelectInput(
+        session, 
+        inputId="selColumnVar", 
+        choices=varsLess
+        )
+      # update additional variable to keep
+      updateSelectInput(session, 
+        inputId="selColumnVarToKeep", 
+        choices=c(mxConfig$noVariable,vars)
+        )
     }
 
-    # NOTE: bug with code and parties. After code, no variable can be set on extractive mineral layer 
-    varsLess <- vars[!vars %in% c("code","parties")]
-    updateSelectInput(session, "selColumnVar", choices=varsLess)
-    updateSelectInput(session, "selColumnVarToKeep", choices=c(mxConfig$noVariable,vars),selected=vars[1])
-  }
+})
 })
 
 
 #
-# get selected variable summary, set mxStyle accordingly and update palette choice.
+# get selected variable summary, set reactStyle accordingly and update palette choice.
 #
 
 observeEvent(input$selColumnVar,{
-  if(mxReact$allowViewsCreator){
+  if(reactUser$allowViewsCreator){
     lay = input$selLayer
     var = input$selColumnVar
       if(!noDataCheck(lay) && !noDataCheck(var)){
@@ -144,13 +124,13 @@ observeEvent(input$selColumnVar,{
         # set palette choice
         paletteChoice         <- mxConfig$colorPalettes
         updateSelectInput(session,"selPalette",choices=paletteChoice)
-        # From now, we have enough info to begin mxStyle setting.
-        mxStyle$variable      <- var
-        mxStyle$scaleType     <- layerSummary$scaleType
-        mxStyle$values        <- layerSummary$dValues
-        mxStyle$nDistinct     <- layerSummary$nDistinct
-        mxStyle$nMissing      <- layerSummary$nNa
-        mxStyle$paletteChoice <- paletteChoice
+        # From now, we have enough info to begin reactStyle setting.
+        reactStyle$variable      <- var
+        reactStyle$scaleType     <- layerSummary$scaleType
+        reactStyle$values        <- layerSummary$dValues
+        reactStyle$nDistinct     <- layerSummary$nDistinct
+        reactStyle$nMissing      <- layerSummary$nNa
+        reactStyle$paletteChoice <- paletteChoice
       }
   }
 })
@@ -162,35 +142,35 @@ observeEvent(input$selColumnVar,{
 
 
 observe({
-  mxStyle$title <-  input$mapViewTitle 
+  reactStyle$title <-  input$mapViewTitle 
 })
 
 observe({
-  mxStyle$palette  <- if(!noDataCheck(input$selPalette))input$selPalette
+  reactStyle$palette  <- if(!noDataCheck(input$selPalette))input$selPalette
 })
 
 observe({
-  mxStyle$opacity <- if(!noDataCheck(input$selOpacity))input$selOpacity
+  reactStyle$opacity <- if(!noDataCheck(input$selOpacity))input$selOpacity
 })
 
 observe({
-  mxStyle$basemap <- if(!noDataCheck(input$selectBaseMap))input$selectBaseMap
+  reactStyle$basemap <- if(!noDataCheck(input$selectBaseMap))input$selectBaseMap
 })
 
 observe({
-  mxStyle$size <- if(!noDataCheck(input$selSize))input$selSize
+  reactStyle$size <- if(!noDataCheck(input$selSize))input$selSize
 })
 
 observe({
-  mxStyle$hideLabels <- if(!noDataCheck(input$checkBoxHideLabels))input$checkBoxHideLabels
+  reactStyle$hideLabels <- if(!noDataCheck(input$checkBoxHideLabels))input$checkBoxHideLabels
 })
 
 observe({
-  mxStyle$hideLegends <- if(!noDataCheck(input$checkBoxHideLegends)) input$checkBoxHideLegends 
+  reactStyle$hideLegends <- if(!noDataCheck(input$checkBoxHideLegends)) input$checkBoxHideLegends 
 })
 
 observe({
-  mxStyle$variableUnit <- input$txtVarUnit
+  reactStyle$variableUnit <- input$txtVarUnit
 })
 
 
@@ -214,12 +194,12 @@ observe({
 # 
 
 observeEvent(input$btnViewCreatorSave,{
-  if(mxReact$enableViewsCreator){
+  if(reactUser$allowViewsCreator){
     mxCatch(title="Save style",{
       #sty2<-layerStyle()
-      sty <- reactiveValuesToList(mxStyle)
+      sty <- reactiveValuesToList(reactStyle)
       # save additional variables
-      hasDate <- mxStyle$hasDateColumns
+      hasDate <- reactStyle$hasDateColumns
       vToKeep <- input$selColumnVarToKeep
       vToKeep <- vToKeep[!vToKeep %in% mxConfig$noVariable]
       if(isTRUE(hasDate)){
@@ -278,11 +258,11 @@ observeEvent(input$btnViewCreatorSave,{
 
       view = list(
           id =  randomString(),
-          country = mxReact$selectCountry,
+          country = reactProject$name,
           title = input$mapViewTitle,
           class = input$mapViewClass,
           layer = sty$layer,
-          editor = mxReact$userInfo$id,
+          editor = reactUser$data$id,
           reviewer = 0L,
           revision = 0L,
           validated = TRUE,
@@ -301,7 +281,7 @@ observeEvent(input$btnViewCreatorSave,{
         table = viewTable
         )
 
-      mxReact$viewsListUpdate <- runif(1)
+      reactMap$viewsDataListUpdate <- runif(1)
 
 
  panModal <- mxPanel(
@@ -317,4 +297,17 @@ observeEvent(input$btnViewCreatorSave,{
     })
   }
 })
+
+#
+# Edit current view
+#
+
+observeEvent(input$mxEditView,{
+id <- input$mxEditView
+pan <- mxPanel(title="Edit view",subtitle=sprintf("id=%s",id))
+output$panelAlert <- renderUI(pan)
+})
+
+
+
 

@@ -5,8 +5,11 @@
 # |_| |_| |_|\__,_| .__/  /_/\_\
 #                 | |           
 #                 |_|           
-# map content
 
+
+#
+# UI UPLOAD LAYER
+#
 uiMapCreatorLayer <- tagList(
   tags$div(id="mxUiMapCreatorView",class="",
     selectInput(
@@ -44,11 +47,13 @@ uiMapCreatorLayer <- tagList(
       )
     )
   )
-
+#
+# UI CREATE NEW VIEW
+#
 uiMapCreatorView <- tagList(
   tags$div(id="mxUiMapCreatorLayer",class="",
     selectInput("selLayer","Layer",choices=mxConfig$noData),
-selectInput("selNewViewVisibility",
+    selectInput("selNewViewVisibility",
       label= "View visibility",
       choices=mxConfig$noData
       ),
@@ -61,45 +66,20 @@ selectInput("selNewViewVisibility",
         conditionalPanel(condition=sprintf("input.mapViewTitle != '%s'",mxConfig$noData),
           selectInput("selColumnVar","Variable to display",choices=mxConfig$noData),
           conditionalPanel(condition=sprintf("input.selColumnVar != '%s'",mxConfig$noData),
-          textInput("txtVarUnit","Suffix for labels"),
-          selectInput("selPalette","Colors",choices=""),
-          selectInput("selColumnVarToKeep","Variable(s) to keep",choices="",multiple=T),
-          numericInput("selOpacity","Opacity",min=0,max=1,value=0.6,step=0.1),
-          numericInput("selSize","Size point / line",min=0,max=100,value=5,step=0.1),
-          selectInput("mapViewClass","View class",choices=mxConfig$class),
-          tags$textarea(
-            id="txtViewDescription",
-            rows=10,
-            cols=30,
-            placeholder="Description...",
-            spellcheck="false"
-            ),
-          actionButton("btnViewCreatorSave","Save view")
-          )
-          )
-        )
-      )
-    )
-  )
-
-
-uiMapCreator <- tagList(
-  #
-  # MAP CREATOR
-  #
-  tags$section(id="sectionMapcreator",class="section-map-creator mx-mode-creator container-fluid mx-hide",
-    mxAccordionGroup(id="mapCreator",
-      itemList=list(
-        "data"=list(
-          "title"="Upload new data",
-          content=tagList(
-            uiMapCreatorLayer
-            )
-          ),
-        "style"=list(
-          "title"="Create a view",
-          content=tagList(
-            uiMapCreatorView
+            textInput("txtVarUnit","Suffix for labels"),
+            selectInput("selPalette","Colors",choices=""),
+            selectInput("selColumnVarToKeep","Variable(s) to keep",choices="",multiple=T),
+            numericInput("selOpacity","Opacity",min=0,max=1,value=0.6,step=0.1),
+            numericInput("selSize","Size point / line",min=0,max=100,value=5,step=0.1),
+            selectInput("mapViewClass","View class",choices=mxConfig$class),
+            tags$textarea(
+              id="txtViewDescription",
+              rows=10,
+              cols=30,
+              placeholder="Description...",
+              spellcheck="false"
+              ),
+            actionButton("btnViewCreatorSave","Save view")
             )
           )
         )
@@ -107,22 +87,9 @@ uiMapCreator <- tagList(
     )
   )
 
-    uiMapList <- tagList(
-      #
-      # MAP 
-      #
-      tags$section(id="sectionMapList",class="mx-mode-explorer container-fluid",
-        div(class="row",
-          div(class="col-lg-12",
-            # created in parts/server/views.R
-            uiOutput('checkInputViewsContainer')
-            )
-          )
-        )
-      )
-
-
-
+#
+# TOOL BASE MAP
+#
 uiMapConfigBaseMap = tagList(
   selectInput(
     "selectConfigBaseMap",
@@ -130,11 +97,14 @@ uiMapConfigBaseMap = tagList(
     choices=list(
       mxConfig$noLayer,
       `MapBox satellite`="mapboxsat",
+      `MapBox satellite live`="mapboxsatlive",
       `Here satellite`="heresat"
       )
     )
   )
-
+#
+# TOOL  WMS EXTERNAL LAYER
+#
 uiMapConfigWms = tagList(
   selectInput("selectWmsServer",
     "Select a predefined WMS server",
@@ -150,286 +120,199 @@ uiMapConfigWms = tagList(
     tags$li(actionButton("btnRemoveWms",icon("times")))
     )
   )
+#
+# TOOL MAP OVERLAP ANALYSIS
+#
+uiMapOverlap <- tagList(
+    selectInput("selectOverlapA","Map to query",choices=mxConfig$noData),
+    selectInput("selectOverlapAVar","Variable to keep",
+      choices="",
+      multiple=TRUE
+      ),
+    selectInput("selectOverlapB","Zone",choices=mxConfig$noData),
+    actionButton("btnAnalysisRemoveLayer",icon("times")),
+    actionButton("btnAnalysisOverlaps",icon("play")),
+    span(id="txtAnalysisOverlaps","")
+  )
+#
+# TOOL POLYGON OF INTEREST
+#
+uiMapPolygonOfInterest <- tagList(
+  tags$p("Use the toolbar to select an area of interest, then fill the form.")
+  )
 
-
-
-uiMapConfig <- tagList(
-  #
-  # MAP config
-  #
-  tags$section(
-    id="sectionMapConfig",
-    class="section-map-creator mx-mode-config container-fluid mx-hide",
+#
+# TOOL STORY CREATOR
+#
+uiStoryNew <- tagList(
+  textInput("txtStoryName","Add new story title"), 
     tagList(
-      h3("Add a base map"),
-      uiMapConfigBaseMap,
-      hr(),
-      h3("Add a wms layer"),
-      uiMapConfigWms
+      tags$label("Validation"),
+      div(id="validateNewStoryName")
+      ),
+    actionButton("btnSaveNewStory",
+      label=icon("save")
+      ) 
+  )
+#
+# TOOLBOX
+#
+uiMapToolbox <- tagList(
+  tags$section(id="mxModeToolBox",class="mx-panel-mode mx-hide",
+    div(class="row",
+      div(class="col-lg-12", 
+        mxAccordionGroup(id="mxToolBox",
+          itemList=list(
+            uiMapOverlap=list(
+              class="mx-allow-overlap",
+              title="Overlap analysis",
+              content= uiMapOverlap
+              ),
+            uiMapPolygonOfInterest=list(
+              class="mx-allow-polygon-of-interest",
+              title="Polygon of interest",
+              content=uiMapPolygonOfInterest,
+              onHide='Shiny.onInputChange("mxPoiDrawShow",false)',
+              onShow='Shiny.onInputChange("mxPoiDrawShow",true)'
+              ),
+            uiMapConfigWms = list(
+              class = "mx-allow-wms",
+              title = "External WMS layer",
+              content = uiMapConfigWms
+              ),
+            uiMapConfigBaseMap=list(
+              class = "mx-allow-basemap",
+              title="Satellite imagery",
+              content = uiMapConfigBaseMap
+              ),
+            data=list(
+              class="mx-allow-upload",
+              title="Upload New Data",
+              content=tagList(
+                uiMapCreatorLayer
+                )
+              ),
+            style=list(
+              class="mx-allow-creator",
+              title="Create a view",
+              content=tagList(
+                uiMapCreatorView
+                )
+              ),
+            newStory=list(
+              class="mx-allow-story-creator",
+              title="Create a story map",
+              content = uiStoryNew
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+
+#
+# SECTION EXPLORER 
+#
+uiMapList <- tagList(
+  tags$section(id="mxModeExplorer",class="mx-panel-mode",
+    div(class="row",
+      div(class="col-lg-12",
+        # created in parts/server/views.R
+        uiOutput('checkInputViewsContainer')
+        )
       )
     )
   )
 
 
 
-    uiMapToolbox <- tagList(
-      #
-      # UI ANALYTICS
-      #
-      tags$section(id="sectionMapAnalysis",class="mx-mode-toolbox mx-hide container-fluid",
-        div(class="row",
-          div(class="col-lg-12", 
-            mxAccordionGroup(id="mapConfig",show=1,
-              itemList=list(
-                "analysis"=list("title"="Analysis",content=tagList(
-                    selectInput("selectAnalysis","Select an analysis",
-                      choices=list("Overlaps"="overlaps")
-                      ),
-                    uiOutput("uiAnalysis"),
-                    actionButton("btnAnalysisRemoveLayer",icon("times"))
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
+#
+# STORY SELECTOR
+#
+uiMapStorySelector <- tagList(
+  selectizeInput(
+    inputId="selectStoryId", 
+    label="", 
+    choices ="",
+    options = list(
+      placeholder = 'Select a story'
       )
+    )
+  )
+
+  #
+  # STORY MAP READER
+  #
+
+uiMapStoryReader <- tagList(
+  tags$section(id="mxModeStoryMap",class="mx-panel-mode mx-hide",
+    conditionalPanel(condition=sprintf(
+        "input.selectStoryId.length>0 &&
+        input.selectStoryId != ''
+      ",mxConfig$noData),  
+      div(id="mxStoryText")
+      )
+      )
+    )
+
+  #
+  # MAP SECTION
+  #
 
 
-
-
+  uiLeftNav <- tagList(
     #
-    # STORY MAP
+    # NAV MENU
     #
-
-
-    uiStorySelect <- tagList(
-      #
-      # Story selection
-      #
-      #selectInput("selectStoryId","Select a story",choices="")
-      )
-
-    uiStoryNew <- tagList(
-      #
-      # New story crator
-      #
-      textInput("txtStoryName","Add new story title"), 
-      tags$label("Validation"),
-      div(id="validateNewStoryName"),
-      actionButton("btnSaveNewStory",label=icon("save"))  
-      )
-
-    uiStoryEditor <- tagList(
-      #
-      # editor
-      #
-      span("Drag and drop views from the menu; Drag and drop coordinates from the box below :"),
-      div(id="txtLiveCoordinate",draggable=TRUE),
-      selectizeInput(
-        label = "Set the story visibility",
-        inputId="selStoryVisibility",
-        choices=mxConfig$noData
-        ),
-      tags$textarea(id="txtStoryMapEditor", rows=12, cols=80, placeholder="Write a story...",spellcheck="false"),
-      #buttons
-      tags$script(
-        "
-        document.getElementById('txtLiveCoordinate')
-        .addEventListener('dragstart',function(e){
-          var coord = document.getElementById('txtLiveCoordinate').innerHTML;
-          e.dataTransfer.setData('text', coord);
-          })"
-        ),
-
-      tags$ul(class="list-inline",
-        tags$li(
-          actionButton(
-            inputId="btnStoryMapEditorUpdate",
-            class="btn-icon btn-square",
-            label=icon("save")
-            )
-          )
-        )
-      )
-
-
-    uiStoryCreator<- tagList(
-      #
-      # Tabset with creator components
-      #
- mxAccordionGroup(id="storyCreator",
-      itemList=list(
-        "edit"=list(
-          "title"="Edit selected story",
-          "condition"=sprintf("input.selectStoryId.length>0 && input.selectStoryId != '%s'",mxConfig$noData),
-          content=tagList(
-            uiStoryEditor
-            )
-          ),
-        "new"=list(
-          "title"="Create a story",
-          content=tagList(
-            uiStoryNew
-            )
-          )
-        )
-      )
-
-   #   div(class="mx-allow-story-edit mx-hide",
-        #tabsetPanel(type="pills",
-          #tabPanel("Edit", uiStoryEditor),
-          #tabPanel("New", uiStoryNew)
-          #)
-        #)
-      )
-
-    uiMapStoryModal <- tagList(
-      #
-      # STORY MAP MODAL
-      #
-      div(id="storyMapModalHandle",style=" background: rgba(47,47,47,0.8); cursor: move;",
-        tags$ul(class="list-inline",
-          tags$li(
-            div(class="btn-close",
-              tags$i(class="fa fa-times"),
-              onclick="$('#storyMapModal').addClass('mx-hide')"
-              )
-            )
-          )
-        ),
-      div(class="no-scrollbar-container",
-        div(class="no-scrollbar-content",
-          div(style="width: 100%;padding: 10px;",
-            uiStorySelect,
-            uiStoryCreator
-            )
-          )
-        )
-      )
-
-
-
-
-    uiMapStorySelector <- tagList(
-      selectizeInput(
-        inputId="selectStoryId", 
-        label="", 
-        choices ="",
-        options = list(
-          placeholder = 'Select a story'
-          )
-        )
-      )
-
-
-
-
-
-
-    uiMapStoryReader <- tagList(
-      #
-      # STORY MAP PREVIEW / READER
-      #
-
-      tags$section(id="sectionStoryMapReader",class="mx-mode-story-reader mx-hide",
-        conditionalPanel(condition="input.selectStoryId.length>0",  
-          div(id="mxStoryText")
-          )
-        )
-      )
-
     #
-    # MAP SECTION
-    #
-
-
-    uiLeftNav <- tagList(
-      #
-      # NAV MENU
-      #
-      #
-      # UI BUTTONS
-      # 
-      tags$li(
-        tags$button(
-          mx_set_lang="title.mapLeft.hide",
-          onClick="classToggle('mapLeftPanel')",
-          class="btn-icon btn-square",
-          icon("bars")
-          )
-        ),
-      #
-      # PANEL BUTTON
-      #
-      tags$li(
-        actionButton('btnViewsExplorer',
-          mx_set_lang="title.mapLeft.explorer",
-          class="btn-icon btn-square",
-          label=icon("globe")
-          )
-        ),
-      tags$li(
-        actionButton('btnViewsCreator',
-          mx_set_lang="title.mapLeft.creator",
-          class="btn-icon btn-square mx-hide mx-allow-creator",
-          label=icon("plus")
-          )
-        ), 
-      tags$li(
-        actionButton('btnStoryReader',
-          mx_set_lang="title.mapLeft.storyReader",
-          class="btn-icon btn-square mx-hide mx-allow-story-reader",
-          label=icon("book")
-          )
-        ),
-      tags$li(
-        actionButton('btnViewsConfig',
-          mx_set_lang="title.mapLeft.config",
-          class="btn-icon btn-square",
-          label=icon("sliders")
-          )
-        ),
-      tags$li(
-        actionButton('btnViewsToolbox',
-          mx_set_lang="title.mapLeft.toolbox",
-          class="btn-icon btn-square",
-          label=icon("cubes")
-          )
-        ),
-      tags$li(
-        actionButton('btnDraw',
-          mx_set_lang="title.mapLeft.draw",
-          class="btn-icon btn-square",
-          label=icon("pencil")
-          )
-        ),
-      #
-      # PANEL SPECIFIC BUTTONS
-      #
-      tags$li(
-        hr(class='mx-mode-creator mx-hide')
-        ),
-      tags$li(
-        hr(class='mx-mode-story-reader mx-hide')
-        ),
-      tags$li(
-        div(class="mx-mode-story-reader mx-hide",
-        tags$button(id='btnStoryCreator',
-          mx_set_lang="title.mapLeft.storyEdit",
-          onClick="classToggle('storyMapModal')",
-          class="btn btn-icon btn-square mx-mode-story-edits mx-hide",
-          icon("pencil-square-o")
-          )
-        )
-      ),  
+    # UI BUTTONS
+    # 
     tags$li(
-      actionButton(inputId="btnZoomToLayer",
-        class="btn-icon btn-square mx-mode-creator mx-hide",
-        label=icon("binoculars")
+      tags$button(
+        id="btnToggleMapLeft",
+        mx_set_lang="title.mapLeft.hide",
+        onClick="classToggle('mapLeftPanel')",
+        class="btn-icon btn-square",
+        icon("bars")
         )
-      ) 
+      ),
+    #
+    # Explorer : switch panel and set title
+    #
+    tags$li(
+      tags$button(
+        id="btnModeExplorer",
+        mx_set_lang="title.mapLeft.explorer",
+        onClick="enablePanelMode('mxModeExplorer','Views Explorer')",
+        class="btn-icon btn-square",
+        icon("map-o")
+        )
+      ),
+    #
+    # Story reader : switch panel and set title
+    #
+    tags$li(
+      tags$button(
+        id="btnModeStoryReader",
+        mx_set_lang="title.mapLeft.storyReader",
+        onClick="enablePanelMode('mxModeStoryMap','Story Map Reader')",
+        class="btn-icon btn-square",
+        icon("newspaper-o")
+        )
+      ),
+    #
+    # Toolbox : switch panel and set title
+    #
+    tags$li(
+      tags$button(
+        id="btnModeToolBox",
+        mx_set_lang="title.mapLeft.toolbox",
+        onClick="enablePanelMode('mxModeToolBox','Toolbox')",
+        class="btn-icon btn-square",
+        icon("cogs")
+        )
+      )
     )
 
 
@@ -447,81 +330,88 @@ uiMapConfig <- tagList(
           uiOutput("infoBoxContent",class="info-box-content")
           )
         ),
-      #
-      # UI STORY MODAL
-      #
-      div(id="storyMapModal",style="position:fixed",class="mx-story-modal mx-hide",
-        uiMapStoryModal
-        ),
-      #
       # LEFT PANEL
       #
       #div(id="map-left-container",class="",
+      #
+      # TOOLBOX      
+      #      
+      div(class="mx-dropdown-content map-tool-box-items mx-hide",
+        id="mapToolsMenu",
+        uiLeftNav
+        ),
+      #
+      # MENU 
+      #
+      div(id="mapLeftPanel",class="map-left-panel col-xs-7 col-sm-6 col-md-5 col-lg-4",
         #
-        # TOOLBOX      
-        #      
-        div(class="mx-dropdown-content map-tool-box-items mx-hide",
-          id="mapToolsMenu",
-          uiLeftNav
-          ),
+        # HEADER
         #
-        # MENU 
-        #
-        div(id="mapLeftPanel",class="map-left-panel col-xs-7 col-sm-6 col-md-5 col-lg-4",
+        div(id="mapLeftPanelHead",  
           #
-          # HEADER
+          # MENU
           #
-          div(id="mapLeftPanelHead",  
-            #
-            # MENU
-            #
-            tags$div(class="mx-dropdown map-tool-box-container",
-              tags$div(
-                onclick="classToggle('mapToolsMenu')",
-                id='btnMapTools',
-                class="mx-btn-dropdown",
-                tags$span(class='fa fa-bars')
-                )
-              ),
-            tags$div(class="mx-dropdown map-tool-box-container mx-hide mx-mode-story-reader", style="float:right",
-              tags$div(
-                onclick="classToggle('mxStorySelectorBox')",
-                id='btnMapTools',
-                class="mx-btn-dropdown",
-                tags$span(class='fa fa-search')
-                )
-              ),
-            #
-            # TITLE
-            #
+          tags$div(class="mx-dropdown map-tool-box-container",
             tags$div(
-              span(id="titlePanelMode","Views explorer")
-              ),
-            #
-            # STORY SELECTOR
-            #
-            div(
-              id="mxStorySelectorBox",class="mx-hide mx-mode-story-reader",
-              uiMapStorySelector
+              onclick="classToggle('mapToolsMenu')",
+              id='btnMapTools',
+              class="mx-btn-link mx-btn-link-white",
+              tags$span(class='fa fa-bars')
               )
             ),
+          tags$div(class="mx-dropdown map-tool-box-container mx-hide mx-mode-story-reader", style="float:right",
+            tags$div(
+              onclick="classToggle('mxStorySelectorBox')",
+              id='btnMapTools',
+              class="mx-btn-link mx-btn-link-white",
+              tags$span(class='fa fa-search')
+              )
+            ),
+          tags$div(class="map-tool-box-container mx-hide mx-allow-story-edit", style="float:right",
+            actionLink(
+              inputId="btnStoryEdit",
+              class="mx-btn-link mx-btn-link-white",
+              tags$span(class="fa fa-pencil")
+              )
+            ),
+          tags$div(class="map-tool-box-container mx-hide mx-allow-story-edit", style="float:right",
+            actionLink(
+              inputId="btnStoryDelete",
+              class="mx-btn-link mx-btn-link-white",
+              tags$span(class="fa fa-trash-o")
+              )
+            ),
+
+          
           #
-          # CONTENT
+          # TITLE
           #
-          div(class="map-left-content",
-            div(id="mxStoryLimitTrigger",class="mx-mode-story-reader mx-hide"),
-            div(class="no-scrollbar-container",
-              div(class="no-scrollbar-content",id="mapLeftScroll", 
-                uiMapList,
-                uiMapCreator,
-                uiMapToolbox,
-                uiMapConfig,
-                uiMapStoryReader
-                )
+          tags$div(
+            span(id="titlePanelMode","Views explorer")
+            ),
+          #
+          # STORY SELECTOR
+          #
+          div(
+            id="mxStorySelectorBox",class="mx-hide mx-mode-story-reader",
+            uiMapStorySelector
+            )
+          ),
+        #
+        # CONTENT
+        #
+        div(class="map-left-content",
+          div(id="mxStoryLimitTrigger",class="mx-mode-story-reader mx-hide"),
+          div(class="no-scrollbar-container no-scrollbar-container-border",
+            div(class="no-scrollbar-content",id="mapLeftScroll", 
+              uiMapList,
+              uiMapToolbox,
+              uiMapStoryReader
               )
             )
           )
-        #)
+        )
+      #)
       )
     )
 

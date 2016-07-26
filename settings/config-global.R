@@ -58,21 +58,6 @@ mxConfig$os <- Sys.info()['sysname']
 mxConfig$hostname <- Sys.info()['nodename']
 
 
-#if ( mxConfig$hostname == mxConfig$remoteHostname ) {
-  #mxConfig$protocolVt <- "http"
-  #mxConfig$protocolVtPublic <- "http"
-  #mxConfig$portVt <- 80
-  #mxConfig$portVtPublic <- 8080
-  #mxConfig$hostVt <- "localhost"
-#}else{
-  #mxConfig$protocolVt <- "http"
-  #mxConfig$protocolVtPublic <- "http"
-  #mxConfig$portVt <- 8080
-  #mxConfig$portVtPublic <- 8080
-  #mxConfig$hostVt <- "localhost"
-#} 
-
-
 
 ##########################################################################
 #                                                                        #
@@ -81,8 +66,7 @@ mxConfig$hostname <- Sys.info()['nodename']
 ##########################################################################
 # set general parameters. Modify with caution :)
 
-# default country code "ISO_3166-1_alpha-3"
-mxConfig$defaultCountry <- "cod"
+
 # default language code "ISO 639-2"
 mxConfig$defaultLanguage <- "eng"
 # available languages
@@ -95,51 +79,80 @@ mxConfig$noVariable <- "[ DEFAULT ]"
 mxConfig$noLayer <- "[ NO LAYER ]"
 # No title
 mxConfig$noTitle <- "[ NO TITLE ]"
+# Select 
+mxConfig$noSelect <- "[ SELECT ]"
 # No filter value
 mxConfig$noFilter <- "[ ALL ]"
+
+mxConfig$defaultNoDatas <- c(
+  mxConfig$noData,
+  mxConfig$noVariable,
+  mxConfig$noLayer,
+  mxConfig$noTitle,
+  mxConfig$noSelect,
+  mxConfig$noFilter
+  )
+
+
 # map zoom
 mxConfig$defaultZoom <- 9
 # Default layer group name
 mxConfig$defaultGroup <- "G1"
+# Default layers names
+mxConfig$layerOverlap <- "mx-overlap"
 # column column used in postgis
 mxConfig$defaultGeomCol <- "geom"
 # cookies expiration in days
 mxConfig$cookiesExpireDays <- 30 
 # default email adress for sender
 mxConfig$mapxBotEmail <- "bot@mapx.io"
-# default username
+mxConfig$mapxGuestEmail = "guest@mapx.io"
+# default username base name
 mxConfig$defautUserName <- "user"
-# default roles for new users
-mxConfig$defaultRoles <- list(
-  world = "public"
-  )
+
 
 # default data for new users
-mxConfig$defaultData <- list(
+mxConfig$defaultDataPublic <- list(
+  user=list(
+    preferences=list(
+      language = mxConfig$defaultLanguage
+      ),
+    cache = list (
+      last_project = mxConfig$defaultCountry 
+      )
+    ),
+  admin=list(
+    roles =  list(
+      list(
+        project =  "world",
+        role = "public"
+        )
+      )
+    )
+  )
+
+# default data for new  superuser if database is empty
+mxConfig$defaultDataSuperuser <- list(
   user=list(
     preferences=list(
       language = mxConfig$defaultLanguage,
       last_project = mxConfig$defaultCountry
+      ),
+    cache = list (
+      last_project = mxConfig$defaultCountry 
       )
     ),
   admin=list(
-    roles=mxConfig$defaultRoles
-    )
-  )
-
-mxConfig$defaultDataAfg <- list(
-  user=list(
-    preferences=list(
-      language = mxConfig$defaultLanguage,
-      last_project = "AFG"
+    roles =  list(
+      list(
+        project = "world",
+        role = "superuser"
+        )
       )
-    ),
-  admin=list(
-    roles=c(mxConfig$defaultRoles,list("AFG"="user"))
     )
   )
-
-
+# set default data path
+mxConfig$dataPathLastStory <- c("data","user","cache","last_story")
 
 
 # style
@@ -158,6 +171,8 @@ mxConfig$defaultDataAfg <- list(
     mxDateMax=numeric(0),
     variableUnit=character(0)
     )
+
+
 
 
 # groups definition
@@ -181,7 +196,7 @@ mxConfig$projectTree  <- list(
   name = "world",
   children = list(
     list(
-      name = "afg",
+      name = "AFG",
       children = list(
         list(
           name = "aynak",
@@ -190,67 +205,94 @@ mxConfig$projectTree  <- list(
         )
       ),
     list(
-      name = "cod",
+      name = "COD",
       children=list()
       )
     )
   )
 
 
-# role definition
 # note : could be searched with function
 #mxRecursiveSearch(mxConfig$roles,"role","==","admin")
+# role definition : 
+# each user has a role stored in the database : public, user, editor, admin or superuser.
+# each roles is described in the following list.
+# access : which parts of the application the user can access ?
+# read : which target groups the user can read ?
+# edit : which target groups the user can edit ?
+# profile : which groups the user can modify settings ?
+# admin : which group the user can modify roles ?
 mxConfig$roles <- list(
   list(
     role="public",
     level=4,
-    desc =list(
-      access = c("map","storymap","country"),
-      read = c("public")
+    desc = list(
+      access = c("map","country","analysis_overlap"),
+      read = c("public"),
+      publish = c(),
+      edit = c(),
+      profile = c(),
+      admin = c()
       )
     ),
   list(
     role="user",
     level=3,
     desc=list(
-      access = c("map","storymap","country","view_creator","storymap_creator","tools"),
+      access = c("map","storymap","country","profile","view_creator","storymap_creator","analysis_overlap","polygon_of_interest"),
       read = c("self","user","public"),
       publish = c("self","editor"),
       edit = c("self"),
-      profile = c("self")
+      profile = c("self"),
+      admin = c()
       )
     ),
+#  list(
+    #role="user_verified",
+    #level=3,
+    #desc=list(
+      #access = c("map","storymap","country","data_upload","profile","view_creator","storymap_creator","analysis_overlap","polygon_of_interest"),
+      #read = c("self","user","public"),
+      #publish = c("self","editor"),
+      #edit = c("self"),
+      #profile = c("self"),
+      #admin = c()
+      #)
+    #),
   list(
     role="editor",
     level=2,
     desc = list(
-      access = c("map","storymap","country","view_creator","storymap_creator","tools"),
+      access = c("map","storymap","country","profile","view_creator","storymap_creator","analysis_overlap","polygon_of_interest"),
       read = c("self","user","public","editor"),
       publish = c("self","user","public","editor"),
       edit = c("self","user"),
-      profile = c("self")
+      profile = c("self"),
+      admin = c()
       )
     ),
   list(
     role="admin",
     level=1,
     desc = list(
-      access = c("map","storymap","country","admin","view_creator","storymap_creator","tools","data_upload"),
+      access = c("map","storymap","country","profile","admin","view_creator","storymap_creator","analysis_overlap","data_upload","polygon_of_interest"),
       read = c("self","user","public","editor","admin"),
       publish = c("self","user","public","editor","admin"),
       edit = c("self","user","editor","admin"),
-      profile = c("self","user","editor")
+      profile = c("self"),
+      admin = c("public","user","editor")
       )
     ),
   list(
     role="superuser",
     level=0,
     desc = list(
-      access = c("map","storymap","country","admin","config","view_creator","storymap_creator","tools","data_upload"),
+      access = c("map","storymap","country","profile","admin","config","view_creator","storymap_creator","analysis_overlap","data_upload","polygon_of_interest"),
       read = c("self","public","user","editor","admin","superuser"),
       publish = c("self","user","public","editor","admin","superuser"),
       edit = c("self","user","editor","admin","superuser"),
-      profile = c("self","user","editor","admin","superuser")
+      profile = c("self","public","user","editor","admin","superuser"),
+      admin = c("public","user","editor","admin","superuser")
       )
     )
   )
@@ -293,14 +335,14 @@ mxConfig$inputDataFileFormat <- list(
     )
   )
 
-# set panel mode : available options
-mxConfig$mapPanelModeAvailable <- c(
-  "mx-mode-explorer",
-  "mx-mode-config",
-  "mx-mode-toolbox",
-  "mx-mode-creator",
-  "mx-mode-story-reader"
-  )
+## set panel mode : available options
+#mxConfig$mapPanelModeAvailable <- c(
+  #"mx-mode-explorer",
+  #"mx-mode-config",
+  #"mx-mode-toolbox",
+  #"mx-mode-creator",
+  #"mx-mode-story-reader"
+  #)
 
 
 # name of user table
@@ -319,19 +361,22 @@ mxConfig$prefixArchiveLayer = "mx_archived_layers"
 mxConfig$prefixArchiveStory = "mx_archived_stories"
 mxConfig$prefixArchiveViews = "mx_archived_views"
 
-# Command to restart pgrestapi
-# NOTE: touch "restart.txt" reactivate nodejs application launched by NGINX + passenger.
-mxConfig$restartPgRestApi = "touch /home/vagrant/tools/pgrestapi/tmp/restart.txt"
 # set palette colors for ui
 mxConfig$colorPalettes <- mxCreatePaletteList()
 # country data
 # http://unstats.un.org/unsd/methods/m49/m49alpha.htm
 # http://eiti.org/countries/reports/compare/download/xls
-countryEitiTable <- import('data/countriesEiti.ods')
+mxConfig$countryEitiTable <- import('data/countriesEiti.ods')
 # get country center from existing table
-mxConfig$countryCenter <- mxEitiGetCountryCenter(countryEitiTable)
+mxConfig$countryCenter <- mxEitiGetCountryCenter(mxConfig$countryEitiTable)
 # get country list formated for selectize input
-mxConfig$countryListChoices <- mxEitiGetCountrySelectizeList(countryEitiTable)
+mxConfig$countryListChoices <- mxEitiGetCountrySelectizeList(mxConfig$countryEitiTable)
+# default country code "ISO_3166-1_alpha-3"
+mxConfig$defaultCountry <- "COD"
+# default countries for users
+mxConfig$countryUser <- c("AFG","COD","SLE","NGA")
+# default countries for others
+mxConfig$countryAdmin <- mxConfig$countryEitiTable$code_iso_3 
 # set wdi infos
 mxConfig$wdiIndicators <- mxGetWdiIndicators()
 # list of tile provider
@@ -386,40 +431,6 @@ year = 2016
 url = http://
 "
 
-#
-#
-## Set data subclasses
-#mxConfig$subclass = list(
-#  "dev" = list(
-#    "Unemployment" = "unemployment",
-#    "Poverty" = "poverty",
-#    "Agriculture" = "agriculture"
-#    ),
-#  "env" = list(
-#    "Climate change" = "climate",
-#    "Biodiversity" = "biodiv",
-#    "Water" = "water",
-#    "Farming" = "farming",
-#    "Population"="population",
-#    "N/P/K cycles"="npkcycle",
-#    "Land use" = "landuse",
-#    "Nanotechnology" ="nanotech",
-#    "Pollution"="pollution",
-#    "Forest"="forest"
-#    ),
-#  "ext" = list(
-#    "Mineral" = "mineral",
-#    "Oil" = "oil",
-#    "Forestry" = "forestry",
-#    "Artisanal mines" = "mines_artisanal"
-#    ),
-#  "str" = list(
-#    "Conflict" = "conflict" 
-#    ),
-# "trad" = list(
-#    "Tribs" = "tribs" 
-#    )
-#  )
 # Set default years avaiable for date inputs
 mxConfig$currentTime <- Sys.time()
 mxConfig$currentYear <- as.integer(format(mxConfig$currentTime,"%Y"))
@@ -449,7 +460,6 @@ mxConfig$mapboxStyle = "mapbox://styles/unepgrid/cikwoxzjr00fob0lxslqnu3r9"
 mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,lat=0,zoom=5)){
    leaflet() %>%
   clearGroup(group) %>%
-  #addVectorBase(layerId="basemap_back") %>%
   addGlLayer() %>%
  addVectorCountries(
           url            = mxConfig$hostVt,
@@ -463,36 +473,6 @@ mxConfig$baseLayerByCountry = function(iso3="AFG",group="main",center=c(lng=0,la
           ) %>% 
   setView(center$lng,center$lat,center$zoom)
 }
-
-
-# md5 hashed pwd (for testing only)
-# u = user
-# l = login
-# k = key
-# e = email
-# r = role
-# d = last date login
-# a = actually logged
-# c = country allowed (all,pending,complete or single iso3)
-mxData$pwd <- rbind(
-  c(id=0,u="fred", l="570a90bfbf8c7eab5dc5d4e26832d5b1",k="570a90bfbf8c7eab5dc5d4e26832d5b1", r="superuser",e="moser.frederic@gmail.com"),
-  c(id=1,u="pierre",l="84675f2baf7140037b8f5afe54eef841" ,k="84675f2baf7140037b8f5afe54eef841", r="superuser",e="mail@example.com"),
-  c(id=2,u="david",l="172522ec1028ab781d9dfd17eaca4427",k="172522ec1028ab781d9dfd17eaca4427", r="user",e="mail@example.com"),
-  c(id=3,u="dag",l="b4683fef34f6bb7234f2603699bd0ded", k="b4683fef34f6bb7234f2603699bd0ded", r="user",e="mail@example.com"),
-  c(id=4,u="nicolas",l="deb97a759ee7b8ba42e02dddf2b412fe", k="deb97a759ee7b8ba42e02dddf2b412fe", r="admin",e="mail@example.com"),
-  c(id=5,u="paulina",l="e16866458c9403fe9fb3df93bd4b3a41", k="e16866458c9403fe9fb3df93bd4b3a41", r="user",e="mail@example.com"),
-  c(id=6,u="greg",l="ea26b0075d29530c636d6791bb5d73f4",k="ea26b0075d29530c636d6791bb5d73f4", r="user",e="mail@example.com"),
-  c(id=7,u="guest",l="084e0343a0486ff05530df6c705c8bb4",k="084e0343a0486ff05530df6c705c8bb4", r="user",e="mail@example.com"),
-  c(id=8,u="jjacques",l="6cb261a6203d1e441c5b2110a182701f",k="0e3b98b36a16e55b08ce156a02397506", r="user",e="mail@example.com"),
-  c(id=9,u="sandra",l="f40a37048732da05928c3d374549c832",k="4925a6581bde894377a2827c9b94608c", r="user",e="mail@example.com"),
-  c(id=10,u="mady",l="137f13f84ad65ab8772946f3eb1d3a65",k="57ba663c95d2e961727cf6ce004e5886", r="user",e="mail@example.com"),
-  c(id=11,u="nik", l="f64609172efea86a5a6fbae12ab86d33",k="81dc9bdb52d04dc20036dbd8313ed055", r="superuser",e="nikos.alexandris@unepgrid.ch"),
-  c(id=12,u="random", l="7ddf32e17a6ac5ce04a8ecbf782ca509",k="7ddf32e17a6ac5ce04a8ecbf782ca509", r="user",e="random@unepgrid.ch"),
-  c(id=13,u="admin", l="21232f297a57a5a743894a0e4a801fc3",k="d25a67c94fa9f1f2775c956719b6b0f7", r="admin",e="admin@example.com")
-  )
-
-mxData$pwd <- as.data.frame(mxData$pwd,stringsAsFactors=F)
-#mxData$pwd$d <- Sys.time() # NOTE: In prod: use cookie "d" value as set in setCookie function. 
 
 # login time in minutes
 mxConfig$loginTimerMinutes <- 20

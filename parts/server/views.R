@@ -9,30 +9,31 @@
 
 
 
-
 #
 # VIEW LIST
 #
 
 observe({
-  country <- mxReact$selectCountry
-  update <- mxReact$viewsListUpdate
-  userId <- mxGetListValue(mxReact$userInfo,"id")
-  canRead <- mxGetListValue(mxReact$userInfo,c("role","desc","read"))
+  mxTimer("start", "View list : fetch from db")
+  country <- reactProject$name
+  update <- reactMap$viewsDataListUpdate
+
+
+  userId <- mxGetListValue(reactUser$data,"id")
+  canRead <- mxGetListValue(reactUser$role,c("desc","read"))
+  hasNoValue  <- any(sapply(c(country,userId,canRead),noDataCheck))
 
 
   mxCatch(title="Populate views from db",{ 
-
-if(any(sapply(c(country,userId,canRead),noDataCheck))) stop("Can't retrieve data from db")
-    start <- Sys.time()
-    mxReact$views <- mxMakeViewList(
-      country=country,
-      userId=userId,
-      visibility=canRead
+    if(hasNoValue) stop("Error when validaing views input: some input are emtpy")
+    reactMap$viewsData <- mxMakeViewList(
+      country    = country,
+      userId     = userId,
+      visibility = canRead
       )
-    mxReact$viewsToDisplay <-  list()
-    mxDebugMsg(paste("Time for generating views list=",Sys.time()-start))
+    reactMap$viewsDataToDisplay <-  list()
 })
+  mxTimer("stop")
 })
 
 
@@ -41,9 +42,9 @@ if(any(sapply(c(country,userId,canRead),noDataCheck))) stop("Can't retrieve data
 # VIEWS LIST TO HTML
 #
 output$checkInputViewsContainer <- renderUI({
-  start <- Sys.time()
-  viewsUi <- mxMakeViews_cache(mxReact$views)
-  mxDebugMsg(paste("Time for generating views ui=",Sys.time()-start))
+  mxTimer("start", "View list : create ui")
+  viewsUi <- mxMakeViews_cache(reactMap$viewsData)
+  mxTimer("stop")
   return(viewsUi)
 })
 
@@ -95,12 +96,34 @@ observeEvent(input$mxRequestMeta,{
 
 
 #
+# handle zoom to layer
+#
+
+observeEvent(input$mxRequestZoom,{
+  id <- input$mxRequestZoom$id
+
+  ext <- mxDbGetLayerExtent(id)
+
+  if(isTRUE(length(ext)==4)){
+  proxyMap <- leafletProxy("mapxMap")
+
+      
+      proxyMap %>% fitBounds(
+        lng1=ext$lng1,
+        lng2=ext$lng2,
+        lat1=ext$lat1,
+        lat2=ext$lat2
+        )
+  }
+})
+
+#
 # handle company filter
 #
 observe({
   mxCatch(title="Company filter",{
     f<-input$filterLayer
-    if(!noDataCheck(f,noDataVal=mxConfig$noFilter)){
+    if(!noDataCheck(f)){
 
       ext <- mxDbGetFilterCenter(
         table=f$layer,
@@ -135,7 +158,7 @@ observe({
 observe({
   storyView <- input$storyMapData
   #        if(!noDataCheck(storyView$view)){
-  #          mxReact$viewsFromStory <- storyView$view
+  #          reactMap$viewsDataFromStory <- storyView$view
   #        }
   #
   if(!noDataCheck(storyView$extent)){
@@ -156,11 +179,11 @@ observe({
 observe({
   mxCatch(title="Views manager",{
 
-    if(mxReact$mapPanelMode %in% c("mapViewsExplorer","mapStoryReader")){
+    if(reactUi$panelMode %in% c("mxModeExplorer","mxModeStoryMap")){
       #
       # views from url
       #
-      vUrl <- mxReact$viewsFromUrl
+      vUrl <- reactMap$viewsDataFromUrl
       #
       # views from menu and story
       #
@@ -172,7 +195,7 @@ observe({
       #
       # Views available
       #
-      vAvailable <- names(mxReact$views) 
+      vAvailable <- names(reactMap$viewsData) 
       #
       # Reset view to display
       #
@@ -190,8 +213,8 @@ observe({
         vToDisplay <- mxConfig$noData
       }
 
-      mxReact$viewsToDisplay <- vToDisplay
-      mxReact$viewsFromUrl <- ""
+      reactMap$viewsDataToDisplay <- vToDisplay
+      reactMap$viewsDataFromUrl <- ""
 
     }
       })
@@ -201,17 +224,17 @@ observe({
 
 
 # views queuing system
-observeEvent(mxReact$viewsToDisplay,{
+observeEvent(reactMap$viewsDataToDisplay,{
   mxCatch(title="Views queing system",{
     mxDebugMsg(
       paste("View to display =",
-        mxReact$viewsToDisplay
+        reactMap$viewsDataToDisplay
         )
       )
     # available views data
-    vAll <- names(mxReact$views)
+    vAll <- names(reactMap$viewsData)
     # views list to render
-    vToDisplay <- mxReact$viewsToDisplay
+    vToDisplay <- reactMap$viewsDataToDisplay
     # views actually rendered by leaflet
     vDisplayed <- input$mapxMap_groups
     # views saved in leafletvt object
@@ -220,22 +243,22 @@ observeEvent(mxReact$viewsToDisplay,{
     # render only available ones for the user.
     vDisplayed <- vDisplayed[vDisplayed %in% vAll]
     # views to hide
-    mxReact$vToHide <- unique(vDisplayed[! vDisplayed %in% vToDisplay])
+    reactMap$viewsToHide <- unique(vDisplayed[! vDisplayed %in% vToDisplay])
     # views to reactivate
     vToShow <- vToDisplay[vToDisplay %in% vProcessed]
-    mxReact$vToShow <- unique(vToShow[!vToShow %in% vDisplayed])
+    reactMap$viewsToReveal <- unique(vToShow[!vToShow %in% vDisplayed])
     # views to download and display
-    mxReact$vToCalc <-  unique(vToDisplay[!vToDisplay %in% vProcessed][1])
+    reactMap$viewsToMake <-  unique(vToDisplay[!vToDisplay %in% vProcessed][1])
       })
 })
 
 
 
-observeEvent(mxReact$selectCountry,{
+observeEvent(reactProject$name,{
   vToRemove = c(
-    mxReact$vToCalc,
-    mxReact$vToShow,
-    mxReact$viewsToDisplay
+    reactMap$viewsToMake,
+    reactMap$viewsToReveal,
+    reactMap$viewsDataToDisplay
     )
 
   vToRemove<-vToRemove[ !vToRemove %in% mxConfig$noData ]
@@ -261,9 +284,9 @@ observeEvent(mxReact$selectCountry,{
 
 
 # Views to hide
-observeEvent(mxReact$vToHide,{
+observeEvent(reactMap$viewsToHide,{
   mxCatch(title="View to hide",{
-    vToHide <- mxReact$vToHide
+    vToHide <- reactMap$viewsToHide
     if(!noDataCheck(vToHide)){
       for(vth in vToHide){
         mxDebugMsg(
@@ -288,12 +311,12 @@ observeEvent(mxReact$vToHide,{
 
 # Views to display but not already processed.
 # Use 
-observeEvent(mxReact$vToCalc,{
+observeEvent(reactMap$viewsToMake,{
   mxCatch(title="Views to calc",{
    
-    vToCalc <- mxReact$vToCalc
+    vToCalc <- reactMap$viewsToMake
     vToCalc <- vToCalc[!sapply(vToCalc,noDataCheck)]
-    vData <- mxReact$views
+    vData <- reactMap$viewsData
 
     if(length(vToCalc)>0){
       for(vtc in vToCalc){
@@ -302,19 +325,19 @@ observeEvent(mxReact$vToCalc,{
 
         if(!noDataCheck(sty)){
           mxDebugMsg(paste("First style computation for",vtc))
-          mxStyle$layer <- sty$layer
-          mxStyle$group <- vtc
-          mxStyle$variable <- sty$variable
+          reactStyle$layer <- sty$layer
+          reactStyle$group <- vtc
+          reactStyle$variable <- sty$variable
 
           # variable to keep
           vToKeep <- sty$variableToKeep 
           if(is.null(vToKeep))vToKeep <- mxConfig$noVariable
-          mxStyle$variableToKeep <- vToKeep
+          reactStyle$variableToKeep <- vToKeep
 
           # variable unit
           vUnit <- sty$variableUnit
           if(is.null(vUnit))vUnit <- ""
-          mxStyle$variableUnit <- vUnit
+          reactStyle$variableUnit <- vUnit
 
         }
       }
@@ -323,10 +346,10 @@ observeEvent(mxReact$vToCalc,{
 })
 
 # Views to reactivate
-observeEvent(mxReact$vToShow,{
+observeEvent(reactMap$viewsToReveal,{
   mxCatch(title="Views to reactivate",{
-    vToShow <- mxReact$vToShow
-    vData <- mxReact$views
+    vToShow <- reactMap$viewsToReveal
+    vData <- reactMap$viewsData
     if(!noDataCheck(vToShow)){
 
       proxyMap <- leafletProxy("mapxMap")

@@ -63,7 +63,23 @@ usrInput <- function(inputId, label,class="form-control") {
 #' @param hideCloseButton Boolean. Hide the close panel button
 #' @param draggable Boolean. Set the panel as draggable
 #' @export
-mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionButton=NULL,background=TRUE,addCancelButton=FALSE,addOnClickClose=TRUE,defaultButtonText="OK",style=NULL,class=NULL,hideCloseButton=FALSE,draggable=TRUE,fixed=TRUE){ 
+mxPanel<- function(
+  id="default",
+  title=NULL,
+  subtitle=NULL,
+  html=NULL,
+  listActionButton=NULL,
+  background=TRUE,
+  addCancelButton=FALSE,
+  addOnClickClose=TRUE,
+  defaultButtonText="OK",
+  style=NULL,
+  class=NULL,
+  hideCloseButton=FALSE,
+  draggable=TRUE,
+  fixed=TRUE,
+  defaultTextHeight=150
+  ){ 
 
   classModal <- "panel-modal"
   rand <- randomString(splitIn=1,addLetters=T)
@@ -100,7 +116,7 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
 
   # if explicit FALSE is given, remove modal button. 
   if(isTRUE(is.logical(listActionButton) && !isTRUE(listActionButton)))listActionButton=NULL
-# close button handling
+  # close button handling
   if(hideCloseButton){
     closeButton=NULL
   }else{
@@ -116,19 +132,19 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
 
 
   if(draggable){
-  scr <- tags$script(sprintf("
-    $('#%1$s').draggable({ 
-      cancel: '.panel-modal-text'
-    });
-    ",idContent))
+    scr <- tags$script(sprintf('
+        $("#%1$s").draggable({ 
+          cancel: ".panel-modal-text,.panel-modal-title,.panel-modal-subtitle"
+        }).resizable();
+        ',idContent))
   }else{
-  scr = ""
+    scr = ""
   }
 
   if(fixed){
-  style = paste("position:fixed",style)
+    style = paste("position:fixed",style)
   }else{
-  style = paste("position:absolute",style)
+    style = paste("position:absolute",style)
   }
 
   tagList( 
@@ -138,13 +154,19 @@ mxPanel<- function(id="default",title=NULL,subtitle=NULL,html=NULL,listActionBut
       class=paste(class,classModal,"panel-modal-content col-xs-12 col-sm-6 col-sm-offset-3 col-lg-4 col-lg-offset-4"),
       style=style,
       closeButton,
-      div(class=paste('panel-modal-head'),  
-        div(class=paste('panel-modal-title'),title)
+      div(class=paste("panel-modal-head"),  
+        div(class=paste("panel-modal-title"),title)
         ),
-      div(class=paste('panel-modal-subtitle'),subtitle),
-      hr(),
-      div(class=paste('panel-modal-text'),html),
-      hr(),
+      div(class=paste("panel-modal-subtitle"),subtitle),
+      div(class="panel-modal-text-container",
+      div(class=paste("panel-modal-text"),
+        div(class="no-scrollbar-container",
+          div(class="no-scrollbar-content mx-panel-400",
+              html
+            )
+          )
+        )
+      ),
       div(class=paste('panel-modal-buttons'),
         listActionButton
         )
@@ -188,26 +210,57 @@ mxPanelAlert <- function(title=c("error","warning","message"),subtitle=NULL,mess
 #'    'b'=list('title'='bTitle',content='bContent'))
 #'  )
 #' @export
-mxAccordionGroup<-function(id,style=NULL,show=NULL,itemList){
+mxAccordionGroup <- function(id,style=NULL,show=NULL,itemList){
   if(is.null(style)) style <- ""
   cnt=0
   contentList<-lapply(itemList,function(x){
     cnt<<-cnt+1
     ref<-paste0(subPunct(id,'_'),cnt)
-    showItem<-ifelse(cnt %in% show,'collapse in','collapse')
-    stopifnot(!is.list(x) || !is.null(x$title) || !char(x$title)<1 || !is.null(x$content) || !nchar(x$content)<1)
-    if(is.null(x$condition))x$condition="true"
-    div(style=style,class=paste("mx-accordion-item",x$class),`data-display-if`=x$condition,
-      div(class="mx-accordion-header",
-        h4(class="mx-accordion-title",
-          a('data-toggle'="collapse", 'data-parent'=paste0('#',id),href=paste0("#",ref),x$title)
+    showItem<-ifelse(cnt %in% show,'collapse.in','collapse')
+    stopifnot(is.list(x) || !noDataCheck(x$title) || !noDataCheck(x$content))
+
+    onShow <- ifelse(noDataCheck(x$onShow),"",x$onShow)
+    onHide <- ifelse(noDataCheck(x$onHide),"",x$onHide)
+
+    if(is.null(x$condition)) x$condition="true"
+    div(
+      style=style,
+      class=paste("mx-accordion-item",x$class),
+      `data-display-if`=x$condition,
+      div(
+        class="mx-accordion-header",
+        tags$span(
+          class="mx-accordion-title",
+          tags$a('data-toggle'="collapse", 
+            'data-parent'=paste0('#',id),
+            href=paste0("#",ref),x$title
+            )
           )
         ),
-      div(id=ref,class=paste("mx-accordion-collapse",showItem),
-        div(class="mx-accordion-content",x$content)
+      div(
+        id=ref,
+        class=paste("mx-accordion-collapse",showItem
+          ),
+        div(
+          class="mx-accordion-content",
+          x$content
+          ),
+        tags$script(
+          sprintf('
+            $("#%1$s").on("show.bs.collapse", function () {
+              %2$s
+            }).on("hide.bs.collapse", function () {
+            %3$s
+    }); 
+            '
+            , ref
+            , onShow
+            , onHide
+            )
+          )
         )
       )
-  })
+})
 
   return(div(class="mx-accordion-group",id=id,
       contentList
@@ -395,7 +448,7 @@ mxMakeViews<-function(views){
   session <- shiny:::getDefaultReactiveDomain()
   checkListOut <- p("No view found.")
 v <- views
-cl = mxConfig$class
+cl <- mxConfig$class
   if(!is.null(v)){
     # NOTE : what is this ?
     cl = data.frame(n=names(cl),id=as.character(cl),stringsAsFactors=FALSE)
@@ -420,81 +473,75 @@ cl = mxConfig$class
       items <- viewsList[[i]]
       checkList <- tagList(checkList,tags$span(class="map-views-class",i))
       for(j in names(items)){
-        #
+
         # set item id text
-        #
         it <- items[j]
+        # id of the view
         itId <- as.character(it)
-        dat <- v[[itId]]
-
-
-        #
-        # Dat description
-        #
-        #
-        #        Length Class   Mode
-        #        id             1     -none-  character
-        #        country        1     -none-  character
-        #        title          1     -none-  character
-        #        class          1     -none-  character
-        #        layer          1     -none-  character
-        #        editor         1     -none-  character
-        #        reviever       1     -none-  character
-        #        revision       1     -none-  numeric
-        #        validated      1     -none-  logical
-        #        archived       1     -none-  logical
-        #        date_created    1     POSIXct numeric
-        #        date_modifed    1     POSIXct numeric
-        #        date_validated  1     POSIXct numeric
-        #        dateArchived   1     POSIXct numeric
-        #        style         25     -none-  list
-        #
-        #
-        # Style description (NOTE:  standardize this )
-        #                      Length Class  Mode
-        #     hideLabels        0     -none- list
-        #     colors            0     AsIs   list
-        #     nMissing          1     -none- numeric
-        #     paletteChoice    35     -none- character
-        #     variableUnit      0     AsIs   list
-        #     opacity           1     -none- numeric
-        #     layer             1     -none- character
-        #     variableToKeep    1     -none- character
-        #     nDistinct         1     -none- numeric
-        #     mxDateMin         0     AsIs   list
-        #     paletteFun        3     -none- character
-        #     title             1     -none- character
-        #     size              1     -none- numeric
-        #     palette           1     -none- character
-        #     group             1     -none- character
-        #     variable          1     -none- character
-        #     hideLegends       0     -none- list
-        #     basemap           1     -none- character
-        #     scaleType         1     -none- character
-        #     mxDateMax         0     AsIs   list
-        #     values            7     -none- character
-        #     bounds            0     AsIs   list
-        #     hasDateColumns    1     -none- logical
-        #     hasCompanyColumn  1     -none- logical
-        #     description       1     -none- character
-
+        # view data
+        dat <- v[[itId]]  
+        # view name
         itName <- names(it)
+        # id for checkbox option
         itIdCheckOption <- sprintf('checkbox_opt_%s',itId)
+        # id for label
         itIdLabel <- sprintf('label_for_%s',itId)
+        # id for checkbox option label
         itIdCheckOptionLabel <- sprintf('checkbox_opt_label_%s',itId)
+        # id foc checkbox option panel
         itIdCheckOptionPanel <- sprintf('checkbox_opt_panel_%s',itId)
+        # id for company filter select input
         itIdFilterCompany <- sprintf('select_filter_for_%s',itId)
+        # id for companis report
         itIdBtnReport <- sprintf('btn_show_report_for_%s',itId)
+
+        # visibility
+        viewVisibility <- subPunct(dat$visibility)
+        # set icons
+        visibilityIcon <- switch(viewVisibility,
+          "public"="check",
+          "editor"="legal",
+          "lock"
+          ) %>% 
+        icon(.,class="mx-view-icon") %>%
+        span(
+          "onClick" = sprintf("mxEditView('%s')",itId),
+          "title" = sprintf(
+            "Visibility: %1$s\nEditor: %2$s\nValidated: %3$s"
+            ,viewVisibility
+            ,dat$editor
+            ,dat$validated
+            ),
+          .
+          ) 
+        # Description 
+        infoIcon <- icon("info-circle",class="mx-view-icon") %>%
+          span(
+          "onClick" = sprintf("mxRequestMeta('%s')",itId),
+          "title" = "View meta data",
+          .
+          )
+        # Sliders
+        
+        sliderIcon <- icon("sliders",class="mx-view-icon") %>%
+          span(
+            "onClick" = sprintf("classToggle('%s')",itIdCheckOptionPanel),
+            title="View tools"
+            )
+
+        # Auto zoom
+         zoomIcon <- icon("search-plus",class="mx-view-icon") %>%
+           span(
+             "onClick" = sprintf("mxRequestZoom('%s')",dat$layer),
+             "title"="Zoom to extent"
+             )
         #
         # check if time slider or filter should be shown
         #
         hasDate <- isTRUE(dat$style$hasDateColumns)
         hasCompany <- isTRUE(dat$style$hasCompanyColumn)
         
-        # get description
-        #
-
-        desc <- dat$style$description
+  
 
         # layer name
         layerName <- dat$layer
@@ -606,19 +653,11 @@ cl = mxConfig$class
         icon("info")
         )
 
-
-      downloadBtn <- tags$button(
-        class="btn btn-default btn-sm mx-layer-button",
-        onclick="",
-        icon("download")
-        )
-
-
-
+ 
       viewButtons <- tagList(
         div(class="mx-view-button-group",
-        requestMetaBtn,
-        downloadBtn,
+        #requestMetaBtn,
+        #downloadBtn,
         reportButton
         )
         )
@@ -630,39 +669,61 @@ cl = mxConfig$class
       # previewTimeOut <- tags$script(sprintf("vtPreviewHandler('%1$s','%2$s','%3$s')",itIdLabel,itId,500))
       previewTimeOut <- ""
       #
-      # HTML 
+      # View's checkbox input and label
       #
-      val <- div(class="checkbox",
-        tags$label(
-          id=itIdLabel,
-          draggable=TRUE,
-          `data-viewid`=itId,
-          `data-viewtitle`=itName,
-          `data-toggle`="tooltip",
-          title=dat$style$description,
-          tags$input(
-            type="checkbox",
-            class="vis-hidden",
-            name=id,
-            value=itId,
-            onChange=toggleOptions
-            ),
-          div(
-            class="map-views-item",
-            tags$span(
-              class="map-views-selector",
-              itName
-              ),
-            mxCheckboxIcon(
-              itIdCheckOption,
-              itIdCheckOptionLabel,
-              "cog",
-              display=FALSE
-              )
-            ) 
+      checkView <- tags$label(
+        id = itIdLabel,
+        draggable= TRUE,
+        tags$input(
+          type = "checkbox",
+          class = "mx-hide",
+          name = id,
+          value = itId
           ),
-        conditionalPanel(sprintf("isCheckedId('%s')",itIdCheckOption),
-          tags$div(class="map-views-item-options",id=itIdCheckOptionPanel,
+        tags$span(
+          class="map-view-label",
+          "title"= sprintf("%s (%s)",dat$title,dat$layer),
+          mxShort(itName,30)
+          )
+        )
+
+      #
+      # View icons / options
+      #
+      checkIcon <- tags$span(class="mx-view-icons-container",
+        tags$span(class="mx-view-icons-content",
+         visibilityIcon,
+         infoIcon,
+         sliderIcon,
+         zoomIcon
+        )
+        )
+      #
+      # View drag script
+      #
+      checkDragScript <- tags$script(
+        sprintf("
+          /* Add drag handler*/
+            document.getElementById('%1$s')
+          .addEventListener('dragstart',function(e){
+            var currentCoord = document.getElementById('txtLiveCoordinate').innerHTML,
+            r = String.fromCharCode(13),
+            viewId = '%2$s',
+            viewTitle = '%3$s',
+            stringStart = '@view_start( '+viewTitle+' ; '+viewId+' ; '+currentCoord+' )', 
+            stringEnd = '@view_end',
+            res = stringStart + r + r + stringEnd + r + r;
+            e.dataTransfer.setData('text', res);
+          })",
+          itIdLabel,
+          dat$id,
+          dat$title
+          )
+        )
+      #
+      # View options panel
+      #
+      checkOptions <- tags$div(class="map-views-item-options mx-hide",id=itIdCheckOptionPanel,
             mxSliderOpacity(
               itId,
               v[[itId]]$style$opacity
@@ -672,34 +733,20 @@ cl = mxConfig$class
             filterSelect,
             viewButtons,
             previewTimeOut
-            )
-          ),
-        tags$script(
-          sprintf("
-            /* add tooltip handler  */
-            $('#%1$s').tooltip({
-              trigger : 'click',
-              delay : 2000,
-              placement : 'bottom',
-              container: '#sectionMap'
-            });
-            /* Add drag handler*/
-            document.getElementById('%1$s')
-            .addEventListener('dragstart',function(e){
-              var coord = document.getElementById('txtLiveCoordinate').innerHTML,
-              ret = String.fromCharCode(13),
-              vid = e.target.dataset.viewid,
-              vti = e.target.dataset.viewtitle,
-              vst = '@view_start( '+vti+' ; '+vid+' ; '+coord+' )', 
-              ven = '@view_end',
-              txt = vst + ret + ret + ven + ret + ret;
-              e.dataTransfer.setData('text', txt);
-        })",
-            itIdLabel)
-            )
-          # previewTimeOut
           )
-        checkList <- tagList(checkList,val)
+      #
+      # View item
+      #
+      checkItem <- tags$div(
+        class="map-view-item",
+        checkView,
+        checkIcon,
+        checkOptions,
+        checkDragScript
+        )
+
+     
+        checkList <- tagList(checkList,checkItem)
     }
   }
   checkListOut <- tagList(

@@ -11,48 +11,41 @@ mxUiEnable(id="sectionCountry",enable=TRUE)
 
 
 
+
+
+
 #
-# Country input selection
+# Country input selection : save in db is needed
 #
 observeEvent(input$selectCountry,{
-  selCountry = input$selectCountry
-  if(!noDataCheck(selCountry) && mxReact$userLogged){
-    mxReact$selectCountry <- selCountry
-    dat <- mxReact$userInfo
-    selCountryOld <- mxGetListValue(
-      li=dat,
-      path=c("data","user","preferences","last_project")
-      ) 
-
-    if(!identical(toupper(selCountryOld),toupper(selCountry))){
-      dat <- mxSetListValue(
-        li=dat,
-        path=c("data","user","preferences","last_project"),
-        value=selCountry
-        )
-      
-      mxDbUpdate(
-        table=mxConfig$userTableName,
-        idCol='id',
-        id=dat$id,
-        column='data',
-        value=dat$data
-        )
-
   
+  mxDebugMsg(sprintf("input$selectCountry received: %s",input$selectCountry ) )
 
-    }
+  selCountry <- input$selectCountry
 
+  if(!noDataCheck(selCountry) && reactUser$isLogged ){
 
+    mxUiEnable(
+      id="selectCountryPanel",
+      enable=FALSE
+      )
+    # update reactive value and db if needed
+    mxDbUpdateUserData(reactUser,
+      path=c("user","cache","last_project"),
+      value=selCountry
+      )
 
+    reactProject$name <- selCountry
   }
 })
 
 
-observe({
-  cSelect <- mxReact$selectCountry
-  
+observeEvent(reactProject$name,{
+
+  cSelect <- reactProject$name 
+
   if(!noDataCheck(cSelect)){
+    mxConsoleText(cSelect)
     if(cSelect %in% names(mxData$countryStory)){
       cInfo  <- mxData$countryStory[[cSelect]]
       # extract country metrics
@@ -179,9 +172,6 @@ observe({
       id="countryNarrative",
       text=countryNarrative
       )
-    #output$countryName <- renderText(countryName)
-    #output$countryMetrics <- renderUI(countryMetrics)
-    #output$countryNarrative <- renderUI(countryNarrative)
   }
 })
 
@@ -195,7 +185,7 @@ observe({
 
 observe({
   idx <- input$selectIndicator
-  cnt <- mxReact$selectCountry
+  cnt <- reactProject$name
   msg <- ""
   if(!noDataCheck(idx) && !noDataCheck(cnt)){
 

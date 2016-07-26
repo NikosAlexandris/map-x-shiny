@@ -8,14 +8,14 @@ observe({
     # Silent because this function can very likely return an error 
     out <- mxParseListFromText(input$txtNewLayerMeta)
 })
-  mxReact$newLayerMeta = out
+  reactMap$newLayerMeta = out
 })
 
 
 # new layer name validation
 
 observe({
-  if(mxReact$allowDataUpload && mxReact$mapPanelMode == "mapViewsCreator" ){
+  if(reactUser$allowUpload && reactUi$panelMode == "toolBox" ){
     err = character(0)
     info = character(0)
     out  = character(0)
@@ -26,18 +26,18 @@ observe({
     #
     # Layer name warning
     #
-    cty <- mxReact$selectCountry
+    cty <- reactProject$name
     #yea <- input$selNewLayerYear
     cla <- input$selNewLayerClass
     sub <- subPunct(input$txtNewLayerTags)
-    met <- mxReact$newLayerMeta
+    met <- reactMap$newLayerMeta
 
     #newLayerName <- tolower( paste0(cty,"__",yea,"__",cla,"__",sub))
     newLayerName <- tolower( paste0(cty,"__",cla,"__",sub))
 
     exist <- mxTextValidation(
       textToTest = newLayerName,
-      existingTexts = mxReact$layerList,
+      existingTexts = reactMap$layerList,
       idTextValidation = "outNewLayerNameValidation",
       existsText = "overwrite",
       errorColor = "#ff9900"
@@ -69,7 +69,7 @@ observe({
 
     mxActionButtonState(id="fileNewLayer",disable=!valid, warning=!exist) 
 
-    mxReact$newLayerName <- ifelse(valid,newLayerName,"")
+    reactMap$newLayerName <- ifelse(valid,newLayerName,"")
   }
 })
 
@@ -81,13 +81,19 @@ observe({
 
 observeEvent(input$fileNewLayer,{
 
-  if(mxReact$allowViewsCreator){
+  if(reactUser$allowViewsCreator){
 
-    met <- mxReact$newLayerMeta
+    met <- reactMap$newLayerMeta
     src <- input$fileNewLayer$datapath
-    nam <- mxReact$newLayerName 
+    nam <- reactMap$newLayerName 
     cla <- input$selNewLayerClass
     tgs <- subPunct(input$txtNewLayerTags)
+
+
+
+
+
+
 
     lInfo = ogrinfo(
       src,
@@ -124,7 +130,7 @@ observeEvent(input$fileNewLayer,{
     # Return summary list
     #
 
-    mxReact$newLayerSummary = list(
+    reactMap$newLayerSummary = list(
       class = cla,
       tags = tgs,
       name = nam,
@@ -139,9 +145,9 @@ observeEvent(input$fileNewLayer,{
 
 
 
-observeEvent(mxReact$newLayerSummary,{
+observeEvent(reactMap$newLayerSummary,{
 
-  sl <- mxReact$newLayerSummary 
+  sl <- reactMap$newLayerSummary 
   if(TRUE){
     sl <- HTML(listToHtmlClass(sl,exclude="file"))
     ui<-tagList(div(class="mx-panel-400",
@@ -189,7 +195,7 @@ observeEvent(input$btnDbImportConfirm,{
 
 
     # summary layer
-    sl <- mxReact$newLayerSummary 
+    sl <- reactMap$newLayerSummary 
     # append in table
     ap <- FALSE
     # table name
@@ -278,12 +284,12 @@ observeEvent(input$btnDbImportConfirm,{
     if(noDataCheck(rn)) rn = 0
 
     tbl<- list(
-        country = mxReact$selectCountry,
+        country = reactProject$name,
         layer = sl$name,
         class = sl$class,
         tags = sl$tags,
-        editor = mxReact$userInfo$id,
-        reviewer = mxReact$userInfo$id,
+        editor = reactUser$data$id,
+        reviewer = reactUser$data$id,
         revision = rn,
         validated = TRUE,
         archived = FALSE,
@@ -307,7 +313,7 @@ observeEvent(input$btnDbImportConfirm,{
     # Update layer list
     #
     mxDebugMsg("invalidate layer list")
-    mxReact$layerListUpdate <- runif(1)
+    reactMap$layerListUpdate <- runif(1)
 
     panModal <- mxPanel(
       id="panImportModal",

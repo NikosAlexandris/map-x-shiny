@@ -1,0 +1,22 @@
+
+.jed-container .table>tbody>tr>td, 
+.jed-container .table>tbody>tr>th, 
+.jed-container .table>tfoot>tr>td, 
+.jed-container .table>tfoot>tr>th, 
+.jed-container .table>thead>tr>td, 
+.jed-container .table>thead>tr>th {
+  padding: 1px;
+  border : 0px;
+}
+
+.jed-container .btn-group {
+ min-width: 118px;
+}
+
+.jed-container .table {
+  min-width: 100%;
+  border: 0px;
+}
+
+
+

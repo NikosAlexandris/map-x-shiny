@@ -1,4 +1,56 @@
 
+#' Experimental db conection in config list
+#' 
+#' @export
+mxDbAutoCon <- function(){
+
+  res <- NULL
+  oldCon <- list()
+
+  tryCon <- try(silent=T,{
+
+    maxCon <- mxConfig$dbMaxConnections 
+       # get list of existing connection
+    drv <- dbDriver("PostgreSQL")
+    oldCon <- dbListConnections(drv)
+    createNew <- TRUE
+    oldConLength <- length(oldCon)
+
+    #mxDebugMsg(sprintf("mxDbAutoCon : found %s connections",oldConLength))
+    if(oldConLength >= maxCon){
+      # select randomly one connection NOTE: What if there is pending rows on this connection ?
+      res <- sample(oldCon,1)[[1]]
+      if(!isPostgresqlIdCurrent(res)){
+        #mxDebugMsg("mxDbAutoCon : selected connection is not valid, try to set a new one")
+        createNew = TRUE
+        postgresqlCloseConnection(res)
+      }else{
+      createNew = FALSE
+      }
+    }
+
+    if(createNew){
+      #mxDebugMsg("mxDbAutoCon : create a new connection")
+      # extract and control dbInfo list
+      d <- mxConfig$dbInfo
+      allParam <- all(c("dbname","host","port","user","password") %in% names(d))
+      allFilled <- all(!sapply(d,noDataCheck))
+      stopifnot(all(allParam,allFilled))
+      # create a new connection
+      res <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
+      if(is.null(res)) stop()
+    }
+  })
+
+  if("try-error" %in% class(tryCon)){
+    mxDebugMsg(tryCon)
+    stop("mxDbAutoCon can't connect to the database")
+  }
+
+    return(res)
+}
+
+
 
 #' Get query result from postgresql
 #'
@@ -6,14 +58,15 @@
 #'
 #' @param query SQL query
 #' @export
-mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){x}){
+mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){stop(x)}){
   res <- NULL
-  data <- NULL
+  data <- data.frame()
+  con <- mxDbAutoCon()
 
   tryCatch({    
     suppressWarnings({
+      res <- postgresqlExecStatement(con, gsub("\n","",query))
 
-      res <- postgresqlExecStatement(mxDbAutoCon(), gsub("\n","",query))
       if(dbGetInfo(res)$isSelect!=0){
         temp <- postgresqlFetch(res)
         if( dbGetRowCount(res) > 0 ){ 
@@ -26,7 +79,9 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){x}){
   )
 
   on.exit({ 
-    mxDbClearAll()
+   if(exists("res")){
+     postgresqlCloseResult(res)
+   }
   })
 
   return(data)
@@ -40,36 +95,134 @@ mxDbGetQuery <- function(query,stringAsFactors=FALSE,onError=function(x){x}){
 #' @param id Identification value
 #' @param value Replacement value
 #' @param expectedRowsAffected Number of row expected to be affected. If the update change a different number of row than expected, the function will rollback
+#' @param createMissing If path is given, should the function create missing path in record ?
 #' @return Boolean worked or not
 #' @export
-mxDbUpdate <- function(table,column,idCol="id",id,value,expectedRowsAffected=1){   
+mxDbUpdate <- function(table,column,idCol="id",id,value,path=NULL,expectedRowsAffected=1,createMissing=TRUE){   
 
-  if(is.list(value)) value <- mxToJsonForDb(value)
 
-  on.exit(mxDbClearAll())
+  # explicit check
+  stopifnot(mxDbExistsTable(table))
+  stopifnot(column %in% mxDbGetColumnsNames(table))
+  # implicit check
+  stopifnot(!noDataCheck(id))
+  stopifnot(!noDataCheck(idCol))
+  # final query
+  query <- NULL
 
-  res <- try({
-    query <- gsub("\n","",sprintf("
+  # get connection object
+  con <- mxDbAutoCon()
+
+  if(!is.null(path)){
+    # if value has no json class, convert it (single value update)
+    valueIsJson <- isTRUE("json" %in% class(value))
+    if( valueIsJson ){
+      valueJson <- value
+    }else{
+      valueJson <- mxToJsonForDb(value)
+    }
+    #
+    # json update
+    #
+    pathIsJson <- isTRUE("json" %in% class(path))
+    if( pathIsJson ){
+      pathJson <- path 
+    }else{ 
+      pathJson <- paste0("{",paste0(paste0("\"",path,"\""),collapse=","),"}")
+    }
+    #
+    # test if the whole path exists and if value is there 
+    #
+    isMissing <- sprintf("
+      SELECT EXISTS(
+        SELECT \"%1$s\" from %2$s
+        WHERE \"%3$s\"='%4$s' 
+        AND \"%1$s\"#>>'%5$s' IS NOT NULL
+        ) AS ok
+      "
+      ,column
+      ,table
+      ,idCol
+      ,id 
+      ,pathJson
+      ) %>%
+    mxDbGetQuery(.) %>%
+    `[[`("ok") %>%           
+    isTRUE() %>% 
+    `!`()
+  #
+  # create missing if needed
+  #
+  if(isMissing){
+    data <- sprintf("
+      SELECT \"%1$s\" 
+      FROM %2$s
+      WHERE \"%3$s\"='%4$s'
+      "
+      , column
+      , table
+      , idCol
+      , id
+      ) %>%
+    mxDbGetQuery() %>%
+    `[[`(column) %>%
+    jsonlite::fromJSON(.,simplifyDataFrame=FALSE)
+
+  value  <- mxSetListValue(data,path,value)
+
+  }else{
+
+    query <- sprintf("
+      UPDATE %1$s
+      SET \"%2$s\"= (
+      SELECT jsonb_set(
+        (
+          SELECT \"%2$s\" 
+          FROM %1$s
+          WHERE \"%4$s\"='%5$s'
+          ) ,
+        '%6$s',
+        '%3$s'
+        )
+      ) 
+    WHERE \"%4$s\"='%5$s'"
+    ,table
+    ,column
+    ,valueJson
+    ,idCol
+    ,id
+    ,pathJson
+    )
+  }
+  }
+  
+  if(is.null(query)){
+    # if it's a list, convert to json
+    if(is.list(value)) value <- mxToJsonForDb(value)
+    # standard update
+    query <- sprintf("
         UPDATE %1$s
         SET \"%2$s\"='%3$s'
-        WHERE \"%4$s\"='%5$s'",
-        table,
-        column,
-        value,
-        idCol,
-        id
-        ))
+        WHERE \"%4$s\"='%5$s'"
+        ,table
+        ,column
+        ,value
+        ,idCol
+        ,id
+        )
+  }
 
-    con <- mxDbAutoCon()
 
-    dbGetQuery(con,"BEGIN TRANSACTION")
+    dbGetQuery(con, "BEGIN TRANSACTION")
     rs <- dbSendQuery(con,query)   
     ra <- dbGetInfo(rs,what="rowsAffected")[[1]]
-    if(isTRUE(is.numeric(expectedRowsAffected) && isTRUE(ra != expectedRowsAffected)) ){
-      dbRollback(con)
-      stop(
+    isAsExpected <- isTRUE( ra == expectedRowsAffected )
+
+    if( ! isAsExpected ){  
+    dbRollback(con)
+      warning(
         sprintf(
-          "Error, number of rows affected does not match expected rows affected %s vs %s",
+          "Warning, number of rows affected does not match expected rows affected %s vs %s. Rollback requested",
           ra,
           expectedRowsAffected
           )
@@ -78,14 +231,8 @@ mxDbUpdate <- function(table,column,idCol="id",id,value,expectedRowsAffected=1){
       mxDebugMsg(sprintf("Number of row affected=%s",ra))
       dbCommit(con)
     }
-  })
 
-  if("try-error" %in% res){
-    res <- FALSE
-  }else{
-    res <- TRUE
-  }
-  return(res)
+  return(isAsExpected)
 }
 
 
@@ -137,9 +284,11 @@ mxDbGetSp <- function(query) {
     out <- readOGR(dsn,tname)
 
     on.exit({
-      sql <- sprintf("DROP TABLE %s",tmpTbl)
-      dbSendQuery(con,sql)
-      mxDbClearAll()
+      if(exists("con")){
+        sql <- sprintf("DROP TABLE %s",tmpTbl)
+        dbSendQuery(con,sql)
+        mxDbClearResult(con)
+      }
     })
 
     return(out)
@@ -224,6 +373,44 @@ mxDbGetLayerExtent<-function(table=NULL,geomColumn='geom'){
   }
 }
 
+#' Extract list of layer for one country, for given visibility or userid
+#' @param project Project or iso3 country code
+#' @param visibility Groupe/role set as target
+#' @param userId Integer user id
+#' @export
+mxDbGetLayerList <- function(project=NULL,visibility="public",userId=NULL){
+
+  stopifnot(!noDataCheck(project))
+  stopifnot(!noDataCheck(userId))
+  stopifnot(!noDataCheck(visibility))
+
+  visibility <- paste(paste0("'",visibility,"'"),collapse=",")
+
+
+
+  sql <- gsub("\n","",sprintf(
+      "SELECT layer 
+      FROM mx_layers 
+      WHERE country='%1$s' AND
+      ( visibility ?| array[%2$s] OR editor = '%3$s' )",
+      project,
+      visibility,
+      userId
+      ))
+
+  layers <- mxDbGetQuery(sql)$layer
+  orphan <- layers[!layers %in% mxDbListTable()]
+
+  layers <- layers[layers %in% mxDbListTable()]
+
+  if(!noDataCheck(orphan)){
+    sapply(orphan,mxDbDropLayer)
+  }
+  
+  return(layers)
+
+}
+
 
 #' @export
 mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColumn="geom",srid="4326",distKm=1){
@@ -275,7 +462,6 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
 
     if(noDataCheck(table) || noDataCheck(column) || isTRUE(column=='gid'))return() 
 
-
       timing<-system.time({
 
       q <- sprintf(
@@ -298,6 +484,7 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
           return()
         }
 
+        # number of row
         nR <- mxDbGetQuery(sprintf(
             "SELECT count(*) 
             FROM %s 
@@ -307,6 +494,7 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
             )
           )[[1]]
 
+        # number of null
         nN <- mxDbGetQuery(sprintf(
             "SELECT count(*) 
             FROM %s 
@@ -315,6 +503,8 @@ mxDbGetValByCoord <- function(table=NULL,column=NULL,lat=NULL,lng=NULL,geomColum
             ,column
             )
           )[[1]]
+        
+        # number of distinct
         nD <- mxDbGetQuery(sprintf(
             "SELECT COUNT(DISTINCT(%s)) 
             FROM %s 
@@ -579,7 +769,7 @@ mxDbAddGeoJSON  <-  function(geojsonList=NULL,geojsonPath=NULL,tableName=NULL,ar
 mxDbListTable<- function(){
   res <- dbListTables(mxDbAutoCon())
   on.exit({
-    mxDbClearAll()
+    if(exists("con")) mxDbClearResult(con)
   })
   return(res)
 }
@@ -594,7 +784,7 @@ mxDbExistsTable<- function(table){
   res <- dbExistsTable(mxDbAutoCon(),table)
 
   on.exit({
-    mxDbClearAll()
+    if(exists("con")) mxDbClearResult(con)
   })
 
   return(res)
@@ -665,7 +855,7 @@ mxDbAddData <- function(data,table){
   }
   dbWriteTable(mxDbAutoCon(),name=table,value=data,append=tAppend,row.names=F)
   on.exit({
-    mxDbClearAll()
+    if(exists("con")) mxDbClearResult(con)
   })
 }
 
@@ -754,13 +944,46 @@ mxDbAddRowBatch <- function(df,table){
 
 #' Remove old results from db query
 #' @export
-mxDbClearAll <- function(){
-  nR <- dbListResults(mxDbAutoCon())
-  if(length(nR)>0){
-    lapply(nR,dbClearResult)
-  }
-}
+#mxDbClearAll <- function(){
+  #suppressWarnings({
+    #nR <- dbListResults(mxDbAutoCon())
+    #if(length(nR)>0){
+      #lapply(nR,dbClearResult)
+    #}
+  #})
+#}
 
+
+
+mxDbClearResult <- function(con=NULL,allCon=FALSE){
+
+  conAll <- list()
+
+  if(allCon){
+    conAll <- dbListConnections(PostgreSQL())
+  }
+
+  if(!is.null(con)){
+    conAll <- c( con, conAll ) 
+  }
+
+
+  if(noDataCheck(conAll)) return()
+
+
+  suppressWarnings({
+
+    results <- unlist(sapply(conAll,dbListResults,simplify=F))
+
+    mxDebugMsg(sprintf("mxDbClearResult, number of result found= %s",length(results)))
+
+    if(length(results)>0){
+      closed <- sapply(results,dbClearResult)
+    }
+
+  })
+
+}
 
 
 #' Write spatial data frame to postgis
@@ -820,64 +1043,13 @@ mxDbWriteSpatial <- function(spatial.df=NULL, schemaname="public", tablename, ov
     }
 
  on.exit({
-    mxDbClearAll()
+   if(exists("con"))  mxDbClearResult(con)
   })
 }
-
-#' Experimental db conection in config list
-#' 
-#' @export
-mxDbAutoCon <- function(){
-
-  res <- NULL
-  oldCon <- list()
-
-  test <- try(silent=T,{
-
-    maxCon <- mxConfig$dbMaxConnections 
-       # get list of existing connection
-    drv <- dbDriver("PostgreSQL")
-    oldCon <- dbListConnections(drv)
-    createNew <- TRUE
-    oldConLength <- length(oldCon)
-
-    #mxDebugMsg(sprintf("mxDbAutoCon : found %s connections",oldConLength))
-    if(oldConLength >= maxCon){
-      # select randomly one connection NOTE: What if there is pending rows on this connection ?
-      res <- sample(oldCon,1)[[1]]
-      if(!isPostgresqlIdCurrent(res)){
-        #mxDebugMsg("mxDbAutoCon : selected connection is not valid, try to set a new one")
-        createNew = TRUE
-        postgresqlCloseConnection(res)
-      }else{
-      createNew = FALSE
-      }
-    }
-
-    if(createNew){
-      #mxDebugMsg("mxDbAutoCon : create a new connection")
-      # extract and control dbInfo list
-      d <- mxConfig$dbInfo
-      allParam <- all(c("dbname","host","port","user","password") %in% names(d))
-      allFilled <- all(!sapply(d,noDataCheck))
-      stopifnot(all(allParam,allFilled))
-      # create a new connection
-      res <- dbConnect(drv, dbname=d$dbname, host=d$host, port=d$port,user=d$user, password=d$password)
-    }
-  })
-
-  if("try-error" %in% class(test)){
-    mxDebugMsg(test)
-    stop("mxDbAutoCon can't connect to the database")
-  }
-
-    return(res)
-}
-
 #' Get user info
 #' @param email user email
 #' @param userTable DB users table
-#' @return list containing data from the user
+#' @return list containing id, email and data from the user
 #' @export 
 mxDbGetUserInfoList <- function(id=NULL,email=NULL,userTable="mx_users"){
   
@@ -910,47 +1082,212 @@ mxDbGetUserInfoList <- function(id=NULL,email=NULL,userTable="mx_users"){
   if(length(res)<1){
    res <- list()
   }else{
-   res$data <- jsonlite::fromJSON(res$data)
+   res$data <- jsonlite::fromJSON(res$data,simplifyVector=FALSE)
   }
   class(res) <- c(class(res),"mxUserInfoList")
   return(res)
 }
 
 
+
+    #WHERE s.role#>>'{\"role\"}' in %2$s 
+mxDbGetUserByRoles <- function(roles="user", userTable="mx_users"){
+  roles <- paste0("(",paste0("'",roles,"'",collapse=","),")")
+  quer <- sprintf("
+    SELECT * FROM 
+    (  
+    SELECT id,email,a.role#>>'{\"project\"}' as project,a.role#>>'{\"role\"}' as role
+    FROM (
+      SELECT id,email,jsonb_array_elements(data#>'{\"admin\",\"roles\"}') AS role 
+      FROM %1$s 
+      WHERE jsonb_typeof(data#>'{\"admin\",\"roles\"}') = 'array'
+      ) a 
+    UNION
+       SELECT id,email,key as project, value as role FROM 
+    (
+      SELECT id,email,(jsonb_each_text(data#>'{\"admin\",\"roles\"}')).* 
+      FROM %1$s
+    WHERE jsonb_typeof( data#>'{\"admin\",\"roles\"}') = 'object'
+    ) b 
+    ) c 
+    WHERE role  in %2$s 
+    "
+    , userTable
+    , roles
+    )
+    mxDbGetQuery(quer)
+}
+
+
+#' Get user info based on its role on a given project
+#' @param project name e.g. country iso3 code
+#' @param roles vector containing names of roles present in mxConfig$roles
+#' @param selfId numeric id of the user requesting the list
+#' @param userTable name of user table mx_users by default
+#' @param cols name of fields to return
+#' @return named list containing values from fields in `cols` or empty list
+#' @ export
+mxDbGetUserInfoByRole_old <- function(project=NULL, roles=NULL,selfId=NULL, userTable="mx_users",cols=c("id","email")){
+
+
+  #NOTE: find a simpler way of doing this
+
+  quer = character(1)
+  useSelf <- "self" %in% roles
+
+
+
+  #
+  # Is self in roles ? if true, add this rule
+  #
+  if( ! useSelf ) {
+    # by default, return false
+    selfIdQuer = "false"
+    hasSelf = FALSE
+  }else{
+    stopifnot(is.numeric(selfId))
+    selfIdQuer = sprintf("id = %1$s",selfId)
+    hasSelf = TRUE
+  }
+ 
+  #
+  # Except self, which are the requested roles ?
+  #
+  roles <- roles[! roles %in% "self"]
+  if(length(roles)==0) {
+    # by default, return false
+    rolesQuer = "false"
+    hasRole = FALSE
+  }else{ 
+    stopifnot(all(roles %in% sapply(mxConfig$roles,`[[`,'role')))
+    roles = paste(sprintf("'%s'",roles),collapse=",")
+
+
+
+
+    rolesQuer = sprintf(
+      "data#>>'{\"admin\",\"roles\",\"world\"}' in ( %1$s )
+    OR data#>>'{\"admin\",\"roles\",\"%2$s\"}' in ( %1$s )
+    OR data#>>'{\"admin\",\"roles\",\"%3$s\"}' in ( %1$s ) ",
+      roles,
+      project,
+      toupper(project)
+      )
+    hasRole = TRUE
+  }
+
+  # 
+  # Set the where statement
+  #
+  filtQuer = sprintf("WHERE %1$s OR %2$s"
+    ,rolesQuer
+    ,selfIdQuer
+    )
+
+  #
+  # Set the columns to return
+  #
+
+  if(length(cols) ==  0) { 
+    cols = "*"
+  }else{
+    stopifnot(all(cols %in% mxDbGetColumnsNames(userTable)))
+    cols = paste(cols,collapse=",")
+  }
+
+  #
+  # Final query
+  #
+
+  quer <- gsub("\n","",sprintf(
+    "SELECT %1$s FROM %2$s %3$s"
+    , cols
+    , userTable
+    , filtQuer
+    ))
+  #
+  # Execute and retrieve result
+  #
+  res <- mxDbGetQuery(quer)
+  class(res) <- c(class(res),"mxUserTable")
+  return(res)
+}
+
 #mxDbAddRow <- function(data,table){
   
 #' Add 
-mxDbCreateUser <- function(email=NULL,timeStamp=Sys.time(),dat=mxConfig$defaultData,userTable=mxConfig$userTableName){
-
+mxDbCreateUser <- function(
+  email=NULL,
+  timeStamp=Sys.time(),
+  datDefault=mxConfig$defaultDataPublic,
+  datSuperuser=mxConfig$defaultDataSuperuser,
+  userTable=mxConfig$userTableName
+  ){
 
   stopifnot("POSIXct" %in% class(timeStamp))
   stopifnot(mxEmailIsValid(email))
   stopifnot(mxDbExistsTable(userTable))
 
+  userTable <- mxConfig$userTableName
+  dataUserDefault <- mxConfig$defaultDataPublic
+  dataUserSuperuser <- mxConfig$defaultDataSuperuser
+  userNameDefault <- mxConfig$defautUserName
+
+
+  # check if the db does not hold any user
+  # empty db means : first time we launch it.
+  # first user is then a superuser
+  emptyDb <- isTRUE(
+    0 == mxDbGetQuery(
+      sprintf(
+        "SELECT count(id) FROM %s"
+        , userTable
+        )
+      )
+    )
+
+  if(emptyDb){
+    # first is superuser
+    dat <- dataUserSuperuser
+  }else{
+    # .. then default
+    dat <- dataUserDefault
+  }
+
+  stopifnot(length(dat)>0)
+
   #
-  # Set username
+  # Set username based on the user table sequence.
   #
   getCurId <- sprintf(
-    "SELECT last_value as id FROM public.%s_id_seq",
-    userTable
+    "SELECT last_value as id FROM public.%s_id_seq"
+    , userTable
     )
   nextId <- mxDbGetQuery(getCurId,onError=function(x){stop(x)})
+
+  # quick check on what we get is what we expect
   if( nrow(nextId) > 0 && 'id' %in% names(nextId) ){
     nextId <- nextId$id + 1
   }else{
     stop("Error in mxDbCreateUser")
   }
-  userName <- paste0(mxConfig$defautUserName,"_",nextId,sep="") 
+  # create default name 
+  userName <- sprintf(
+    "%s_%s"
+    , userNameDefault
+    , nextId
+    ) 
+
 
   newUser = list(
-    username=userName,
-    email=email,
-    key=randomString(),
-    validated=TRUE,
-    hidden=FALSE,
-    date_validated=timeStamp,
-    date_last_visit=timeStamp,
-    data=mxToJsonForDb(dat)
+    username        = userName,
+    email           = email,
+    key             = randomString(),
+    validated       = TRUE,
+    hidden          = FALSE,
+    date_validated  = timeStamp,
+    date_last_visit = timeStamp,
+    data            = mxToJsonForDb(dat)
     )
 
 
@@ -993,5 +1330,45 @@ mxDbDropLayer <- function(layerName){
   }
 
 }
+
+#' Helper to update a value in a data jsonb column in db and reactUser$data, given a path
+#' @param reactUser  mapx reactives user values, containing 'data' item
+#' @param value Value to update, at a given path
+#' @param path Path to reach the value to update, in both db mx_users->data and reactUser$data$data
+#' @export
+  mxDbUpdateUserData <- function(reactUser,path,value){
+
+      stopifnot(!noDataCheck(path))
+      stopifnot(!noDataCheck(value))
+      stopifnot(is.reactivevalues(reactUser))
+
+      #
+      # Check last value
+      #
+      valueOld <- mxGetListValue(
+        li = reactUser$data$data,
+        path = path
+        ) 
+      #
+      # Check if this is different than the current country
+      #
+      
+      isDiff <- isTRUE(!identical(valueOld[names(value)],value))
+
+      if( isDiff ){
+        #
+        # Save
+        #
+        mxDbUpdate(
+          table=mxConfig$userTableName,
+          idCol='id',
+          id=reactUser$data$id,
+          column='data',
+          path = path,
+          value = value
+          )
+      }
+    }
+
 
 

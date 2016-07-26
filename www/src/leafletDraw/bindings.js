@@ -3,7 +3,7 @@
 
 
 
-LeafletWidget.methods.toggleDraw = function(options){
+LeafletWidget.methods.setDraw = function(options,display){
 
 
 
@@ -13,7 +13,8 @@ LeafletWidget.methods.toggleDraw = function(options){
 
 
 
-  if( this.draw.control ) {
+
+  if( !display ) {
 
     this.draw.control.removeFrom( this ) ;
     this.removeLayer( this.draw.items ) ;

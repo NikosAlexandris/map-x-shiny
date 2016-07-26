@@ -7,22 +7,51 @@
 #' @name mapxhelper 
 NULL
 
-#' Check for no null, NA's, nchar of 0, lenght of 0  or "[NO DATA]" string in a vector.
-#' @param val  Vector to test for no data.
-#' @return TRUE if no data (nchar == 0 OR is.na OR is.null) found or if input is not a vector
+##' Check for no null, NA's, nchar of 0, lenght of 0  or "[NO DATA]" string in a vector.
+##' @param val  Vector to test for no data.
+##' @return TRUE if no data (nchar == 0 OR is.na OR is.null) found or if input is not a vector
+##' @export
+#noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
+  ##if(!is.vector(val)) stop(paste("val should be a vector. Provided value=",typeof(val)))
+  #if(!is.vector(val)){
+    #return(TRUE)
+  #}
+  #if(useNoData){
+    #noData <- all(noDataVal %in% val)
+  #}else{
+    #noData <- FALSE
+  #}
+  #any(c(isTRUE(is.null(val)),isTRUE(is.na(val)),isTRUE(nchar(val)==0),isTRUE(length(val)==0),noData))
+#}
+
+
+#' Check for "empty" value
+#' 
+#' Empty values = NULL or, depending of storage mode
+#' - data.frame : empty is 0 row
+#' - list : empty is length of 0
+#' - vector (without list) : empty is length of 0 OR first value in "mxConfig$defaultNoDatas" OR first value is NA or first value as character length of 0
+#'
+#' @param val object to check : data.frame, list or vector (non list). 
+#' @return Boolean TRUE if empty
 #' @export
-noDataCheck<-function(val,useNoData=TRUE,noDataVal="[ NO DATA ]"){
-  #if(!is.vector(val)) stop(paste("val should be a vector. Provided value=",typeof(val)))
-  if(!is.vector(val)){
-    return(TRUE)
-  }
-  if(useNoData){
-    noData <- all(noDataVal %in% val)
-  }else{
-    noData <- FALSE
-  }
-  any(c(isTRUE(is.null(val)),isTRUE(is.na(val)),isTRUE(nchar(val)==0),isTRUE(length(val)==0),noData))
+noDataCheck <- function( val = NULL ){
+  val
+  isTRUE(
+    is.null(val)
+    ) ||
+  isTRUE(
+    isTRUE( is.data.frame(val) && nrow(val) == 0 ) ||
+    isTRUE( is.list(val) && ( length(val) == 0 ) ) ||
+    isTRUE( !is.list(val) && is.vector(val) && ( 
+        length(val) == 0 || 
+          val[[1]] %in% mxConfig$defaultNoDatas || 
+          is.na(val[[1]]) || 
+          nchar(val[[1]]) == 0 )
+      )
+    )
 }
+
 
 
 
@@ -121,7 +150,7 @@ mxUpdateChartRadar <- function(
 #' @export
 mxDebugMsg <- function(text=""){ 
   m <- text
-  options(digits.secs=6)
+  options(digits.secs=4)
   cat(paste0("[",Sys.time(),"] ",m,'\n'))
 }
 
@@ -250,14 +279,15 @@ mxCatch <- function(
 #' @param splitSep Split symbos if splitIn > 1
 #' @return  Random string of letters, with prefix and suffix
 #' @export
-randomString <- function(prefix=NULL,suffix=NULL,n=15,sep="_",addSymbols=F,addLetters=T,splitIn=5,splitSep="-"){
+randomString <- function(prefix=NULL,suffix=NULL,n=15,sep="_",addSymbols=F,addLetters=T,addLETTERS=F,splitIn=1,splitSep="_"){
   prefix <- subPunct(prefix,sep)
   suffix <- subPunct(suffix,sep)
   src <- 0:9
 
   if(splitIn<1) splitIn=1
   if(isTRUE(addSymbols)) src <- c(src,"$","?","=",")","(","/","&","%","*","+")
-  if(isTRUE(addLetters)) src <- c(letters,LETTERS,src)
+  if(isTRUE(addLetters)) src <- c(letters,src)
+  if(isTRUE(addLETTERS)) src <- c(LETTERS,src)
 
   grp <- sort(1:n%%splitIn)
 
@@ -591,20 +621,20 @@ mxAllow <- function(logged,roleName,roleLowerLimit){
 
 
 
-mxToggleMapPanels <- function(modeSelected){
-  modeAvailable <- mxConfig$mapPanelModeAvailable
+#mxToggleMapPanels <- function(modeSelected){
+  #modeAvailable <- mxConfig$mapPanelModeAvailable
 
-  if(!isTRUE(modeSelected %in% modeAvailable)){
-    stop(sprintf("Map panel mode % not available. Set it in mxConfig",modeSelected))
-  }
+  #if(!isTRUE(modeSelected %in% modeAvailable)){
+    #stop(sprintf("Map panel mode % not available. Set it in mxConfig",modeSelected))
+  #}
 
-  stopifnot(modeSelected %in% modeAvailable)
-  mS <- modeSelected
-  mA <- modeAvailable
-  mD <- mA[!mA %in% mS]
-  mxUiEnable(class=mS,enable=TRUE)
-  mxUiEnable(class=mD,enable=FALSE)
-}
+  #stopifnot(modeSelected %in% modeAvailable)
+  #mS <- modeSelected
+  #mA <- modeAvailable
+  #mD <- mA[!mA %in% mS]
+  #mxUiEnable(class=mS,enable=TRUE)
+  #mxUiEnable(class=mD,enable=FALSE)
+#}
 
 
 #' Set a checkbox button with custom icon.
@@ -1094,6 +1124,9 @@ mxAnalysisOverlaps <- function(inputBaseLayer,inputMaskLayer,outName,dataOwner="
 
     varBase <- paste0(sprintf("a.%s",varToKeep[!varToKeep %in% "geom"]),collapse=",")
 
+        #ALTER TABLE %1$s
+        #ALTER COLUMN geom TYPE geometry(%7$s, %5$i) 
+        #USING ST_SetSRID(geom,%5$i);
     createTable <- gsub("\n|\\s+"," ", sprintf("
         CREATE TABLE %1$s AS
         SELECT
@@ -1107,9 +1140,7 @@ mxAnalysisOverlaps <- function(inputBaseLayer,inputMaskLayer,outName,dataOwner="
         FROM %3$s a
         JOIN %4$s b
         ON ST_Intersects(a.geom, b.geom);
-        ALTER TABLE %1$s
-        ALTER COLUMN geom TYPE geometry(%7$s, %5$i) 
-        USING ST_SetSRID(geom,%5$i);
+
         ALTER TABLE %1$s OWNER TO %6$s;
         DO
         $$
@@ -1258,7 +1289,7 @@ mxTextValidation <- function(textToTest,existingTexts,idTextValidation,minChar=5
   err <- character(0)
 
   if(testForDuplicate){
-    itemExists <- isTRUE(tolower(textToTest) %in% tolower(existingTexts))
+    itemExists <- isTRUE(tolower(textToTest) %in% tolower(unlist(existingTexts)))
   }
   if(testForMinChar){
     itemTooShort <- isTRUE(nchar(textToTest)<minChar)
@@ -1325,7 +1356,7 @@ listToHtml<-function(listInput,htL='',h=2, exclude=NULL){
 #' @param exclude list named item to exclude
 #' @return HTML list 
 #' @export
-listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-group",classLi="list-group-item"){
+listToHtmlClass <- function(listInput, exclude=NULL,title=NULL,c=0, htL="",classUl="list-group",classLi="list-group-item"){
 
   c = c+1 #next
 
@@ -1343,8 +1374,9 @@ listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-g
         '">'
         )
       ) # open
-    for(n in nL){
-      #      htL <- append(htL,c(hS,n,hE))
+
+    for(i in 1:length(listInput)){
+      subL <- listInput[[i]]
       htL<-append(
         htL,
         c(
@@ -1352,13 +1384,13 @@ listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-g
             '<li class="',
             paste(classLi,collapse=","),
             '">'
-            ),
-          n)
+            )
+          )
         )
-      subL <- listInput[[n]]
       htL <- listToHtmlClass(
         subL, 
         exclude=exclude,
+        title=nL[[i]],
         htL=htL,
         c=c,
         classUl=classUl,
@@ -1368,10 +1400,16 @@ listToHtmlClass <- function(listInput, exclude=NULL, c=0, htL="",classUl="list-g
     htL<-append(htL,'</li></ul>') # close
 
   }else if(is.character(listInput) || is.numeric(listInput)){
-
     htL<-append(
       htL,
-      paste("<b>",listInput,"</b>")
+      sprintf(
+        "
+        <span class='mx-list-title'>%1$s: </span>
+        <span class='mx-list-content'>%2$s</span>
+        "
+        , title
+        , listInput
+        )
       )
 
   }
@@ -1506,74 +1544,220 @@ mxRecursiveSearch <- function(li,column="",operator="==",search="",filter=""){
   }
 }
 
-#' Extract value from a list using path
-#' @param li Input named list
+#' Extract value from a list given a path
+#' @param listInput Input named list
 #' @param path Path inside the list
 #' @return value extracted or NULL
 #' @export
-mxGetListValue <- function(li,path){
-
-  if(!is.list(li) || length(li) == 0) return()
-  
+mxGetListValue <- function(listInput,path){
+  if(!is.list(listInput) || length(listInput) == 0) return()
   out = NULL
-  
   res <- try(silent=T,{
-    out<-li[[path]]
+    out<-listInput[[path]]
   })
-
-
   return(out)
-
 } 
 
-mxSetListValue <- function(li,path,value){
+#' Set a value of a list element, given a path
+#'
+#' This function will update a value in a list given a path. If the path does not exist, it will be created. 
+#' If the function find a non list element before reaching destination, it will stop.
+#'
+#' @param path vector with name of path element. e.g. `c("a","b","c")`
+#' @param value value to update or create
+#' @param level starting path level, default is 0
+#' @param export
+mxSetListValue <- function(listInput,path,value,level=0){
+  level <- level+1 
+  p <- path[c(0:level)]
+  #
+  # Create parsable expression to acces non existing list element
+  #
+  liEv = paste0("listInput",paste0(paste0("[[\"",p,"\"]]",sep=""),collapse=""))
 
-  if(!is.list(li) || length(li) == 0) return()
-   
-  res <- try(silent=T,{
-    li[[path]]<-value
-  })
-
-
-  return(li)
-
+  if(is.null(eval(parse(text=liEv)))){
+    #
+    # If the element does not exist, it's a list
+    # 
+    liSet = paste0(liEv,"<-list()")
+    eval(parse(text=liSet))
+  }
+  if(level == length(path)){
+    #
+    # We reached destination, set value
+    #
+    listInput[[p]] <- value
+  }else{
+    #
+    # If we encouter non-list value, stop, it's not expected.
+    #
+    if(!is.list(listInput[[p]])) stop(sprintf("Not a list at %s",paste(p,collapse=",")))
+    listInput <- mxSetListValue(listInput,path,value,level)
+  }
+  return(listInput)
 } 
+
+
+
+
+
+
 
 #' Return the highest role for a given user
 #' @param project Project to look for
 #' @param userInfo object of class mxUserInfoList produced with mxDbGetUserInfoList 
-#' @param useWorld Boolean keep result for project "world" in the result
 #' @export
-mxGetMaxRole <- function(project,userInfo,useWorld=T){
+mxGetMaxRole <- function(project,userInfo){
 
   stopifnot(isTRUE("mxUserInfoList" %in% class(userInfo)))
 
+  levelProject <- 10
+  levelWorld <- 10
+
   userRoles <- mxGetListValue(userInfo,c("data","admin","roles"))
-  if(isTRUE(useWorld)){
-    roles <- userRoles[c(project,'world')]
-  }else{
-    roles <- userRoles[c(project)]
+
+
+  # NOTE: Backward compatibility with previous version.
+  if("world" %in% names(userRoles)) {
+  userRoles <- list(userRoles,list(
+    project = "world",
+    role = userRoles[["world"]]
+    ))
+  }
+  if("AFG" %in% names(userRoles) ) {
+  userRoles <- list(userRoles,list(
+    project = "AFG",
+    role = userRoles[["AFG"]]
+    ))
+  }
+  if("COD" %in% names(userRoles) ) {
+  userRoles <-list(userRoles,list(
+    project = "COD",
+    role = userRoles[["COD"]]
+    ))
   }
 
-  res <- lapply(roles,
-    function(x){
-      res <- NULL
-      if(!is.null(x)){
-        res <- mxRecursiveSearch(mxConfig$roles,"role","==",x)
-      }
-      return(res)
-    }
-    )
-  res <- res[!sapply(res,is.null)]
-  levels <-  lapply(res,
-    function(x){
-      res <- NULL
-      if(!is.null(x))
-        x[[1]]$level
-    }
-    )
-  minLevel <- which.min(levels)
-  res[minLevel][[1]][[1]]
+
+  # get role for project
+  roleInProject <- mxRecursiveSearch(
+    li=userRoles,"project","==",project
+    )[[1]]$role
+  # Get role for world
+
+  roleInWorld <- mxRecursiveSearch(
+    li=userRoles,"project","==","world"
+    )[[1]]$role
+  
+  hasRoleInProject <- !noDataCheck(roleInProject)
+  hasRoleInWorld <- !noDataCheck(roleInWorld)
+
+  if(!hasRoleInWorld && !hasRoleInWorld) stop("No role found!")
+
+  if(hasRoleInProject){
+    levelProject <- mxRecursiveSearch(
+      li=mxConfig$roles,"role","==",roleInProject
+      )[[1]]$level
+  }
+
+  if(hasRoleInWorld){
+    levelWorld <- mxRecursiveSearch(
+      li=mxConfig$roles,"role","==",roleInWorld
+      )[[1]]$level
+  }
+
+  levelUser <- min(c(levelWorld,levelProject))
+
+  mxRecursiveSearch(mxConfig$roles,"level","==",levelUser)[[1]]
 }
 
 
+##' Format roles from database 
+##' @param x named role list to keyed (location:role value pair)
+#mxFormatRole_toKeyed <- function(x){
+  #res = list()
+  #for(i in names(x)){
+  #res=c(res,list(
+      #list(
+    #project=i,
+    #role=x[[i]]
+    #)
+    #)
+    #)
+  #}
+  #return(res)
+#}
+
+##' Format roles from database to roles used in jed format
+##' @param x keyed list to convert to named (location:role value pair)
+ 
+##' @export
+#mxFormatRole_toNamed <- function(x){
+  #res <- sapply(x,`[[`,"role")
+  #names(res) <- sapply(x,`[[`,"project")
+  #as.list(res)
+#}
+## test 
+## dat = list("AFG"="user","world"="public")
+## identical(mxFormatRole_toNamed(mxFormatRole_toKeyed(dat)),dat)
+
+
+#' Time interval evaluation
+#' @param action "start" or "stop" the timer
+#' @param timerTitle Title to be displayed in debug message
+#' @return
+mxTimer <- function(action=c("stop","start"),timerTitle="Mapx timer"){
+  action <- match.arg(action)
+  if(isTRUE(!is.null(action) && action=="start")){
+    .mxTimer <<- list(time=Sys.time(),title=timerTitle)
+  }else{
+    if(exists(".mxTimer")){
+      diff <- paste(round(difftime(Sys.time(),.mxTimer$time,units="secs"),3))
+      mxDebugMsg(paste(.mxTimer$title,diff,"s"))
+    }
+  }
+}
+
+#' Get session duration for given id
+#' @param id Integer id of the user
+#' @return list with H,M,S since last visit
+#' @export
+mxGetSessionDurationHMS <-function(id=NULL){
+  if(is.null(id)) return()
+  res <- 
+    list(
+      H=0,
+      M=0,
+      S=0
+      )
+
+  sessionStart <- mxDbGetQuery(sprintf(
+      "SELECT date_last_visit as start FROM mx_users WHERE id = %1$s"
+      , id
+      )
+    )$start
+
+  if(noDataCheck(sessionStart)) return()
+
+  sessionDurSec <- difftime(Sys.time(),sessionStart,units="secs")
+  sessionPosix <- .POSIXct(sessionDurSec,tz="GMT")
+  res$H <- format(.POSIXct(sessionPosix,tz="GMT"),"%H")
+  res$M <- format(.POSIXct(sessionPosix,tz="GMT"),"%M")
+  res$S <- format(.POSIXct(sessionPosix,tz="GMT"),"%S")
+
+  return(res)
+
+}
+
+#' Trim string at given position minus and put ellipsis if needed
+#' @param str String to trim if needed
+#' @param n Maximum allowed position. If number of character exceed this, a trim will be done
+#' @return Trimed string
+#' @export
+mxShort <- function(str="",n=10){
+  stopifnot(n>=4)
+  if(nchar(str)>n){
+    sprintf("%s...",strtrim(str,n-3))
+}else{
+  return(str)
+}
+}
