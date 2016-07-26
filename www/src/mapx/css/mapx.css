@@ -408,7 +408,6 @@ map view explorer
 
 .map-view-label {
   text-transform: uppercase;
-  font-weight: normal;
   font-size: 12px;
   letter-spacing: 0.1em;
   padding: 5px;
@@ -482,7 +481,6 @@ input:checked ~ .map-view-label {
 .map-views-class {
   padding-top: 12px;
   display: block;
-  font-weight: normal;
   font-size: 17px;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -780,7 +778,6 @@ width: 45px;
   border-radius: 0;
   text-transform: uppercase;
   font-family :  Helvetica, Arial, sans-serif;
-  font-weight: 400;
   -webkit-transition: all .3s ease-in-out;
   -moz-transition: all .3s ease-in-out;
   transition: all .3s ease-in-out;
@@ -790,7 +787,6 @@ width: 45px;
   border-radius: 50%;
   text-transform: uppercase;
   font-family :  Helvetica, Arial, sans-serif;
-  font-weight: 400;
   -webkit-transition: all .3s ease-in-out;
   -moz-transition: all .3s ease-in-out;
   transition: all .3s ease-in-out;
