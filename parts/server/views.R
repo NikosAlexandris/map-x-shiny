@@ -179,7 +179,7 @@ observe({
 observe({
   mxCatch(title="Views manager",{
 
-    if(reactUi$panelMode %in% c("mxModeExplorer","mxModeStoryMap")){
+    #if(reactUi$panelMode %in% c("mxModeExplorer","mxModeStoryMap")){
       #
       # views from url
       #
@@ -191,7 +191,6 @@ observe({
         input$viewsFromMenu,
         input$viewsFromPreview
         ))
-      mxDebugMsg(vMenu)
       #
       # Views available
       #
@@ -216,7 +215,6 @@ observe({
       reactMap$viewsDataToDisplay <- vToDisplay
       reactMap$viewsDataFromUrl <- ""
 
-    }
       })
 })
 

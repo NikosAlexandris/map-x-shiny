@@ -44,8 +44,7 @@ tagList(
       tags$footer(
         tags$div(id="cookies",class="shinyCookies"),
         tags$script( src="dist/assets.js" ),
-        tags$script( src="src/mapx/js/init.js" ),
-        tags$script( src="src/leafletVectorTilesBinding/leaflet-vector-tiles-binding.js")
+        tags$script( src="src/mapx/js/init.js" )
         )
       )
     )

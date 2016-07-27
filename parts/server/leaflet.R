@@ -7,6 +7,8 @@
 output$mapxMap <- renderLeaflet({
   if(reactUser$allowMap){    
     map <- leaflet()
+    
+  
     reactMap$mapInitDone<- runif(1)
     return(map)
   }
@@ -23,6 +25,28 @@ observeEvent(input$leafletVtError,{
 })
 
 
+
+#<span class="leaflet-control leaflet-bar" title="Click on feature to display attributes">
+  #<input class="toolCheck" type="checkbox" name="checkAttributes" value="valuable" id="checkAttributes" />
+  #<label for="checkAttributes"><i class="fa fa-question "></i></label>
+#</span>
+
+buttonAttributes <- tags$div(
+  title="Toggle vector attributes information mode",
+  tags$input(
+    type="checkbox",
+    class="toolCheck",
+    name="checkAttributes",
+    id="checkAttributes",
+    value="attributes"
+    ),
+  tags$label(
+    `for`="checkAttributes",
+    icon("info-circle")
+  )
+  )
+
+
 #
 # Map custom style
 #
@@ -33,9 +57,20 @@ observeEvent(reactMap$mapInitDone,{
   map %>% 
 glInit(
   idGl="basemap",
-  style=mxConfig$mapboxStyle,
-  token=mxConfig$mapboxToken)%>%
-  setZoomOptions(buttonOptions=list(position="topright")) 
+  style = mxConfig$mapboxStyle,
+  token = mxConfig$mapboxToken
+  ) %>%
+  setZoomOptions(
+    buttonOptions = list(
+      position = "topright"
+      )
+    ) %>%
+  addControl(
+    buttonAttributes,
+    className = "leaflet-control leaflet-bar",
+    position = "topright"
+    )
+
   session$sendCustomMessage(
     type="addCss",
     "src/mapx/css/leafletPatch.css"

@@ -20,6 +20,8 @@ observe({
     cntry <- toupper(reactProject$name)
     # update trigger
     update <- reactMap$layerListUpdate
+    # check mode
+    modeToolbox <- isTRUE( reactUi$panelMode == "mxModeToolBox" )
     # user information
     roles <- reactUser$role
     data <- reactUser$data
@@ -33,7 +35,7 @@ observe({
     #
     # update choice
     #
-    if(allow && hasData && hasReadLevel && hasReadLevel){
+    if(allow && hasData && hasReadLevel && hasReadLevel && modeToolbox ){
       # fetch layers list
       layers <- mxDbGetLayerList(
         project=cntry,
@@ -42,7 +44,7 @@ observe({
         )
       # if there is at least one layers, update choices
       if(!noDataCheck(layers)){
-        choice = layers
+        choice = c("",layers)
       }
     }
 
@@ -58,7 +60,7 @@ observe({
 # Populate column selection
 # 
 
-observe({
+observeEvent(input$selLayer,{
   mxCatch("Update input: layer columns",{
 
   modeCreator <- isTRUE( reactUi$panelMode == "mxModeToolBox" )
@@ -67,6 +69,7 @@ observe({
     allow <- reactUser$allowViewsCreator
     # get selected layer
     layer <- input$selLayer
+    
     # defaults
     variables <- mxConfig$noData
     hasDate <- FALSE
@@ -75,6 +78,10 @@ observe({
 
     # Update variables
     if( allow && layerIsOk && modeCreator ){
+
+      # disable existing view
+      reactMap$viewsDataToDisplay = ""
+
 
       # fetch variables name
       variables <- mxDbGetColumnsNames(layer)
@@ -284,12 +291,18 @@ observeEvent(input$btnViewCreatorSave,{
       reactMap$viewsDataListUpdate <- runif(1)
 
 
- panModal <- mxPanel(
-      id="panImportModal",
-      title="View creation done",
-      subtitle="Action handler",
-      html=p("Creation done. Please check if the view is available.")
-      )
+      panModal <- mxPanel(
+        id="panImportModal",
+        title="View creation done",
+        subtitle="Action handler",
+        html=p("Creation done. Please check if the view is available.")
+        )
+
+      proxyMap <- leafletProxy("mapxMap")
+        proxyMap %>% 
+        hideGroup(sty$group)
+
+        mxRemoveEl(class=sprintf("%s_legends",sty$group)) 
 
     mxUpdateText(id="panelAlert",ui=panModal)
 

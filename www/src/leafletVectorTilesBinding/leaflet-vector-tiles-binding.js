@@ -240,24 +240,32 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
       return feature.properties[idColumn];
     },
     onClick: function(evt) {
+      var attrMode =  document
+        .getElementById("checkAttributes")
+        .checked;
+
       var feature = evt.feature;
       var coord = evt.latlng;
       var showTable = true;
+      if(attrMode){
+        //Shiny.onInputChange("leafletvtClickCoord",coord);
+        if(feature !== null && typeof feature !== undefined){
+          featureProp = feature.properties;
 
-      Shiny.onInputChange("leafletvtClickCoord",coord);
-      if(feature !== null && typeof feature !== undefined){
-        featureProp = feature.properties;
-
-        var popup = L.popup({
-          minWidth:300,
-          minHeight:200,
-          maxHeight:400,
-          maxWidth:400,
-          closeOnClick:true}) 
-          .setLatLng(evt.latlng)
-          .setContent(objToList(featureProp,['gid','mx_date_start','mx_date_end']))
-          .openOn(feature.map);
-
+          var popup = L.popup({
+            minWidth:300,
+            minHeight:200,
+            maxHeight:400,
+            maxWidth:400,
+            closeOnClick:true}) 
+            .setLatLng(evt.latlng)
+            .setContent(objToList(featureProp,['gid','mx_date_start','mx_date_end']))
+            .openOn(feature.map);
+        }
+      }else{ 
+        if(feature !== null && typeof feature !== undefined){
+          feature.deselect();
+        }
       }
     },
     filter: function(feature, context) {
@@ -284,13 +292,6 @@ LeafletWidget.methods.addVectorTiles = function(urlTemplate,vectLayer,idColumn,l
         }
       }
     },
-   // layerOrdering: function(feature) {
-      //debugger;
-      ////This only needs to be done for each type, not necessarily for each feature. But we'll start here.
-      //if (feature && feature.properties) {
-        ////feature.properties.zIndex =  zIndex;
-      /*}*/
-    //},
     // DEFAULT STYLE. Will be modified after.
     style: function (feature) {
       var s = {};

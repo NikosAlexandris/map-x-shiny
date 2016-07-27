@@ -16,70 +16,73 @@ observe({
   mxCatch(title="Add vector tiles",{
     group <- reactStyle$group
     layer <- reactStyle$layer
-    mode <- reactUi$panelMode
-    variable <- isolate(reactStyle$variable)
-    userId <- isolate(reactUser$data$id)
-    variableToKeep <- isolate(reactStyle$variableToKeep)
-    variableToKeep <- variableToKeep[ !variableToKeep %in% mxConfig$noVariable ]
-    # test if the requested layer is allowed 
-    #layerOk <- isTRUE( !noDataCheck(layer) && layer %in% reactMap$layerList )
-    layerOk <- isTRUE( !noDataCheck(layer) )
-    # test the current mode
-    modeCreator <- isTRUE( mode == "mxModeToolBox" )
-    # test no data in variables
-    hasVariable <- !noDataCheck(variable)
-    hasVariableToKeep <- !noDataCheck(variableToKeep)
+    if(noDataCheck(group) || noDataCheck(layer)) return()
+    isolate({
+      mode <- isolate(reactUi$panelMode)
+      variable <- isolate(reactStyle$variable)
+      userId <- isolate(reactUser$data$id)
+      variableToKeep <- isolate(reactStyle$variableToKeep)
+      variableToKeep <- variableToKeep[ !variableToKeep %in% mxConfig$noVariable ]
+      # test if the requested layer is allowed 
+      #layerOk <- isTRUE( !noDataCheck(layer) && layer %in% reactMap$layerList )
+      layerOk <- isTRUE( !noDataCheck(layer) )
+      # test the current mode
+      modeCreator <- isTRUE( mode == "mxModeToolBox" )
+      # test no data in variables
+      hasVariable <- !noDataCheck(variable)
+      hasVariableToKeep <- !noDataCheck(variableToKeep)
 
-    # Add vector tile
-    if( layerOk ){
-      
+      # Add vector tile
+      if( layerOk ){
 
-      # fetch availble variable NOTE: this should be done before
-      variableAvailable <- mxDbGetColumnsNames( layer )
 
-      # mode specific values 
-      # loading feedback :
-      # "once" = only send a feedback once when the layer is fully loaded the first time (normal view)
-      # "always" = send a feedback each time layer are loaded (creation mode)
+        # fetch availble variable NOTE: this should be done before
+        variableAvailable <- mxDbGetColumnsNames( layer )
 
-      if( modeCreator ){
-        vars <- variableAvailable
-        feedback <- "always"
-      }else{
-        vars <- unique(c(variableToKeep,variable))
-        feedback <- "once"
+        # mode specific values 
+        # loading feedback :
+        # "once" = only send a feedback once when the layer is fully loaded the first time (normal view)
+        # "always" = send a feedback each time layer are loaded (creation mode)
+
+        if( modeCreator ){
+          vars <- variableAvailable
+          feedback <- "always"
+        }else{
+          vars <- unique(c(variableToKeep,variable))
+          feedback <- "once"
+        }
+
+        # check variables
+        varIsOk <- isTRUE( !noDataCheck(vars) && all( vars %in% variableAvailable ))
+
+        if(varIsOk){
+
+          mxDebugMsg(sprintf("Begin addition of layer %s in group %s",layer,group))
+
+          proxyMap <- leafletProxy("mapxMap",deferUntilFlush=FALSE)
+
+          proxyMap %>%
+            clearGroup(group)
+
+          proxyMap %>%
+            addVectorTiles(
+              userId         = userId,
+              protocol       = mxConfig$vtInfo$protocol,
+              host           = mxConfig$vtInfo$host,
+              port           = mxConfig$vtInfo$port,
+              geomColumn     = mxConfig$vtInfo$geom,
+              idColumn       = mxConfig$vtInfo$gid,
+              layer          = layer,
+              dataColumn     = vars,
+              group          = group,
+              onLoadFeedback = feedback
+              )  
+
+          mxDebugMsg(paste("Start downloading",layer,"from host",mxConfig$vtInfo$host,"on port:",mxConfig$vtInfo$port))
+
+        }
       }
-
-      # check variables
-      varIsOk <- isTRUE( !noDataCheck(vars) && all( vars %in% variableAvailable ))
-
-      if(varIsOk){
-
-      mxDebugMsg(sprintf("Begin addition of layer %s in group %s",layer,group))
-
-        proxyMap <- leafletProxy("mapxMap",deferUntilFlush=FALSE)
-
-        proxyMap %>%
-          clearGroup(group)
-
-        proxyMap %>%
-          addVectorTiles(
-            userId         = userId,
-            protocol       = mxConfig$vtInfo$protocol,
-            host           = mxConfig$vtInfo$host,
-            port           = mxConfig$vtInfo$port,
-            geomColumn     = mxConfig$vtInfo$geom,
-            idColumn       = mxConfig$vtInfo$gid,
-            layer          = layer,
-            dataColumn     = vars,
-            group          = group,
-            onLoadFeedback = feedback
-            )  
-
-        mxDebugMsg(paste("Start downloading",layer,"from host",mxConfig$vtInfo$host,"on port:",mxConfig$vtInfo$port))
-
-      }
-    }
+    })
 })
 })
 
@@ -248,6 +251,19 @@ observe({
     layLocal <- reactStyle$layer
     grpClient <- input$leafletvtIsLoaded$grp
     layClient <- input$leafletvtIsLoaded$lay
+
+   # mxDebugMsg(sprintf("
+        #group reactstyle = %1$s
+        #layer reactstyle = %2$s
+        #group client = %3$s
+        #layer client = %4$s
+        #"
+        #, grpLocal
+        #, layLocal
+        #, grpClient
+        #, layClient
+        #))
+
 
     mxCatch(title="Set layerStyle()",{
 
