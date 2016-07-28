@@ -25,9 +25,9 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top mx-hide",ro
           ),
         tags$span(
           id="selectCountryPanel",
-          class="mx-hide",
+          class="mx-panel-country-container col-xs-12 col-sm-10 col-md-8 col-lg-5 mx-hide",
           tags$div(class="mx-arrow mx-arrow-up-white"),
-          tags$div(class="mx-panel-country mx-panel-country col-xs-11 col-md-7 col-lg-6",
+          tags$div(class="mx-panel-country",
           selectizeInput(
             inputId = "selectCountry",
             label = "Select country",
