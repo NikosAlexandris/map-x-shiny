@@ -64,13 +64,8 @@ glInit(
     buttonOptions = list(
       position = "topright"
       )
-    ) %>%
-  addControl(
-    buttonAttributes,
-    className = "leaflet-control leaflet-bar",
-    position = "topright"
-    )
-
+    ) 
+  
   session$sendCustomMessage(
     type="addCss",
     "src/mapx/css/leafletPatch.css"
@@ -230,7 +225,14 @@ observe({
       idGl="basemap",
       idLayer=layId,
       filter=filt
-      )
+      ) %>%
+  addControl(
+    buttonAttributes,
+    className = "leaflet-control leaflet-bar",
+    position = "topright"
+    )
+
+
 
 
   }else{
