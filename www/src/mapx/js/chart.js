@@ -5,6 +5,10 @@
 
 */
 
+
+mxCharts = {};
+
+
 Shiny.addCustomMessageHandler("updateChart",
     function(m) {
       var data = {
@@ -12,16 +16,29 @@ Shiny.addCustomMessageHandler("updateChart",
         datasets: [ m.dataMain , m.dataComp ]
       };
 
-      var ctx = document.getElementById(m.id).getContext('2d'); 
-      //var mxChart = new Chart(ctx).Radar(data);
-      var mxChart = new Chart(ctx, {
-            type: 'radar',
-            data: data
-      });
-      var chartLegend = mxChart.generateLegend();
-      $('#'+m.idLegend).html(function(){return chartLegend;});
+
+
+      if(mxCharts[m.id]){
+        mxCharts[m.id].destroy();
+      }
+
+        var ctx = document.getElementById(m.id).getContext('2d'); 
+        //var mxChart = new Chart(ctx).Radar(data);
+        var mxChart = new Chart(ctx, {
+          type: 'radar',
+          data: data
+        });
+
+        mxCharts[m.id] = mxChart;
+
+      var chartLegend = mxCharts[m.id].generateLegend();
+      $('#'+m.idLegend).html(
+          function(){
+            return chartLegend;
+          }
+          );
 
 
     }
-    );
+);
 

@@ -28,15 +28,15 @@ shinyServer(function(input, output, session) {
     # 
     source("parts/server/reativeValues.R",local=TRUE)
     #
-    # Load when "document is ready is called"
+    # Load when cookies are read
     #
     observeEvent(input$cookies,{
       reactUser$cookies <- input$cookies
-      mxConsoleText("map-x is launched")
-      mxSendJson("data/tour.json","mxTour")
+      mxConsoleText("Map-x launched, load server function")
       source("parts/server/login.R",local=TRUE)
       source("parts/server/nav.R",local=TRUE)
       source("parts/server/urlParsing.R",local=TRUE)
+      mxSendJson("data/tour.json","mxTour")
     }) 
     #
     # Country panel
