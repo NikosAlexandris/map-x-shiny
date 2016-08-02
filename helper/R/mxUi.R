@@ -574,18 +574,18 @@ cl <- mxConfig$class
           fieldSelected <- "parties"
 
           companies <- unlist(dat$style$companies)
-          updateSelectizeInput(session,
-            itIdFilterCompany,
-            choices = companies,
-            server=TRUE
-            )
+        #  updateSelectizeInput(session,
+            #itIdFilterCompany,
+            #choices = companies,
+            #server=TRUE
+            #)
 
           # create selectize js code
 
           filterSelect <- selectizeInput(
             inputId=itIdFilterCompany, 
             label="", 
-            choices = NULL,
+            choices = companies,
             options = list(
               placeholder = 'Please select a company',
               onInitialize = I(

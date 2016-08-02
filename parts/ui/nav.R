@@ -20,14 +20,14 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top mx-hide",ro
         tags$img(src="img/logo_white.svg",class="mx-logo-small float-left"),
         tags$span(
           id="countryTitle",
-          class="float-right",
+          class="float-left on-top",
           onClick='classToggle("selectCountryPanel","mx-hide")'
           ),
         tags$span(
           id="selectCountryPanel",
-          class="mx-panel-country-container col-xs-12 col-sm-10 col-md-8 col-lg-5 mx-hide",
+          class="mx-panel-country-container col-xs-10 col-lg-8 mx-hide",
           tags$div(class="mx-arrow mx-arrow-up-white"),
-          tags$div(class="mx-panel-country",
+          tags$div(class="mx-panel-country mx-shadow",
           selectizeInput(
             inputId = "selectCountry",
             label = "Select country",
