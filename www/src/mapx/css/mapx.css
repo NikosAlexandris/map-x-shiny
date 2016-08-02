@@ -1650,4 +1650,10 @@ border-radius :0px!important;
     text-transform: uppercase;
 }
 
+#wdiMsg:before {
+    content: "\f05a";
+    font-family: fontawesome;
+}
+
+
 
