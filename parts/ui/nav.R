@@ -28,6 +28,12 @@ tags$nav(id="navbarTop",class="navbar navbar-custom navbar-fixed-top mx-hide",ro
           class="mx-panel-country-container col-xs-10 col-lg-8 mx-hide",
           tags$div(class="mx-arrow mx-arrow-up-white"),
           tags$div(class="mx-panel-country mx-shadow",
+          tags$a(class="float-right",
+            href="#",
+            icon("times"),
+            onClick='classToggle("selectCountryPanel","mx-hide")',
+            style="color:#000"
+            ),
           selectizeInput(
             inputId = "selectCountry",
             label = "Select country",

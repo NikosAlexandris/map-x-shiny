@@ -347,7 +347,6 @@ box-shadow: 0px 6px 16px 0px rgba(0,0,0,0.75);
 
 
 
-
 /*.mx-panel-country-container:before {*/
     /*content: "\f0d8";*/
     /*font-family: fontawesome;*/
@@ -361,7 +360,8 @@ box-shadow: 0px 6px 16px 0px rgba(0,0,0,0.75);
 .mx-panel-country-container {
     position: absolute;
     display: block;
-    margin-top: 25px
+    margin-top: 25px;
+    cursor: initial;
 }
 
 /*https://css-tricks.com/snippets/css/css-triangle/*/
