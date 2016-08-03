@@ -131,9 +131,9 @@ observeEvent(input$btnDrawActionConfirm,{
   # get actual geojson from client
   gj <- reactMap$drawActionGeoJson 
   # table for polygon
-  tp <- tolower(randomString("mx_poi",splitSep="_",splitIn=5,n="30"))
+  tp <- randomString("mx_poi")
   # table for inner join (result)
-  tr <- tolower(randomString("mx_poi",splitSep="_",splitIn=5,n="30"))
+  tr <- randomString("mx_poi")
   # columns to import
   lc <- mxDbGetColumnsNames( sl )
   # add geojson to tp
