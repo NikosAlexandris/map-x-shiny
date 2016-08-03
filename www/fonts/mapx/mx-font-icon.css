@@ -1,8 +1,8 @@
 
 @font-face {
     font-family: "mx-font-icon";
-    src: url("mx-font-icon.eot?457105e04832e54bdae1c66eac96fb91?#iefix") format("embedded-opentype"),
-url("mx-font-icon.woff?457105e04832e54bdae1c66eac96fb91") format("woff");
+    src: url("mx-font-icon.eot?eda51fd7dd2df63f4c6beef94a29ba1b?#iefix") format("embedded-opentype"),
+url("mx-font-icon.woff?eda51fd7dd2df63f4c6beef94a29ba1b") format("woff");
     font-weight: normal;
     font-style: normal;
 }
@@ -17,7 +17,10 @@ url("mx-font-icon.woff?457105e04832e54bdae1c66eac96fb91") format("woff");
    -moz-osx-font-smoothing: grayscale
 }
 
-.mx-satellite:before {
+.mx-cursor-question:before {
 	content: "\f101";
+}
+.mx-satellite:before {
+	content: "\f102";
 }
 
