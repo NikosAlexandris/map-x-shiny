@@ -219,27 +219,15 @@ observe({
 })
 
 
-
-
 # views queuing system
 observeEvent(reactMap$viewsDataToDisplay,{
   mxCatch(title="Views queing system",{
-    mxDebugMsg(
-      paste("View to display =",
-        reactMap$viewsDataToDisplay
-        )
-      )
-    # available views data
-    vAll <- names(reactMap$viewsData)
     # views list to render
     vToDisplay <- reactMap$viewsDataToDisplay
     # views actually rendered by leaflet
     vDisplayed <- input$mapxMap_groups
     # views saved in leafletvt object
     vProcessed <- input$leafletvtViews
-    # names of all views
-    # render only available ones for the user.
-    vDisplayed <- vDisplayed[vDisplayed %in% vAll]
     # views to hide
     reactMap$viewsToHide <- unique(vDisplayed[! vDisplayed %in% vToDisplay])
     # views to reactivate
@@ -247,31 +235,28 @@ observeEvent(reactMap$viewsDataToDisplay,{
     reactMap$viewsToReveal <- unique(vToShow[!vToShow %in% vDisplayed])
     # views to download and display
     reactMap$viewsToMake <-  unique(vToDisplay[!vToDisplay %in% vProcessed][1])
+
+#    mxDebugMsg(
+      #jsonlite::toJSON(list(
+          #toReveal = reactMap$viewsToReveal,
+          #toHide = reactMap$viewsToHide,
+          #toMake = reactMap$viewsToMake,
+          #displayed = vDisplayed,
+          #processed = vProcessed
+          #))
+      #)
+
       })
 })
 
 
 
+#
+# Clean views and legends at country changes
+#
+
 observeEvent(reactProject$name,{
-  vToRemove = c(
-    reactMap$viewsToMake,
-    reactMap$viewsToReveal,
-    reactMap$viewsDataToDisplay
-    )
-
-  vToRemove<-vToRemove[ !vToRemove %in% mxConfig$noData ]
-
- proxyMap <- leafletProxy("mapxMap")
-
-    proxyMap  %>% clearControls() 
-
-  if(length(vToRemove)==0) return()
-  
-      for(v in vToRemove){ 
-
-        proxyMap %>%
-      clearGroup(as.character(v))
-  }
+  reactMap$viewsDataToDisplay <- list() 
 })
 
 
@@ -285,6 +270,7 @@ observeEvent(reactProject$name,{
 observeEvent(reactMap$viewsToHide,{
   mxCatch(title="View to hide",{
     vToHide <- reactMap$viewsToHide
+
     if(!noDataCheck(vToHide)){
       for(vth in vToHide){
         mxDebugMsg(

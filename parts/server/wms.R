@@ -81,6 +81,7 @@ observeEvent(input$selectWmsLayer,{
       proxyMap %>% addWMSTiles(
         layerId=layerId,
         baseUrl=url,
+        group = mxConfig$layerWms, 
         layers=lay,
         options=list(
           "transparent"="true",
@@ -119,10 +120,21 @@ observeEvent(input$btnValidateWms,{
 })
 })
 
-observeEvent(input$btnRemoveWms,{
-    layerId = "wmslayer"
-   proxyMap <- leafletProxy("mapxMap")
-    proxyMap %>% removeTiles(layerId)
+observeEvent(input$btnToggleWms,{
+  
+  visible <- isTRUE( input$btnToggleWms )
+  idLayer <- mxConfig$layerWms
+
+  proxyMap <- leafletProxy("mapxMap")
+
+ if( visible ){
+   proxyMap %>% 
+     hideGroup( idLayer )
+  }else{
+   proxyMap %>% 
+     showGroup( idLayer )
+  }
+
 })
 
 

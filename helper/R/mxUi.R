@@ -762,3 +762,48 @@ cl <- mxConfig$class
   }
 
 
+
+mxButtonToggle <- function(inputId=NULL,title="Toggle",contentChecked="\\f06e",contentUnchecked="\\f070",class="btn btn-default"){
+
+  name <- sprintf(
+    "check_%1$s"
+    , inputId
+    )
+
+  classLabel <- sprintf(
+    "mx-check-%1$s"
+    , inputId
+    )
+
+tags$div(
+  title=title,
+  tags$input(
+    type="checkbox",
+    style="display:none",
+    name=name,
+    id=inputId,
+    value="attributes"
+    ),
+  tags$label(
+    class=paste(paste(class,collapse=" "),classLabel),
+    `for`=inputId
+  ),
+  tags$style(
+    sprintf(
+      "#%1$s ~ .%2$s:before {
+      font-family:fontawesome;
+      content:\"%3$s\";}
+       #%1$s:checked ~.%2$s:before {
+      font-family:fontawesome;
+      content:\"%4$s\";}"
+      , inputId
+      , classLabel
+      , contentChecked
+      , contentUnchecked
+      )
+    )
+  )
+
+
+}
+

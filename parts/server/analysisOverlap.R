@@ -82,12 +82,21 @@ observe({
 #
 # REMOVE LAYER
 #
-observeEvent(input$btnAnalysisRemoveLayer,{
-  
+observeEvent(input$btnToggleOverlaps,{
+ 
   proxyMap <- leafletProxy("mapxMap")
-  proxyMap %>% 
-  clearGroup( mxConfig$layerOverlap )
-  
+  visible <- isTRUE(input$btnToggleOverlaps)
+
+  if( visible ){
+   proxyMap %>% 
+     hideGroup( mxConfig$layerOverlap )
+  }else{
+   proxyMap %>% 
+     showGroup( mxConfig$layerOverlap )
+  }
+
+
+   
 })
 
 
@@ -97,6 +106,7 @@ observeEvent(input$btnAnalysisRemoveLayer,{
 observeEvent(input$btnAnalysisOverlaps,{
   mxCatch(title="Overlaps analysis",{
 
+    mxActionButtonState(id="btnAnalysisOverlaps",disable=TRUE) 
     allow <- isTRUE(reactUser$unlockAnalysisOverlap)
 
     if( allow ){
@@ -108,7 +118,7 @@ observeEvent(input$btnAnalysisOverlaps,{
     if(!noDataCheck(idA) && !noDataCheck(idB)){
       # ASSUME THAT the same combination of layer will produce the same output.
       outName <- paste0("tmp__",digest(paste(idA,idB,idAVar)))
-      mxUpdateText(id="txtAnalysisOverlaps",text="Launch analysis... This could a slow process, please be patient")
+      mxUpdateText(id="txtAnalysisOverlaps",text="Launch analysis... This could be a slow process, please be patient")
 
 
       #

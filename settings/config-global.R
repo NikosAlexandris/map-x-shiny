@@ -100,6 +100,7 @@ mxConfig$defaultZoom <- 9
 mxConfig$defaultGroup <- "G1"
 # Default layers names
 mxConfig$layerOverlap <- "mx-overlap"
+mxConfig$layerWms <- "mx-wms"
 # column column used in postgis
 mxConfig$defaultGeomCol <- "geom"
 # cookies expiration in days

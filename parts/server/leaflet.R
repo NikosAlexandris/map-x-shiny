@@ -39,23 +39,36 @@ observeEvent(input$leafletVtError,{
 
 observeEvent(reactMap$mapInitDone,{
   mxCatch(title="After init done",{
-  map <- leafletProxy("mapxMap")
-  map %>% 
-glInit(
-  idGl="basemap",
-  style = mxConfig$mapboxStyle,
-  token = mxConfig$mapboxToken
-  ) %>%
-  setZoomOptions(
-    buttonOptions = list(
+    map <- leafletProxy("mapxMap")
+    map %>% 
+      glInit(
+        idGl="basemap",
+        style = mxConfig$mapboxStyle,
+        token = mxConfig$mapboxToken
+        ) %>%
+    setZoomOptions(
+      buttonOptions = list(
+        position = "topright"
+        )
+      ) %>%
+    addControl(
+      layerId = "btnQueryControl",
+      buttonAttributes,
+      className = "leaflet-control leaflet-bar",
       position = "topright"
+      ) %>%
+    addControl(
+      layerId = "btnSatelliteControl",
+      buttonSatellite,
+      className = "leaflet-control leaflet-bar",
+      position = "topright"
+      )   
+
+
+    session$sendCustomMessage(
+      type="addCss",
+      "src/mapx/css/leafletPatch.css"
       )
-    ) 
-  
-  session$sendCustomMessage(
-    type="addCss",
-    "src/mapx/css/leafletPatch.css"
-    )
 })
 })
 
@@ -197,11 +210,10 @@ buttonAttributes <- tags$div(
     class="leaflet-button-mapx",
     `for`="checkAttributes",
     tags$i(class="mx mx-cursor-question")
-    #icon("info-circle")
   )
   )
 buttonSatellite <- tags$div(
-  title="Toggle satellite imagery",
+  title="Toggle aerial imagery",
   tags$input(
     type="checkbox",
     class="leaflet-checkbox",
@@ -212,7 +224,7 @@ buttonSatellite <- tags$div(
   tags$label(
     class="leaflet-button-mapx",
     `for`="checkSatellite",
-    tags$i(class="mx mx-satellite")
+    icon("plane")
   )
   )
 #
@@ -226,9 +238,8 @@ observe({
   cnt <- !noDataCheck( iso3 )
   ini <- !noDataCheck( reactMap$mapInitDone )
   lay <- isTRUE( layId %in% input$glLoadedLayers )
-  done <- !noDataCheck( isolate( reactMap$mapCountryOverlayDone ) )
 
-  if( cnt && ini && lay && !done ){
+  if( cnt && ini && lay ){
     reactMap$mapCountryOverlayDone <- runif(1)
     center <- mxConfig$countryCenter[[ iso3 ]] 
 
@@ -243,17 +254,8 @@ observe({
       idGl="basemap",
       idLayer=layId,
       filter=filt
-      ) %>%
-  addControl(
-    buttonAttributes,
-    className = "leaflet-control leaflet-bar",
-    position = "topright"
-    ) %>%
-  addControl(
-    buttonSatellite,
-    className = "leaflet-control leaflet-bar",
-    position = "topright"
-    )
+      ) 
+
   }
 
 })

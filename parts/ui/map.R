@@ -93,7 +93,7 @@ uiMapCreatorView <- tagList(
 uiMapConfigBaseMap = tagList(
   selectInput(
     "selectConfigBaseMap",
-    "Select a satellite imagery source",
+    "Select a source",
     choices=list(
       `Here satellite`="heresat",
       `MapBox satellite`="mapboxsat",
@@ -110,28 +110,35 @@ uiMapConfigWms = tagList(
     choices=mxConfig$wmsSources
     ),
   textInput("txtWmsServer","Edit WMS server"),
-  tags$ul(class="list-inline banner-social-buttons",
-    tags$li(actionButton("btnValidateWms",icon("refresh")))
-    ),
   textOutput("msgWmsServer"),
   selectInput("selectWmsLayer","Select available layer",choices=""),
   tags$ul(class="list-inline banner-social-buttons",
-    tags$li(actionButton("btnRemoveWms",icon("times")))
+    tags$li(actionButton("btnValidateWms",icon("refresh"))),
+    tags$li(mxButtonToggle("btnToggleWms"))
     )
   )
 #
 # TOOL MAP OVERLAP ANALYSIS
 #
 uiMapOverlap <- tagList(
-    selectInput("selectOverlapA","Map to query",choices=mxConfig$noData),
-    selectInput("selectOverlapAVar","Variable to keep",
-      choices="",
-      multiple=TRUE
+  selectInput("selectOverlapA","Map to query",choices=mxConfig$noData),
+  selectInput("selectOverlapAVar","Variable to keep",
+    choices="",
+    multiple=TRUE
+    ),
+  selectInput("selectOverlapB","Zone",choices=mxConfig$noData),
+
+  tags$ul(class="list-inline banner-social-buttons",
+    tags$li(
+      actionButton("btnAnalysisOverlaps",icon("play"))
       ),
-    selectInput("selectOverlapB","Zone",choices=mxConfig$noData),
-    actionButton("btnAnalysisRemoveLayer",icon("times")),
-    actionButton("btnAnalysisOverlaps",icon("play")),
-    span(id="txtAnalysisOverlaps","")
+    tags$li(
+      mxButtonToggle("btnToggleOverlaps")
+      ),
+    tags$li(
+      span(id="txtAnalysisOverlaps","")
+      )
+    )
   )
 #
 # TOOL POLYGON OF INTEREST
@@ -181,7 +188,7 @@ uiMapToolbox <- tagList(
               ),
             uiMapConfigBaseMap=list(
               class = "mx-allow-basemap",
-              title="Satellite imagery",
+              title="Aerial/Satellite Imagery",
               content = uiMapConfigBaseMap
               ),
             data=list(
