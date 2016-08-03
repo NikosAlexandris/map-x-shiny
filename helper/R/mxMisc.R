@@ -220,13 +220,18 @@ mxCatch <- function(
         mxPanelAlert(
           "error",
           title,
-          message=tagList(
-            p(emsg),
-            p(style="", paste("(",paste(ecall,collapse=" "),")"))
-            ),
-          ...
+          message=tagList(p("Something went wrong, sorry!"))
           )
       })
+
+
+      msgLog <- paste(
+        emsg,
+        paste("(",paste(ecall,collapse=" "),")")
+        )
+
+
+
     }
   },warning = function(e){
     emsg <- as.character(e$message)
