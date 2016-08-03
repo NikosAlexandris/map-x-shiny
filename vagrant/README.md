@@ -2,6 +2,8 @@
 
 ## Overview
 
+* Check/Install dependencies: `git`, `Vagrant`, `VirtualBox`.
+
 1. Clone the project
 
 2. Copy `Vagrantfile_Template` as `Vagrantfile`
