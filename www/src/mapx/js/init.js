@@ -24,19 +24,26 @@ $( document ).ready(function() {
     containment: '#sectionMap'
   });
 
-/*  // show or hide country selection */
-  //var countryChoice = document.getElementById("navBarCountryChoice");  
-  //countryChoice.onmouseover = function(){
-    //classRemove('selectCountryPanel','mx-hide'); 
-    //classAdd('countryTitle','mx-hide'); 
-  //};
-  //countryChoice.onmouseout = function(){
-    //classAdd('selectCountryPanel','mx-hide');
-    //classRemove('countryTitle','mx-hide');
-  //};
+  Shiny.addCustomMessageHandler("mxCleanViewsMenu",
+      function(e) {
 
+        var viewsCheck =  document.getElementsByName("viewsFromMenu");
 
-});
+        for( var i = 0; i < viewsCheck.length; i++ ){
+          var item = viewsCheck[i];
+          if( item.checked === true ){
+            item.click();
+            /* var legend = document.getElementsByClassName( item.value + "_legends")[0];*/
+            //if( typeof(legend) !== "undefined" ) {
+            //debugger;
+            //legend.remove();
+            //}
+            /*}*/
+        }
+      }
+      }
+      );
+  });
 
 
 

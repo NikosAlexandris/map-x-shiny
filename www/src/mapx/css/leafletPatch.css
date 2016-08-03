@@ -30,9 +30,9 @@ leaflet modification
 }
 
 .leaflet-bar a, .leaflet-bar a:hover {
-    width: 35px;
-    height: 35px;
-    line-height: 35px;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
 }
 
 /* Button leaflet attributes*/
@@ -42,13 +42,15 @@ leaflet modification
   background: #FFF;
   color: #000;
   display: block;
-  width: 35px;
-  height: 35px;
+  width: 26px;
+  height: 26px;
   border-radius: 4px;
   display: table-cell;
   text-align: center;
   vertical-align: middle;
-  font-size: 24px;
+
+    line-height: 26px;
+  /*font-size: 24px;*/
 }
 
 
