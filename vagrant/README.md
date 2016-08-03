@@ -69,6 +69,9 @@ In which case, the variable `pwd_mail_mapx` will be ignored. **This is not imple
 The provision may be launched via the command `vagrant up`.  The provision will
 fail if any of the above mentioned variables are not set.
 
+The command `vagrant provision` will re-provision the machine after any modifications
+(ie to the provisioning scripts).
+
 # Notes
 
 - In this version of map-x, excluded from git's archive are:
