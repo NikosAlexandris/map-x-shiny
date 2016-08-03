@@ -180,43 +180,83 @@ observeEvent(reactProject$name,{
 #
 # SHOW INDEX
 #
-
-
-
 observe({
-  idx <- input$selectIndicator
-  cnt <- reactProject$name
-  msg <- ""
-  if(!noDataCheck(idx) && !noDataCheck(cnt)){
+  mxCatch("Plot WDI data",{
+    idx <- input$selectIndicator
+    cnt <- reactProject$name
+    msg <- ""
+    dat <- data.frame()
 
-    mxCatch("Plot WDI data",{
+    if(!noDataCheck(idx) && !noDataCheck(cnt)){
 
+
+      # Update message text
+      mxUpdateText("wdiMsg",
+        sprintf("Requested data for %1$s in %2$s"
+          , idx
+          , cnt
+          )
+        )
+      # Try to connect to worldbang.org
       if(!mxCanReach("data.worldbank.org")){
         msg <- "No connection to worldbank development index."
         mxUpdateText("wdiMsg",msg)
       }else{
+        tryCatch({
+          dat <- WDI(
+            indicator = idx, 
+            country = countrycode(cnt,'iso3c','iso2c'), 
+            start = 1980, 
+            end = 2016
+            )
+        },
+        error = function(cond){ 
+          mxDebugToJs(
+            sprint("WDI graph error in %1$s: %2$s"
+              , cnt
+              , cond$message
+              )
+            )
+        },
+        warning = function(cond){ 
+          mxDebugToJs(
+            sprintf("WDI graph Warning in %1$s:  %2$s"
+              , cnt
+              , cond$message
+              )
+            )
+        })
 
-        dat <- WDI(
-          indicator = idx, 
-          country = countrycode(cnt,'iso3c','iso2c'), 
-          start = 1980, 
-          end = 2016
-          )
+        # If we have something, update dyGraph
+        if(nrow(dat)>0){
+          dat = na.omit(dat)
 
-        dat = na.omit(dat)
-        if(exists('dat') && nrow(dat)>0){
           dat$year <- as.Date(paste0(dat$year,'-12-31'))
           datSeries <- xts(dat[,idx],order.by=dat$year)
-          idxName = names(mxConfig$wdiIndicators[idx])
-          graphIndicator = dygraph(
+          idxName <- names(mxConfig$wdiIndicators[idx])
+
+          graphIndicator <- dygraph(
             data=datSeries,
             main=idxName,
             ylab=idxName) %>% 
           dyRangeSelector()
-          output$dyGraphWdi <- renderDygraph({
-            graphIndicator
-          })
-      }}
-        })
-  }
+
+        }else{
+          mxUpdateText("wdiMsg",
+            sprintf("No data returned for %1$s in %2$s"
+              , idx
+              , cnt
+              )
+            ) 
+        }
+      }
+    }
+
+    # In case of missing graphIndicator, create emtpy one
+    if(!exists("graphIndicator")){
+      graphIndicator <- dygraph(as.ts(data.frame(0)))
+    } 
+
+    output$dyGraphWdi <- renderDygraph(graphIndicator)
+      })
 })

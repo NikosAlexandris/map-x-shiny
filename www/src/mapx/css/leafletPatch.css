@@ -29,28 +29,35 @@ leaflet modification
   background: rgba(0,0,0,.8);
 }
 
+.leaflet-bar a, .leaflet-bar a:hover {
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+}
 
 /* Button leaflet attributes*/
 
-.toolCheck {
-  display: none;
-}
 
-.toolCheck + label {
+.leaflet-button-mapx {
   background: #FFF;
   color: #000;
   display: block;
-  width: 26px;
-  height: 26px;
+  width: 35px;
+  height: 35px;
   border-radius: 4px;
   display: table-cell;
   text-align: center;
-  vertical-align: middle
+  vertical-align: middle;
+  font-size: 24px;
 }
 
-.toolCheck:checked + label {
-    background: #CCC;
-    border-top : 1px solid #AAA;
-    border-left :1px solid #AAA;
+
+.leaflet-checkbox {
+  display: none;
 }
 
+.leaflet-checkbox:checked + .leaflet-button-mapx {
+  background: #CCC;
+  border-top : 1px solid #AAA;
+  border-left :1px solid #AAA;
+}

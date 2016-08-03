@@ -31,20 +31,6 @@ observeEvent(input$leafletVtError,{
   #<label for="checkAttributes"><i class="fa fa-question "></i></label>
 #</span>
 
-buttonAttributes <- tags$div(
-  title="Toggle vector attributes information mode",
-  tags$input(
-    type="checkbox",
-    class="toolCheck",
-    name="checkAttributes",
-    id="checkAttributes",
-    value="attributes"
-    ),
-  tags$label(
-    `for`="checkAttributes",
-    icon("info-circle")
-  )
-  )
 
 
 #
@@ -118,10 +104,10 @@ observeEvent(input$glLoaded,{
     tileSize = 256 
     )
 
-  srcSatelliteHere = list(
+ srcSatelliteHere = list(
     tiles = c(
-      "https://1.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=kaq3He8C5WiDCB2yadWE&app_code=vvvkBHJXgetE5n9fRQxrOA&ppi=72",
-      "https://2.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=kaq3He8C5WiDCB2yadWE&app_code=vvvkBHJXgetE5n9fRQxrOA&ppi=72"),
+    "https://1.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=8O8WmE7U46S3sj93t9TN&app_code=k8YdYxvaliuJc1nz99d-ZA&ppi=72",
+    "https://2.aerial.maps.cit.api.here.com/maptile/2.1/basetile/newest/satellite.day/{z}/{x}/{y}/512/jpg?app_id=8O8WmE7U46S3sj93t9TN&app_code=k8YdYxvaliuJc1nz99d-ZA&ppi=72"),
     type="raster",
     tileSize = 512
     )
@@ -198,6 +184,36 @@ observeEvent(input$glLoaded,{
 
 
 
+buttonAttributes <- tags$div(
+  title="Toggle vector attributes information mode",
+  tags$input(
+    class="leaflet-checkbox",
+    type="checkbox",
+    name="checkAttributes",
+    id="checkAttributes",
+    value="attributes"
+    ),
+  tags$label(
+    class="leaflet-button-mapx",
+    `for`="checkAttributes",
+    icon("info-circle")
+  )
+  )
+buttonSatellite <- tags$div(
+  title="Toggle satellite imagery panel",
+  tags$input(
+    type="checkbox",
+    class="leaflet-checkbox",
+    name="checkSatellite",
+    id="checkSatellite",
+    value="attributes"
+    ),
+  tags$label(
+    class="leaflet-button-mapx",
+    `for`="checkSatellite",
+    tags$i(class="mx mx-satellite")
+  )
+  )
 #
 # update country extent
 #
@@ -209,9 +225,10 @@ observe({
   cnt <- !noDataCheck( iso3 )
   ini <- !noDataCheck( reactMap$mapInitDone )
   lay <- isTRUE( layId %in% input$glLoadedLayers )
+  done <- !noDataCheck( isolate( reactMap$mapCountryOverlayDone ) )
 
-  if( cnt && ini && lay ){
-
+  if( cnt && ini && lay && !done ){
+    reactMap$mapCountryOverlayDone <- runif(1)
     center <- mxConfig$countryCenter[[ iso3 ]] 
 
     # if the country code match, don't paint it.
@@ -230,13 +247,13 @@ observe({
     buttonAttributes,
     className = "leaflet-control leaflet-bar",
     position = "topright"
+    ) %>%
+  addControl(
+    buttonSatellite,
+    className = "leaflet-control leaflet-bar",
+    position = "topright"
     )
-
-
-
-
-  }else{
-  mxDebugMsg(sprintf("Move map center validation : iso3=%s,cnt=%s,ini=%s,lay=%s",iso3,cnt,ini,lay))
   }
+
 })
 

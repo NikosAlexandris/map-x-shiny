@@ -95,10 +95,9 @@ uiMapConfigBaseMap = tagList(
     "selectConfigBaseMap",
     "Select a satellite imagery source",
     choices=list(
-      mxConfig$noLayer,
+      `Here satellite`="heresat",
       `MapBox satellite`="mapboxsat",
-      `MapBox satellite live`="mapboxsatlive",
-      `Here satellite`="heresat"
+      `MapBox satellite live`="mapboxsatlive"
       )
     )
   )

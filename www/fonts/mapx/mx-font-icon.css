@@ -1,0 +1,23 @@
+
+@font-face {
+    font-family: "mx-font-icon";
+    src: url("mx-font-icon.eot?457105e04832e54bdae1c66eac96fb91?#iefix") format("embedded-opentype"),
+url("mx-font-icon.woff?457105e04832e54bdae1c66eac96fb91") format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
+ .mx:before {
+   display: inline-block;
+   font-family: "mx-font-icon";
+   font-style: normal;
+   font-weight: normal;
+   line-height: 1;
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale
+}
+
+.mx-satellite:before {
+	content: "\f101";
+}
+

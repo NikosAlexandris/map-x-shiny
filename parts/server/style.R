@@ -167,11 +167,11 @@ observe({
   mxCatch(title="Additional base map",{
     layId <- "basemap"
     selBaseMap <- input$selectConfigBaseMap
-    initOk <- isTRUE(reactMap$mapInitDone > 0)
-
+    initOk <- isTRUE( reactMap$mapInitDone > 0 )
+    isChecked <- isTRUE(input$checkSatellite )
     glOk <- isTRUE(input$glLoaded == "basemap")
 
-    if(initOk && glOk ){
+    if( initOk && glOk ){
       proxymap <- leafletProxy("mapxMap")
       styleList = list(
         mapboxsat  = list(
@@ -196,7 +196,7 @@ observe({
           `max-zoom`=22
           )
         )
-      if( selBaseMap != mxConfig$noLayer ){    
+      if( isChecked ){    
         proxymap %>% 
        glRemoveLayer(
           idGl = "basemap",

@@ -5,6 +5,7 @@ var outFile = "dist/assets.css";
 var inFile =  [ 
     "src/normalize/normalize.css",
     "fonts/open-sans-fontfacekit/fonts/opensans_light_macroman/stylesheet.css",
+    "fonts/mapx/mx-font-icon.css",
     "src/font-awesome-4.4.0/css/font-awesome.min.css", 
     "src/theme/grayscale/bootstrap.min.css",
     "src/handsontable/handsontable.full.min.css",
