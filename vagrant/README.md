@@ -61,8 +61,7 @@ set up for a free/public SMTP service that does not require password
 authentication.  For such a service, this variable may be set to 
 `passwordless = TRUE`.
 
-In which case, the variable `pwd_mail_mapx` will be ignored. **This is however
-yet untested.**
+In which case, the variable `pwd_mail_mapx` will be ignored. **This is not implemented yet.**
 
 
 *Provision*
