@@ -90,7 +90,7 @@ sending e-mails via Google's smtp
 
 `/etc/postfix/main.cf`:
 
-``{sh}
+```{sh}
 # See /usr/share/postfix/main.cf.dist for a commented, more complete version
 
 # Debian specific:  Specifying a file name will cause the first
@@ -139,13 +139,13 @@ smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
 smtp_sasl_security_options = noanonymous
 smtp_sasl_tls_security_options = noanonymous
 smtp_sasl_auth_enable = yes
-``
+```
 
 and the file `sasl_passwd` should contain:
 
-``{sh}
+```{sh}
 [smtp.gmail.com]:PORT    Username:PassWord
-``
+```
 Obviously, the PORT, Username and PassWord should be replaced as appropriate.
 Notes
 
