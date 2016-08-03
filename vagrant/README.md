@@ -2,7 +2,7 @@
 
 ## Overview
 
-1. Clone the virtual machine locally
+1. Clone the project
 
 2. Copy `Vagrantfile_Template` as `Vagrantfile`
 
