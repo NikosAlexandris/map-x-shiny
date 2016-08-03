@@ -196,11 +196,12 @@ buttonAttributes <- tags$div(
   tags$label(
     class="leaflet-button-mapx",
     `for`="checkAttributes",
-    icon("info-circle")
+    tags$i(class="mx mx-cursor-question")
+    #icon("info-circle")
   )
   )
 buttonSatellite <- tags$div(
-  title="Toggle satellite imagery panel",
+  title="Toggle satellite imagery",
   tags$input(
     type="checkbox",
     class="leaflet-checkbox",
