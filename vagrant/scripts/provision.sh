@@ -274,7 +274,9 @@ then
   apt-get -qy purge mailutils postfix
   apt-get install -qy postfix mailutils
   # postfix config
+  # if passwordless is set to TRUE, don't add the port
   postconf -e "relayhost = [$relayhost]:$relayport"
+  postconf -e "smtp_tls_security_level = encrypt"
   postconf -e "smtp_sasl_auth_enable = yes"
   postconf -e "smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd"
   postconf -e "smtp_sasl_security_options = noanonymous"

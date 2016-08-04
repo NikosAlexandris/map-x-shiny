@@ -74,6 +74,8 @@ fail if any of the above mentioned variables are not set.
 The command `vagrant provision` will re-provision the machine after any modifications
 (ie to the provisioning scripts).
 
+It is important to make use of the *receipts*. For each successfully installed and configured component, a receipt (file) is created inside the directory `/vagrant/receipts`.  After any modification related to a component, the receipt (file) must be removed before the re-provisioning.  Otherwise, the modifications won't be applied.
+
 # Notes
 
 - In this version of map-x, excluded from git's archive are:
@@ -155,10 +157,10 @@ After creating a, for example, `sasl_password` file, do `postmap
 /etc/postfix/sasl_passwd`. File permissions for `sasl_password` and
 `sasl_password.db` are important!  An example:
 
-``{sh}
+```{sh}
 -rw------- 1 root root       56 Jun 16 10:12 sasl_passwd
 -rw------- 1 root root    12288 Jun 16 09:14 sasl_passwd.db
-``
+```
 
 Don't forget to restart postfix after configuration modifications, ie:
 `/etc/init.d/postfix restart`.
