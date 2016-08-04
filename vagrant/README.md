@@ -54,6 +54,7 @@ Example: `v.memory = 4096`
 
 If familiar with vagrant and its settings, more options can be customised.
 
+
 *Passwordless SMTP service*
 
 In addition,
@@ -68,17 +69,20 @@ In which case, the variable `pwd_mail_mapx` will be ignored. **This is not imple
 
 *Provision*
 
-The provision may be launched via the command `vagrant up`.  The provision will
-fail if any of the above mentioned variables are not set.
+The provision may be launched via the command `vagrant up`.  It will fail if
+any of the above mentioned variables are not set.
 
-The command `vagrant provision` will re-provision the machine after any modifications
-(ie to the provisioning scripts).
+The command `vagrant provision` will re-provision the machine after any
+modifications (ie to the provisioning scripts).
 
 It is important to make use of the *receipts*. For each successfully installed and configured component, a receipt (file) is created inside the directory `/vagrant/receipts`.  After any modification related to a component, the receipt (file) must be removed before the re-provisioning.  Otherwise, the modifications won't be applied.
 
+
 # Notes
 
-- In this version of map-x, excluded from git's archive are:
+*Files excluded from versioning*
+
+In this version of map-x, excluded from git's archive are:
 
   - the `Vagrantfile`
   - all sql dumps
@@ -89,83 +93,24 @@ It is important to make use of the *receipts*. For each successfully installed a
 Here, notes on postfix' settings to send e-mails via Google.  Maybe useful if
 emailing isn't working as expected.
 
-A working copy of postfix settings, from a local map-x-full instance, for
-sending e-mails via Google's smtp
+An example of postfix' settings intented for `/etc/postfix/main.cf` is in
+`/vagrant/config/postfix/example_main.cf`.  As well, an example for the file
+`sasl_passwd` is to be found under the same directoey.  Obviously, in the
+latter file, the PORT, Username and PassWord should be replaced as appropriate.
 
-`/etc/postfix/main.cf`:
+In case of troubleshooting postfix, it might be useful to know the following:
 
-```{sh}
-# See /usr/share/postfix/main.cf.dist for a commented, more complete version
-
-# Debian specific:  Specifying a file name will cause the first
-# line of that file to be used as the name.  The Debian default
-# is /etc/mailname.
-#myorigin = /etc/mailname
-
-smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
-biff = no
-
-# appending .domain is the MUA's job.
-append_dot_mydomain = no
-
-# Uncomment the next line to generate "delayed mail" warnings
-#delay_warning_time = 4h
-
-readme_directory = no
-
-# TLS parameters
-smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
-smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
-smtpd_use_tls=yes
-smtp_tls_security_level = encrypt
-smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
-smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
-smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
-
-# See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
-# information on enabling SSL in the smtp client.
-
-smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = map-x-full
-alias_maps = hash:/etc/aliases
-alias_database = hash:/etc/aliases
-mydestination = map-x-full, localhost.localdomain, , localhost
-# below, replace EmailRelayHost and PORT as appropriate
-relayhost = [EmailRelayHost]:PORT  
-mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
-mailbox_size_limit = 0
-recipient_delimiter = +
-inet_interfaces = all
-inet_protocols = all
-
-#smtp_sasl_auth_enable = yes
-smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
-smtp_sasl_security_options = noanonymous
-smtp_sasl_tls_security_options = noanonymous
-smtp_sasl_auth_enable = yes
-```
-
-and the file `sasl_passwd` should contain:
-
-```{sh}
-[smtp.gmail.com]:PORT    Username:PassWord
-```
-Obviously, the PORT, Username and PassWord should be replaced as appropriate.
-Notes
-
-After creating a, for example, `sasl_password` file, do `postmap
-/etc/postfix/sasl_passwd`. File permissions for `sasl_password` and
-`sasl_password.db` are important!  An example:
+- after creating a `sasl_password` file, do `postmap /etc/postfix/sasl_passwd`.
+- the file permissions for `sasl_password` and `sasl_password.db` are
+important!  Something like:
 
 ```{sh}
 -rw------- 1 root root       56 Jun 16 10:12 sasl_passwd
 -rw------- 1 root root    12288 Jun 16 09:14 sasl_passwd.db
 ```
 
-Don't forget to restart postfix after configuration modifications, ie:
+**Don't forget** to restart postfix after configuration modifications, ie:
 `/etc/init.d/postfix restart`.
-
-
 
 ## Archived Notes
 
