@@ -7,18 +7,6 @@
 #                 |_|           
 # story map reader : create list, select and display story map
 
-
-#
-# source creator module
-#
-observe({
-  allow <- reactUser$allowStoryCreator 
-  if(allow){
-    source("parts/server/storyCreator.R",local=TRUE)
-  }
-})
-
-
 # available story
 observe({
   if(reactUi$panelMode != "mxModeStoryMap") return()

@@ -24,24 +24,44 @@ observeEvent(input$txtStoryName,{
 #
 # Create new story in DB
 #
+
+
 observeEvent(input$btnSaveNewStory,{
 
   allowCreate <- isTRUE(reactUser$allowStoryCreator)
   correctMode <- isTRUE(reactUi$panelMode=="mxModeToolBox")
 
+
+
+
 if( allowCreate && correctMode ){ 
 
      mxActionButtonState(id="btnSaveNewStory",disable=TRUE) 
-     newId <- randomString()
-    defaultVisibility = "self"
+
+
+    # set values
     timeNow <- Sys.time()
+     newId <- randomString()
+     user <- as.integer(reactUser$data$id)
+     country <- reactProject$name
+     title <- input$txtStoryName
+     content <- mxToJsonForDb(NA)
+     defaultVisibility <- "self"
+     visibility <- mxToJsonForDb(defaultVisibility)
+
+  mxDebugMsg(
+    sprintf("New story %s will be saved as %s "
+      , newId
+      , title
+      )
+    )
 
     newStory <- list(
       id=newId,
-      country=reactProject$name,
-      name=input$txtStoryName,
+      country=country,
+      name=title,
       description=as.character(NA),
-      editor = as.integer(reactUser$data$id),
+      editor = user,
       reviewer = 0L,
       revision = 0L,
       validated = TRUE,
@@ -49,7 +69,7 @@ if( allowCreate && correctMode ){
       date_created = timeNow,
       date_modified = timeNow,
       date_validated = timeNow,
-      content= mxToJsonForDb(NA),
+      content= content,
       visibility = mxToJsonForDb(defaultVisibility) 
       )
 
@@ -58,27 +78,25 @@ if( allowCreate && correctMode ){
       table=mxConfig$storyMapsTableName
       )
 
-    mxUpdateText(
-      id="validateNewStoryName",
-     "done." 
-      )
 
-    panModal <- mxPanel(
-      id="panConfirmStorySave",
-      title="New story map saved.",
-      subtitle="Action handler",
-      html=p( sprintf("Saved as '%s' with id '%s' and visibility targeting role '%s' "
+    #updateTextInput(session,
+      #inputId = 'txtStoryName',
+      #value=""
+      #)
+
+
+    msg <- sprintf("Saved as '%s' with id '%s' and visibility targeting role '%s' "
         ,input$txtStoryName
         ,newId
         ,defaultVisibility
         )
-      )  
+
+    mxUpdateText(
+      id="validateNewStoryName",
+      msg 
       )
 
-    output$panelStoryMap <- renderUI(panModal)
-
     reactMap$updateStorySelector<-runif(1)
-    updateTextInput(session,'txtStoryName',value="")
  
   }
 })
@@ -103,7 +121,7 @@ observe({
 #
 
 observeEvent(input$selectStoryId,{
-  mxDebugMsg(sprintf("selected story = %s",input$selectStoryId))
+
   id <- input$selectStoryId
   allow <- FALSE
   if(!noDataCheck(id)){
@@ -238,15 +256,6 @@ observeEvent(input$btnStoryDeleteConfirm,{
     mxDbGetQuery(q)
 
     reactMap$updateStorySelector<-runif(1)
-
-    panModal <- mxPanel(
-      id="panConfirmStoryDelete",
-      title="Remove story map.",
-      subtitle="Confirmation",
-      html=p(sprintf("Story removed"))
-      )
-
-    mxUpdateText(id="panelStoryMap",ui=panModal)
 
   }
 })
