@@ -702,14 +702,15 @@ fi
 #
 # GDAL
 #
-
 if [[ ! -e $dirReceipts/gdal_bin ]]
 then
   printMsg "No receipt gdal. Add and install gdal "
   cd $dirDownload
   # get the last version number
-  sudo wget http://download.osgeo.org/gdal/2.1.1/gdal-2.1.1.tar.gz gdal
-  cd gdal
+  gdalVersion=2.1.1
+  sudo wget http://download.osgeo.org/gdal/$gdalVersion/gdal-$gdalVersion.tar.gz 
+  tar -xvf gdal-$gdalVersion.tar.gz
+  cd gdal-$gdalVersion
   ./configure
   make -j 10
   make install
@@ -718,7 +719,6 @@ then
 else
   printMsg "receipt gdal found, skipping"
 fi
-
 
 
 printMsg "Done."
