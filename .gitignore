@@ -30,3 +30,4 @@ vagrant/vagrant.log
 vagrant/receipts/*
 vagrant/passwords/generated/*
 vagrant/pgdump/*
+vagrant/Vagrantfile
