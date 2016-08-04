@@ -699,6 +699,26 @@ else
   printMsg "receipt nginx_config found skipping"
 fi
 
+#
+# GDAL
+#
+
+if [[ ! -e $dirReceipts/gdal_bin ]]
+then
+  printMsg "No receipt gdal. Add and install gdal "
+  cd $dirDownload
+  # get the last version number
+  sudo wget http://download.osgeo.org/gdal/2.1.1/gdal-2.1.1.tar.gz gdal
+  cd gdal
+  ./configure
+  make -j 10
+  make install
+  ldconfig
+  touch $dirReceipts/gdal_bin
+else
+  printMsg "receipt gdal found, skipping"
+fi
+
 
 
 printMsg "Done."
