@@ -157,10 +157,7 @@ observe({
 
 observe({
   storyView <- input$storyMapData
-  #        if(!noDataCheck(storyView$view)){
-  #          reactMap$viewsDataFromStory <- storyView$view
-  #        }
-  #
+
   if(!noDataCheck(storyView$extent)){
     ext <- storyView$extent
 
@@ -179,7 +176,6 @@ observe({
 observe({
   mxCatch(title="Views manager",{
 
-    #if(reactUi$panelMode %in% c("mxModeExplorer","mxModeStoryMap")){
       #
       # views from url
       #

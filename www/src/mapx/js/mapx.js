@@ -293,9 +293,11 @@ function  updateStoryMaps_orig(){
               }
 
               if(( onView && ! hasLayer ) || ( !onView && hasLayer ) ){
-                setTimeout(function(){  
-                $("input[value=" + vId + "]").trigger("click");
-                  }, 200);
+               
+                document
+                  .querySelectorAll("input[value=" + vId + "]")[0]
+                  .click();
+                
               }
 
               /* Set extent for the current view */

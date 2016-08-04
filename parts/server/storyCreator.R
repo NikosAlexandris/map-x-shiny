@@ -246,6 +246,7 @@ observeEvent(input$btnStoryDeleteConfirm,{
   id <- input$selectStoryId
   allowEdit <- isTRUE(reactUser$allowEditCurrentStory)
   correctMod <- isTRUE(reactUi$panelMode == "mxModeStoryMap")
+
   if( allowEdit && correctMod ){
 
     q <- sprintf("
